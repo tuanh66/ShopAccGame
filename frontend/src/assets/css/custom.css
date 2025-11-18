@@ -1,0 +1,130 @@
+/* Color */
+.text-color {
+    color: var(--text-color) !important;
+}
+
+/* End Color */
+
+/* Text Align */
+.text-justify {
+    text-align: justify !important;
+}
+
+/* End Text Align */
+
+
+/* Font Size */
+.fz-13 {
+    font-size: 13px !important;
+}
+
+.fz-15 {
+    font-size: 15px !important;
+}
+
+/* End Font Size */
+
+/* Font Weight */
+.fw-400 {
+    font-weight: 400 !important;
+}
+
+.fw-500 {
+    font-weight: 500 !important;
+}
+
+.fw-700 {
+    font-weight: 700 !important;
+}
+
+/* End Font Weight */
+
+/* Line Height */
+.lh-20 {
+    line-height: 20px !important;
+}
+
+.lh-24 {
+    line-height: 24px !important;
+}
+
+/* End Line Height */
+
+/* Padding */
+.p-0 {
+    padding: 0 !important;
+}
+
+.py-5 {
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+}
+
+.px-10 {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+}
+
+.pl-20 {
+    padding-left: 20px !important;
+}
+
+.pr-4 {
+    padding-right: 4px !important;
+}
+
+.pr-20 {
+    padding-right: 20px !important;
+}
+
+/* End Padding */
+
+/* Margin */
+.m-0 {
+    margin: 0 !important;
+}
+
+.ml-16 {
+    margin-left: 16px !important;
+}
+
+.mr-16 {
+    margin-right: 16px !important;
+}
+
+.mb-15 {
+    margin-bottom: 15px !important;
+}
+
+.mb-20 {
+    margin-bottom: 20px !important;
+}
+
+/* End Margin */
+
+.relative {
+    position: relative;
+}
+
+.dn {
+    display: none;
+}
+
+
+.w-24 {
+    width: 24px !important;
+}
+
+.w-full {
+    width: 100% !important;
+}
+
+.col-20 {
+    flex: 0 0 20% !important;
+    max-width: 20% !important;
+}
+
+.col-30 {
+    flex: 0 0 30% !important;
+    max-width: 30% !important;
+}

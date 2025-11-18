@@ -1,0 +1,74 @@
+:root {
+    --success-color: oklch(62.7% 0.194 149.214);
+    --success-hover-color: oklch(52.7% 0.154 150.069);
+    --success-focus-color: oklch(44.8% 0.119 151.328);
+    --disable-switch-color: oklch(96.2% 0.044 156.743);
+    --secondary-color: #f473b9;
+    --secondary-hover-color: #CC609B;
+    --secondary-focus-color: #A64E7D;
+    --invalid-color: #da4343;
+    --border-default-color: #e4e5f0;
+    --input-disable-color: #f3f3f7;
+    --bgShadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --bgHoverColor: #f8f8fc;
+    --text-title-color: #1B1D29;
+    --text-color: #434657;
+    --textTitle: #1b1d29;
+    --textLink: #82869e;
+    --text-blur: #a7abc3;
+}
+
+body {
+    font-family: "Roboto", sans-serif;
+    font-style: normal;
+    color: var(--text-color);
+    font-size: 13px;
+    line-height: 20px;
+}
+
+.container {
+    margin: auto;
+    padding-left: 16px;
+    padding-right: 16px;
+    max-width: 1264px;
+}
+
+/* Button */
+.btn {
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 24px;
+    border: none;
+    box-sizing: border-box;
+    height: 40px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 1;
+    flex-direction: column;
+    box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.09);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: capitalize;
+    outline: 0;
+    cursor: pointer;
+    text-align: center;
+    vertical-align: middle;
+    user-select: none;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+        border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    background-color: var(--success-color);
+    color: #fff;
+}
+
+.btn:hover {
+    background-color: var(--success-hover-color);
+}
+
+.btn:active {
+    background-color: var(--success-focus-color);
+}
+
+/* End Button */
