@@ -1,4 +1,14 @@
 :root {
+    --background-color: #ffffff;
+    --primary-color: #8b5cf6;
+    --primary-color-hover: oklab(60.563% 0.08459 -0.20203 / 0.9);
+    --primary-color-focus: #5b21b6;
+    --text-heading-color: #312e81;
+    --text-color: #7c3aed;
+    --input-background-color: #f3f0ff;
+    --input-hover: #dbeafe;
+
+
     --success-color: oklch(62.7% 0.194 149.214);
     --success-hover-color: oklch(52.7% 0.154 150.069);
     --success-focus-color: oklch(44.8% 0.119 151.328);
@@ -12,7 +22,6 @@
     --bgShadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     --bgHoverColor: #f8f8fc;
     --text-title-color: #1B1D29;
-    --text-color: #434657;
     --textTitle: #1b1d29;
     --textLink: #82869e;
     --text-blur: #a7abc3;
@@ -22,9 +31,28 @@ body {
     font-family: "Roboto", sans-serif;
     font-style: normal;
     color: var(--text-color);
+    background-color: var(--background-color);
+    background-image:
+        repeating-linear-gradient(45deg,
+            rgba(0, 0, 0, 0.1) 0,
+            rgba(0, 0, 0, 0.1) 1px,
+            transparent 1px,
+            transparent 20px),
+        repeating-linear-gradient(-45deg,
+            rgba(0, 0, 0, 0.1) 0,
+            rgba(0, 0, 0, 0.1) 1px,
+            transparent 1px,
+            transparent 20px);
+    background-size: 50px 50px;
     font-size: 13px;
     line-height: 20px;
 }
+
+/* #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+} */
 
 .container {
     margin: auto;
@@ -59,16 +87,58 @@ body {
     user-select: none;
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
         border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    background-color: var(--success-color);
+    background-color: var(--primary-color);
     color: #fff;
 }
 
 .btn:hover {
-    background-color: var(--success-hover-color);
+    background-color: var(--primary-color-hover);
 }
 
 .btn:active {
-    background-color: var(--success-focus-color);
+    background-color: var(--primary-color-focus);
 }
 
 /* End Button */
+
+/* Breadcrumb */
+.breadcrumb-list {
+    padding: 8px 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.breadcrumb-list .breadcrumb-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding-left: 0;
+}
+
+.breadcrumb-list .breadcrumb-item .breadcrumb-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 20px;
+    transition: color ease 0.15s;
+}
+
+.breadcrumb-list .breadcrumb-item .breadcrumb-link:hover {
+  color: var(--text-heading-color);
+}
+
+.breadcrumb-item+.breadcrumb-item::before {
+  content: "";
+  width: 1rem;
+  height: 1rem;
+  background-image: url(../svg/breadcrumb.svg);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+/* End Breadcrumb */

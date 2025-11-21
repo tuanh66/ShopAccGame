@@ -1,10 +1,19 @@
 import { Outlet } from "react-router-dom";
 import "../assets/css/client.css";
 import logo from "../assets/img/logo.png";
-import viewed from "../assets/img/viewed.png";
+import support from "../assets/svg/support.svg";
+import viewed from "../assets/svg/viewed.svg";
 import ring from "../assets/svg/ring.svg";
 import profile from "../assets/svg/profile.svg";
-import home from "../assets/img/home.png";
+import home from "../assets/svg/home.svg";
+import top1 from "../assets/svg/top1.svg";
+import homeCheck from "../assets/svg/homecheck.svg";
+import gaming from "../assets/svg/gaming.svg";
+import news from "../assets/svg/news.svg";
+import logo_facebook from "../assets/svg/logo_facebook.svg";
+import logo_zalo from "../assets/svg/logo_zalo.svg";
+import logo_tiktok from "../assets/svg/logo_tiktok.svg";
+import logo_telegram from "../assets/svg/logo_telegram.svg";
 
 function ClientLayout() {
   return (
@@ -20,15 +29,15 @@ function ClientLayout() {
           <div className="header-menu">
             <div className="header-menu-item mr-16">
               <div className="header-menu-icon">
-                <img src="" alt="icon" />
+                <img src={support} alt="icon" />
               </div>
               <a href="#" className="header-menu-link">
-                Bảo hành
+                Cộng tác viên
               </a>
             </div>
             <div className="header-menu-item">
               <div className="header-menu-icon">
-                <img className="header-viewed" src={viewed} alt="icon" />
+                <img src={viewed} alt="icon" />
               </div>
               <a href="#" className="header-menu-link">
                 Đã xem
@@ -37,7 +46,11 @@ function ClientLayout() {
           </div>
           <div className="header-search">
             <form action="" className="search-form">
-              <input className="search-form-input" type="search" />
+              <input
+                className="search-form-input"
+                type="search"
+                placeholder="Tìm kiếm"
+              />
               <button className="search-form-btn" type="submit"></button>
               <div></div>
             </form>
@@ -46,7 +59,7 @@ function ClientLayout() {
             <a href="#" className="header-actions-recharge btn">
               Nạp tiền
             </a>
-            <div class="header-actions-notification">
+            <div className="header-actions-notification">
               <div className="header-menu-icon m-0">
                 <img src={ring} alt="icon" />
                 <p className="notification-count">0</p>
@@ -68,77 +81,110 @@ function ClientLayout() {
               <span className="fz-15 fw-500 lh-24">Trang Chủ</span>
             </a>
             <a href="/" className="header-bot-item">
-              <img className="pr-4 w-24" src={home} alt="" />
-              <span className="fz-15 fw-500 lh-24">...</span>
+              <img className="pr-4 w-24" src={top1} alt="" />
+              <span className="fz-15 fw-500 lh-24">Cày Thuê</span>
             </a>
-            <a href="/" className="header-bot-item">
-              <img className="pr-4 w-24" src={home} alt="" />
+            <a href="/mua-acc" className="header-bot-item">
+              <img className="pr-4 w-24" src={homeCheck} alt="" />
               <span className="fz-15 fw-500 lh-24">Mua Acc</span>
             </a>
             <a href="/" className="header-bot-item">
-              <img className="pr-4 w-24" src={home} alt="" />
+              <img className="pr-4 w-24" src={gaming} alt="" />
               <span className="fz-15 fw-500 lh-24">Dịch Vụ</span>
             </a>
             <a href="/" className="header-bot-item">
-              <img className="pr-4 w-24" src={home} alt="" />
+              <img className="pr-4 w-24" src={news} alt="" />
               <span className="fz-15 fw-500 lh-24">Tin Tức</span>
             </a>
           </div>
         </div>
       </header>
       {/* End Header */}
-      <div className="container h-full">
+      <div className="container">
         <Outlet />
       </div>
       {/* Footer */}
       <footer className="footer">
-        <div className="footer-top container">
-          <div className="col-30 mb-20 px-10">
-            <div className="header-logo mb-15">
-              <img src={logo} alt="logo" />
+        <div className="footer-top">
+          <div className="footer-top-container container">
+            <div className="col-30 mb-20 px-10">
+              <div className="header-logo mb-15">
+                <img src={logo} alt="logo" />
+              </div>
+              <div className="fz-15 fw-400 lh-20 text-justify">
+                Shop Tuấn Phương – Chuyên mua bán acc Liên Quân Mobile uy tín,
+                chất lượng. Cam kết tài khoản thật 100%, hỗ trợ tận tâm và bảo
+                hành đầy đủ cho anh em game thủ.
+              </div>
             </div>
-            <div className="fz-15 fw-400 lh-20 text-justify">
-              Shop Tuấn Phương – Chuyên mua bán acc Liên Quân Mobile uy tín,
-              chất lượng. Cam kết tài khoản thật 100%, hỗ trợ tận tâm và bảo
-              hành đầy đủ cho anh em game thủ.
+            <div className="col-20 mb-20 px-10">
+              <h4 className="footer-title">Lưu ý cần biết</h4>
+              <ul className="footer-list">
+                <li className="footer-item py-5">
+                  <a href="#" className="fz-15 fw-400 text-color">
+                    Kiểm tra uy tín của các shop
+                  </a>
+                </li>
+                <li className="footer-item py-5">
+                  <a href="#" className="fz-15 fw-400 text-color">
+                    Đấu trường danh vọng
+                  </a>
+                </li>
+              </ul>
             </div>
-          </div>
-          <div className="col-20 mb-20 px-10">
-            <h4 className="footer-title">Lưu ý cần biết</h4>
-            <ul className="footer-list">
-              <li className="footer-item py-5">
-                <a href="#" className="fz-15 fw-400 text-color">
-                  Kiểm tra uy tín của các shop
+            <div className="col-20 mb-20 px-10">
+              <h4 className="footer-title">Hướng dẫn</h4>
+              <ul className="footer-list">
+                <li className="footer-item py-5">
+                  <a href="#" className="fz-15 fw-400 text-color">
+                    Quyền lợi khi mua acc
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div className="col-30 mb-20 px-10">
+              <h4 className="footer-title">Kết nối với chúng tôi</h4>
+              <div className="footer-social d-flex">
+                <a href="#" className="mx-5">
+                  <img
+                    className="w-35 h-35"
+                    src={logo_facebook}
+                    alt="facebook"
+                  />
                 </a>
-              </li>
-              <li className="footer-item py-5">
-                <a href="#" className="fz-15 fw-400 text-color">
-                  Đấu trường danh vọng
+                <a href="#" className="mx-5">
+                  <img className="w-35 h-35" src={logo_zalo} alt="zalo" />
                 </a>
-              </li>
-            </ul>
-          </div>
-          <div className="col-20 mb-20 px-10">
-            <h4 className="footer-title">Hướng dẫn</h4>
-            <ul className="footer-list">
-              <li className="footer-item py-5">
-                <a href="#" className="fz-15 fw-400 text-color">
-                  Quyền lợi khi mua acc
+                <a href="#" className="mx-5">
+                  <img className="w-35 h-35" src={logo_tiktok} alt="tiktok" />
                 </a>
-              </li>
-            </ul>
-          </div>
-          <div className="col-30 mb-20 px-10">
-            <h4 className="footer-title">Kết nối với chúng tôi</h4>
-            <div className="footer-social">
-              <a href="">
-                <img src="" alt="" />
-              </a>
+                <a href="#" className="mx-5">
+                  <img
+                    className="w-35 h-35"
+                    src={logo_telegram}
+                    alt="telegram"
+                  />
+                </a>
+              </div>
+              <div className="footer-info">
+                <p className="text-color fz-15 fw-400">
+                  👉Hotline CSKH: <span className="fw-700">0702775297</span>
+                </p>
+                <p className="text-color fz-15 fw-400">
+                  👉Thời gian CSKH: <span className="fw-700">9h - 23h30</span>
+                </p>
+                <p className="text-color fz-15 fw-400">
+                  👉Thành viên shop: <span className="fw-700">84.528</span>
+                </p>
+                <p className="text-color fz-15 fw-400">
+                  👉Acc đã giao dịch: <span className="fw-700">84.528</span>
+                </p>
+              </div>
             </div>
           </div>
         </div>
         <div className="footer-bot">
-          <p className="fz-15 fw-400 lh-20">
+          <p className="text-heading fz-15 fw-400 lh-20">
             © Bản quyền thuộc về{" "}
             <span className="fw-700">Tuấn Phương | 15/05/2025</span>
           </p>

@@ -5,6 +5,7 @@
     left: 0;
     right: 0;
     z-index: 999;
+    background-color: var(--background-color);
 }
 
 .header-top {
@@ -30,7 +31,7 @@
 }
 
 .header-menu-icon {
-    background-color: var(--input-disable-color);
+    background-color: var(--input-background-color);
     width: 40px;
     height: 40px;
     margin-right: 8px;
@@ -44,10 +45,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-}
-
-.header-viewed {
-    filter: invert(80%);
+    width: 18px;
 }
 
 .header-menu-link {
@@ -67,62 +65,21 @@ input[type=search] {
     font-size: 13px;
     line-height: 20px;
     padding: 10px 4px 10px 12px;
-    background-color: var(--input-disable-color);
+    background-color: var(--input-background-color);
     border-radius: 8px;
     border: none;
     width: 100%;
-}
-
-input[type=search].search-form-input {
-    padding-right: 44px;
-}
-
-input[type=search].search-form-input:focus {
-    padding-right: 43px;
-}
-
-input[type=search].search-form-input~button[type=submit] {
-    background-color: var(--success-color);
-    position: absolute;
-    padding: 16px;
-    border-radius: 8px;
-    outline: none;
-    right: 4px;
-    border: none;
-}
-
-input[type=search].search-form-input~button[type=submit]:hover {
-    background-color: var(--success-hover-color);
-}
-
-input[type=search].search-form-input~button[type=submit]:active {
-    background-color: var(--success-focus-color);
-}
-
-input[type=search].search-form-input~button[type=submit]:before {
-    content: '';
-    background-color: #fff;
-    display: block;
-    width: 24px;
-    height: 24px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    -webkit-mask-image: url(../svg/icon-search.svg);
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-size: cover;
-    -webkit-mask-position: center;
+    color: var(--text-heading-color);
 }
 
 input[type=search]::placeholder {
-    color: var(--text-blur);
+    color: var(--primary-color);
 }
 
 input[type=search]:focus {
     outline: none;
-    color: var(--text-color);
-    border: 1px solid var(--border-default-color);
+    color: var(--text-heading-color);
+    border: 1px solid var(--primary-color);
     padding: 9px 3px 9px 11px;
 }
 
@@ -143,6 +100,47 @@ input[type=search]:focus::-webkit-search-cancel-button {
     cursor: pointer;
 }
 
+input[type=search].search-form-input {
+    padding-right: 44px;
+}
+
+input[type=search].search-form-input:focus {
+    padding-right: 43px;
+}
+
+input[type=search].search-form-input~button[type=submit] {
+    background-color: var(--primary-color);
+    position: absolute;
+    padding: 16px;
+    border-radius: 8px;
+    outline: none;
+    right: 4px;
+    border: none;
+}
+
+input[type=search].search-form-input~button[type=submit]:hover {
+    background-color: var(--primary-color-hover);
+}
+
+input[type=search].search-form-input~button[type=submit]:active {
+    background-color: var(--primary-color-focus);
+}
+
+input[type=search].search-form-input~button[type=submit]:before {
+    content: '';
+    background-color: white;
+    display: block;
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-mask-image: url(../svg/icon-search.svg);
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: cover;
+    -webkit-mask-position: center;
+}
 
 .header-actions {
     display: flex;
@@ -170,8 +168,8 @@ input[type=search]:focus::-webkit-search-cancel-button {
 }
 
 .header-bot {
-    background: white;
-    box-shadow: 0 2px rgb(0, 0, 0, 0.05);
+    background: var(--background-color);
+    box-shadow: 0 2px #e0e7ff;
 }
 
 .header-bot .container {
@@ -182,7 +180,7 @@ input[type=search]:focus::-webkit-search-cancel-button {
 }
 
 .header-bot span {
-    color: var(--success-color);
+    color: var(--text-color);
 }
 
 .header-bot-item {
@@ -197,7 +195,7 @@ input[type=search]:focus::-webkit-search-cancel-button {
 
 .header-bot-item:hover {
     transition: .2s;
-    background: var(--disable-switch-color);
+    background: var(--input-hover);
 }
 
 /* End Header */
@@ -205,28 +203,45 @@ input[type=search]:focus::-webkit-search-cancel-button {
 /* Footer */
 .footer {
     margin-top: 30px;
-    background-color: var(--input-disable-color);
     width: 100%;
 }
 
-.footer-top{
+.footer-top {
+    background-color: hsl(250.0000 100% 97.6471%);
+}
+
+.footer-top-container {
     padding: 20px 0 30px 0;
     display: flex;
     flex-wrap: wrap;
 }
 
 .footer-title {
-    color: var(--text-color);
-    font-size: 16px;
+    color: var(--text-heading-color);
+    font-size: 15px;
     font-weight: 700;
     line-height: normal;
     text-transform: uppercase;
     margin-bottom: 15px;
 }
 
+.footer-social a:first-child {
+    margin-left: 0;
+}
+
+.footer-social a:last-child {
+    margin-right: 0;
+}
+
+.footer-info {
+    margin-top: 10px;
+    color: var(--text-color);
+}
+
 .footer-bot {
+    color: var(--text-heading-color);
+    background-color: none;
     text-align: center;
-    background-color: #fff;
     padding: 10px 0;
 }
 

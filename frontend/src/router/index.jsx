@@ -5,7 +5,8 @@ import ClientLayout from "../layout/ClientLayout";
 import Dashboard from "../components/Admin/Dashboard";
 // Client
 import TrangChu from "../components/Client/TrangChu";
-import MuaAccount from "../components/Client/MuaAccount";
+import MuaAcc from "../components/Client/MuaAcc";
+import NapTien from "../components/Client/NapTien";
 
 const router = createBrowserRouter([
   {
@@ -13,7 +14,8 @@ const router = createBrowserRouter([
     element: <ClientLayout />,
     children: [
       { index: true, element: <TrangChu /> },
-      { path: "mua-account", element: <MuaAccount /> },
+      { path: "nap-tien", element: <NapTien/>},
+      { path: "mua-acc", element: <MuaAcc /> },
     ],
   },
   {
