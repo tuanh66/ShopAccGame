@@ -1,4 +1,4 @@
-import React from "react";
+import "../../assets/css/Client/napthe.css";
 
 const MuaAccount = () => {
   return (

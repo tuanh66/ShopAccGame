@@ -1,24 +1,23 @@
 :root {
-    --background-color: #ffffff;
-    --primary-color: #8b5cf6;
-    --primary-color-hover: oklab(60.563% 0.08459 -0.20203 / 0.9);
-    --primary-color-focus: #5b21b6;
-    --text-heading-color: #312e81;
-    --text-color: #7c3aed;
-    --input-background-color: #f3f0ff;
-    --input-hover: #dbeafe;
+    --background: #ffffff;
+    --primary-color: #0E3EDA;
+    --primary-hover-color: #0B2FA6;
+    --primary-focus-color: #082480;
+    --heading-color: #1B1D29;
+    --text-color: #434657;
+    --text-link: #82869e;
+    --input-background-color: #f3f3f7;
+    --switch-color: #E8EBF9;
 
-
-    --success-color: oklch(62.7% 0.194 149.214);
-    --success-hover-color: oklch(52.7% 0.154 150.069);
-    --success-focus-color: oklch(44.8% 0.119 151.328);
-    --disable-switch-color: oklch(96.2% 0.044 156.743);
+    --border-color: #e4e5f0;
+    --error-color: #da4343;
     --secondary-color: #f473b9;
     --secondary-hover-color: #CC609B;
     --secondary-focus-color: #A64E7D;
-    --invalid-color: #da4343;
-    --border-default-color: #e4e5f0;
-    --input-disable-color: #f3f3f7;
+
+
+
+
     --bgShadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     --bgHoverColor: #f8f8fc;
     --text-title-color: #1B1D29;
@@ -31,19 +30,7 @@ body {
     font-family: "Roboto", sans-serif;
     font-style: normal;
     color: var(--text-color);
-    background-color: var(--background-color);
-    background-image:
-        repeating-linear-gradient(45deg,
-            rgba(0, 0, 0, 0.1) 0,
-            rgba(0, 0, 0, 0.1) 1px,
-            transparent 1px,
-            transparent 20px),
-        repeating-linear-gradient(-45deg,
-            rgba(0, 0, 0, 0.1) 0,
-            rgba(0, 0, 0, 0.1) 1px,
-            transparent 1px,
-            transparent 20px);
-    background-size: 50px 50px;
+    background-color: var(--background);
     font-size: 13px;
     line-height: 20px;
 }
@@ -60,6 +47,17 @@ body {
     padding-right: 16px;
     max-width: 1264px;
 }
+
+/* Error Message */
+.form-message {
+  margin-top: 4px;
+  color: var(--error-color);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* End Error Message */
 
 /* Button */
 .btn {
@@ -92,11 +90,11 @@ body {
 }
 
 .btn:hover {
-    background-color: var(--primary-color-hover);
+    background-color: var(--primary-hover-color);
 }
 
 .btn:active {
-    background-color: var(--primary-color-focus);
+    background-color: var(--primary-focus-color);
 }
 
 /* End Button */
@@ -117,7 +115,7 @@ body {
 }
 
 .breadcrumb-list .breadcrumb-item .breadcrumb-link {
-    color: var(--primary-color);
+    color: var(--text-link);
     text-decoration: none;
     font-weight: 400;
     font-size: 13px;
@@ -126,19 +124,59 @@ body {
 }
 
 .breadcrumb-list .breadcrumb-item .breadcrumb-link:hover {
-  color: var(--text-heading-color);
+    color: var(--heading-color);
 }
 
 .breadcrumb-item+.breadcrumb-item::before {
-  content: "";
-  width: 1rem;
-  height: 1rem;
-  background-image: url(../svg/breadcrumb.svg);
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
+    content: "";
+    width: 1rem;
+    height: 1rem;
+    background-image: url(../svg/breadcrumb.svg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
 }
 
 /* End Breadcrumb */
+
+/* Input */
+input[type="text"],
+input[type="password"],
+select {
+    display: block;
+    width: 100%;
+    font-weight: 400;
+    font-size: 13px;
+    color: var(--text-color);
+    line-height: 20px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    padding: 10px 12px;
+    border-radius: 8px;
+    height: 40px;
+    outline: none;
+    transition: border-color ease 0.15s;
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+}
+
+input[type="text"]::placeholder,
+input[type="password"]::placeholder,
+input[type=search]::placeholder {
+    color: var(--text-link);
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    border: 1px solid var(--primary-color);
+}
+
+select {
+    text-indent: 1px;
+    text-overflow: "";
+}
+
+/* End Input */

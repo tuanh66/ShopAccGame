@@ -31,7 +31,7 @@ function ClientLayout() {
               <div className="header-menu-icon">
                 <img src={support} alt="icon" />
               </div>
-              <a href="#" className="header-menu-link">
+              <a href="/cong-tac-vien" className="header-menu-link">
                 Cộng tác viên
               </a>
             </div>
@@ -39,7 +39,7 @@ function ClientLayout() {
               <div className="header-menu-icon">
                 <img src={viewed} alt="icon" />
               </div>
-              <a href="#" className="header-menu-link">
+              <a href="/da-xem" className="header-menu-link">
                 Đã xem
               </a>
             </div>
@@ -56,7 +56,7 @@ function ClientLayout() {
             </form>
           </div>
           <div className="header-actions">
-            <a href="#" className="header-actions-recharge btn">
+            <a href="/nap-tien" className="header-actions-recharge btn">
               Nạp tiền
             </a>
             <div className="header-actions-notification">
@@ -77,24 +77,24 @@ function ClientLayout() {
         <div className="header-bot">
           <div className="container">
             <a href="/" className="header-bot-item">
-              <img className="pr-4 w-24" src={home} alt="" />
-              <span className="fz-15 fw-500 lh-24">Trang Chủ</span>
+              <img className="pr-1 w-6" src={home} alt="" />
+              <span className="text-[15px] font-medium leading-normal">Trang Chủ</span>
             </a>
-            <a href="/" className="header-bot-item">
-              <img className="pr-4 w-24" src={top1} alt="" />
-              <span className="fz-15 fw-500 lh-24">Cày Thuê</span>
+            <a href="/cay-thue" className="header-bot-item">
+              <img className="pr-1 w-6" src={top1} alt="" />
+              <span className="text-[15px] font-medium leading-normal">Cày Thuê</span>
             </a>
             <a href="/mua-acc" className="header-bot-item">
-              <img className="pr-4 w-24" src={homeCheck} alt="" />
-              <span className="fz-15 fw-500 lh-24">Mua Acc</span>
+              <img className="pr-1 w-6" src={homeCheck} alt="" />
+              <span className="text-[15px] font-medium leading-normal">Mua Acc</span>
             </a>
-            <a href="/" className="header-bot-item">
-              <img className="pr-4 w-24" src={gaming} alt="" />
-              <span className="fz-15 fw-500 lh-24">Dịch Vụ</span>
+            <a href="/dich-vu" className="header-bot-item">
+              <img className="pr-1 w-6" src={gaming} alt="" />
+              <span className="text-[15px] font-medium leading-normal">Dịch Vụ</span>
             </a>
-            <a href="/" className="header-bot-item">
-              <img className="pr-4 w-24" src={news} alt="" />
-              <span className="fz-15 fw-500 lh-24">Tin Tức</span>
+            <a href="/tin-tuc" className="header-bot-item">
+              <img className="pr-1 w-6" src={news} alt="" />
+              <span className="text-[15px] font-medium leading-normal">Tin Tức</span>
             </a>
           </div>
         </div>
