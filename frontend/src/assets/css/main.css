@@ -3,12 +3,11 @@
     --primary-color: #0E3EDA;
     --primary-hover-color: #0B2FA6;
     --primary-focus-color: #082480;
-    --heading-color: #1B1D29;
+    --title-color: #1B1D29;
     --text-color: #434657;
     --text-link: #82869e;
     --input-background-color: #f3f3f7;
     --switch-color: #E8EBF9;
-
     --border-color: #e4e5f0;
     --error-color: #da4343;
     --secondary-color: #f473b9;
@@ -20,9 +19,6 @@
 
     --bgShadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     --bgHoverColor: #f8f8fc;
-    --text-title-color: #1B1D29;
-    --textTitle: #1b1d29;
-    --textLink: #82869e;
     --text-blur: #a7abc3;
 }
 
@@ -35,12 +31,6 @@ body {
     line-height: 20px;
 }
 
-/* #root {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-} */
-
 .container {
     margin: auto;
     padding-left: 16px;
@@ -50,11 +40,16 @@ body {
 
 /* Error Message */
 .form-message {
-  margin-top: 4px;
-  color: var(--error-color);
-  font-weight: 400;
-  font-size: 12px;
-  line-height: 16px;
+    margin-top: 4px;
+    color: var(--error-color);
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+}
+
+hr {
+    border-top: 1px solid var(--border-color) !important;
+    border: none;
 }
 
 /* End Error Message */
@@ -124,7 +119,7 @@ body {
 }
 
 .breadcrumb-list .breadcrumb-item .breadcrumb-link:hover {
-    color: var(--heading-color);
+    color: var(--title-color);
 }
 
 .breadcrumb-item+.breadcrumb-item::before {
@@ -180,3 +175,46 @@ select {
 }
 
 /* End Input */
+
+/* Card */
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--bgShadow);
+    border-radius: 12px;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 1px;
+}
+
+.card-hover {
+    top: 0;
+}
+
+.card-hover:hover {
+    box-shadow: 0 3.4623px 6.1418px rgba(0, 0, 0, 0.05),
+        0 7.92923px 12.9218px rgba(0, 0, 0, 0.05), 0 9px 15px rgba(0, 0, 0, 0.08) !important;
+    top: -4px;
+    transition: all 0.2s ease-out;
+}
+
+/* End Card */
+
+/* Text */
+.text-limit {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+}
+
+/* End Text */

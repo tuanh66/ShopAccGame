@@ -217,7 +217,7 @@ input[type=search].search-form-input~button[type=submit]:before {
 }
 
 .footer-title {
-    color: var(--heading-color);
+    color: var(--title-color);
     font-size: 15px;
     font-weight: 700;
     line-height: normal;
@@ -239,7 +239,7 @@ input[type=search].search-form-input~button[type=submit]:before {
 }
 
 .footer-bot {
-    color: var(--heading-color);
+    color: var(--title-color);
     background-color: none;
     text-align: center;
     padding: 10px 0;
