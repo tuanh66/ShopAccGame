@@ -184,9 +184,9 @@ function ClientLayout() {
           </div>
         </div>
         <div className="footer-bot">
-          <p className="text-heading fz-15 fw-400 lh-20">
-            © Bản quyền thuộc về{" "}
-            <span className="fw-700">Tuấn Phương | 15/05/2025</span>
+          <p className="text-[14px] font-normal leading-[20px] select-none">
+            © Bản quyền thuộc về&nbsp;
+            <span className="font-bold">Tuấn Phương | 15/05/2025</span>
           </p>
         </div>
       </footer>

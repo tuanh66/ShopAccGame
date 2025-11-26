@@ -28,7 +28,12 @@ body {
     color: var(--text-color);
     background-color: var(--background);
     font-size: 13px;
+    font-weight: 400;
     line-height: 20px;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 .container {
