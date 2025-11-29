@@ -35,9 +35,9 @@ const MuaAccount = () => {
                     alt="Ảnh game"
                   />
                 </div>
-                <div class="account-info">
-                  <div class="account-name text-limit">Nick Free Fire tự chọn</div>
-                  <div class="text-[var(--text-link)] text-[13px] font-normal leading-[20px]">Số tài khoản: 1000</div>
+                <div className="account-info">
+                  <div className="account-name text-limit">Nick Free Fire tự chọn</div>
+                  <div className="text-[var(--text-link)] text-[13px] font-normal leading-[20px]">Số tài khoản: 1000</div>
                 </div>
               </a>
             </div>

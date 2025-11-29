@@ -144,6 +144,7 @@ hr {
 /* Input */
 input[type="text"],
 input[type="password"],
+input[type="email"],
 select {
     display: block;
     width: 100%;
@@ -165,12 +166,14 @@ select {
 
 input[type="text"]::placeholder,
 input[type="password"]::placeholder,
+input[type="email"]::placeholder,
 input[type=search]::placeholder {
     color: var(--text-link);
 }
 
 input[type="text"]:focus,
-input[type="password"]:focus {
+input[type="password"]:focus,
+input[type="email"]:focus {
     border: 1px solid var(--primary-color);
 }
 

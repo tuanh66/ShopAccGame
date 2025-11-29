@@ -1,3 +1,5 @@
+import axios from "axios";
+import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import "../assets/css/client.css";
 import logo from "../assets/img/logo.png";
@@ -5,6 +7,9 @@ import support from "../assets/svg/support.svg";
 import viewed from "../assets/svg/viewed.svg";
 import ring from "../assets/svg/ring.svg";
 import profile from "../assets/svg/profile.svg";
+import eye_show from "../assets/svg/eye-show.svg";
+import eye_hide from "../assets/svg/eye-hide.svg";
+import anhdaidien from "../assets/svg/anhdaidien.svg";
 import home from "../assets/svg/home.svg";
 import top1 from "../assets/svg/top1.svg";
 import homeCheck from "../assets/svg/homecheck.svg";
@@ -14,8 +19,77 @@ import logo_facebook from "../assets/svg/logo_facebook.svg";
 import logo_zalo from "../assets/svg/logo_zalo.svg";
 import logo_tiktok from "../assets/svg/logo_tiktok.svg";
 import logo_telegram from "../assets/svg/logo_telegram.svg";
+import logo_discord from "../assets/svg/logo_discord.svg";
+import logo_google from "../assets/svg/logo_google.svg";
+import icon_close from "../assets/svg/close.svg";
 
-function ClientLayout() {
+export default function ClientLayout() {
+  const API = import.meta.env.VITE_API_URL;
+  const [openModal, setOpenModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordRegister, setShowPasswordRegister] = useState(false);
+  const [showPasswordRegisterConfirm, setShowPasswordRegisterConfirm] =
+    useState(false);
+  const [registerActive, setRegisterActive] = useState(false);
+  const [showEffect, setShowEffect] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const open = () => {
+    setOpenModal(true); // render modal
+  };
+  const close = () => {
+    setShowEffect(false); // bỏ class show -> fade-out
+    setTimeout(() => {
+      setOpenModal(false); // xoá modal khỏi DOM sau hiệu ứng
+    }, 300); // đúng 300ms như Vue
+  };
+
+  useEffect(() => {
+    if (openModal) {
+      // giống watch(newVal === true)
+      setTimeout(() => {
+        setShowEffect(true);
+        setRegisterActive(false);
+        setShowPassword(false);
+      }, 10);
+    }
+  }, [openModal]); // watch openModal
+  // REGISTER STATES
+  const [regUsername, setRegUsername] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regPasswordConfirm, setRegPasswordConfirm] = useState("");
+  const handleRegister = async (e) => {
+    e.preventDefault();
+
+    if (regPassword !== regPasswordConfirm) {
+      alert("Mật khẩu không trùng khớp!");
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/auth/signup`, {
+        username: regUsername,
+        email: regEmail,
+        password: regPassword,
+        password_confirmation: regPasswordConfirm,
+      });
+
+      // Nếu thành công
+      alert("Đăng ký thành công!");
+      setRegisterActive(false); // chuyển sang login
+    } catch (error) {
+      // axios tự throw khi status >= 400
+      if (error.response) {
+        // lỗi từ server
+        alert(error.response.data.message || "Đăng ký thất bại");
+      } else {
+        // lỗi mạng, hoặc không nhận được response
+        console.log(error);
+        alert("Không thể đăng ký!");
+      }
+    }
+  };
   return (
     <>
       {/* Header */}
@@ -27,8 +101,8 @@ function ClientLayout() {
             </a>
           </div>
           <div className="header-menu">
-            <div className="header-menu-item mr-16">
-              <div className="header-menu-icon">
+            <div className="header-menu-item mr-4">
+              <div className="header-menu-icon mr-2">
                 <img src={support} alt="icon" />
               </div>
               <a href="/cong-tac-vien" className="header-menu-link">
@@ -36,7 +110,7 @@ function ClientLayout() {
               </a>
             </div>
             <div className="header-menu-item">
-              <div className="header-menu-icon">
+              <div className="header-menu-icon mr-2">
                 <img src={viewed} alt="icon" />
               </div>
               <a href="/da-xem" className="header-menu-link">
@@ -56,21 +130,271 @@ function ClientLayout() {
             </form>
           </div>
           <div className="header-actions">
-            <a href="/nap-tien" className="header-actions-recharge btn">
+            <a href="/nap-tien" className="header-actions-recharge btn mr-4">
               Nạp tiền
             </a>
             <div className="header-actions-notification">
-              <div className="header-menu-icon m-0">
+              <div className="header-menu-icon">
                 <img src={ring} alt="icon" />
                 <p className="notification-count">0</p>
               </div>
               {/* code sau */}
             </div>
             <div className="header-actions-user">
-              <div className="header-menu-icon m-0">
+              <div className="header-menu-icon ml-4" onClick={open}>
                 <img src={profile} alt="icon" />
               </div>
-              {/* code sau */}
+              {openModal && (
+                <div
+                  className={`modal fade ${showEffect ? "show" : ""}`}
+                  onClick={close}
+                >
+                  <div className="modal-dialog">
+                    <div
+                      className="modal-content"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div
+                        className={`modal-login-container ${
+                          registerActive ? "right-panel-active" : ""
+                        }`}
+                      >
+                        <div className="modal-login-form-container sign-up-container">
+                          <img onClick={close} src={icon_close} alt="icon" />
+                          <form
+                            className="modal-login-form formRegister"
+                            onSubmit={handleRegister}
+                          >
+                            <p className="modal-title">Đăng ký</p>
+                            <small className="modal-subtitle">
+                              Vui lòng đăng nhập để sử dụng dịch vụ của chúng
+                              tôi
+                            </small>
+                            <p className="form-message hidden"></p>
+                            <div className="modal-input-group mt-3">
+                              <input
+                                type="text"
+                                placeholder="Nhập tên tài khoản"
+                                className="modal-input modal-input-username"
+                                value={regUsername}
+                                onChange={(e) => setRegUsername(e.target.value)}
+                              />
+                              <p className="form-message hidden"></p>
+                            </div>
+                            <div className="modal-input-group mt-2">
+                              <input
+                                type="email"
+                                placeholder="Nhập email của bạn"
+                                className="modal-input modal-input-username"
+                                value={regEmail}
+                                onChange={(e) => setRegEmail(e.target.value)}
+                              />
+                              <p className="form-message hidden"></p>
+                            </div>
+                            <div className="modal-input-group">
+                              <div className="password-input-container">
+                                <input
+                                  type={
+                                    showPasswordRegister ? "text" : "password"
+                                  }
+                                  name="password"
+                                  placeholder="Nhập mật khẩu của bạn"
+                                  className="modal-input modal-input-password !pr-9"
+                                  value={regPassword}
+                                  onChange={(e) =>
+                                    setRegPassword(e.target.value)
+                                  }
+                                />
+                                {showPasswordRegister ? (
+                                  <img
+                                    src={eye_show}
+                                    alt="show"
+                                    className="password-input-hide"
+                                    onClick={() =>
+                                      setShowPasswordRegister(false)
+                                    }
+                                  />
+                                ) : (
+                                  <img
+                                    src={eye_hide}
+                                    alt="hide"
+                                    className="password-input-show"
+                                    onClick={() =>
+                                      setShowPasswordRegister(true)
+                                    }
+                                  />
+                                )}
+                              </div>
+                              <p className="form-message hidden"></p>
+                            </div>
+                            <div className="modal-input-group">
+                              <div className="password-input-container">
+                                <input
+                                  type={
+                                    showPasswordRegisterConfirm
+                                      ? "text"
+                                      : "password"
+                                  }
+                                  name="password"
+                                  placeholder="Nhập mật khẩu của bạn"
+                                  className="modal-input modal-input-password !pr-9"
+                                  value={regPasswordConfirm}
+                                  onChange={(e) =>
+                                    setRegPasswordConfirm(e.target.value)
+                                  }
+                                />
+                                {showPasswordRegisterConfirm ? (
+                                  <img
+                                    src={eye_show}
+                                    alt="show"
+                                    className="password-input-hide"
+                                    onClick={() =>
+                                      setShowPasswordRegisterConfirm(false)
+                                    }
+                                  />
+                                ) : (
+                                  <img
+                                    src={eye_hide}
+                                    alt="hide"
+                                    className="password-input-show"
+                                    onClick={() =>
+                                      setShowPasswordRegisterConfirm(true)
+                                    }
+                                  />
+                                )}
+                              </div>
+                              <p className="form-message hidden"></p>
+                            </div>
+                            <button type="submit" className="btn modal-btn">
+                              Đăng ký
+                            </button>
+                          </form>
+                        </div>
+                        <div className="modal-login-form-container sign-in-container">
+                          <input type="hidden"></input>
+                          <form action="" className="modal-login-form">
+                            <p className="modal-title">Đăng nhập</p>
+                            <small className="modal-subtitle">
+                              Vui lòng đăng ký để sử dụng dịch vụ của chúng tôi
+                            </small>
+                            <p className="form-message hidden"></p>
+                            <div className="modal-input-group">
+                              <input
+                                type="text"
+                                name="username"
+                                placeholder="Nhập tên tài khoản"
+                                className="modal-input modal-input-username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                              />
+                              <p className="form-message hidden"></p>
+                            </div>
+                            <div className="modal-input-group">
+                              <div className="password-input-container">
+                                <input
+                                  type={showPassword ? "text" : "password"}
+                                  name="password"
+                                  placeholder="Nhập mật khẩu"
+                                  className="modal-input modal-input-password !pr-9"
+                                  value={password}
+                                  onChange={(e) => setPassword(e.target.value)}
+                                />
+                                {showPassword ? (
+                                  <img
+                                    src={eye_show}
+                                    alt="show"
+                                    className="password-input-hide"
+                                    onClick={() => setShowPassword(false)}
+                                  />
+                                ) : (
+                                  <img
+                                    src={eye_hide}
+                                    alt="hide"
+                                    className="password-input-show"
+                                    onClick={() => setShowPassword(true)}
+                                  />
+                                )}
+                              </div>
+                              <p className="form-message hidden"></p>
+                            </div>
+                            <button type="submit" className="btn modal-btn">
+                              Đăng nhập
+                            </button>
+                            <span className="modal-separator">
+                              Hoặc đăng nhập qua
+                            </span>
+                            <div className="flex justify-center">
+                              <div className="mt-6">
+                                <a href="#" className="modal-social-link">
+                                  <img src={logo_facebook} alt="facebook" />
+                                </a>
+                                <a href="#" className="modal-social-link">
+                                  <img src={logo_discord} alt="facebook" />
+                                </a>
+                                <a href="#" className="modal-social-link">
+                                  <img src={logo_google} alt="facebook" />
+                                </a>
+                                <a href="#" className="modal-social-link">
+                                  <img src={logo_zalo} alt="facebook" />
+                                </a>
+                              </div>
+                            </div>
+                          </form>
+                        </div>
+                        <div className="modal-login-overlay-container">
+                          <div className="modal-login-overlay">
+                            <div className="modal-login-overlay-panel modal-login-overlay-left">
+                              <p className="modal-panel-title">
+                                <span>Tuấn Phương</span> xin chào
+                              </p>
+                              <p className="modal-panel-subtext">
+                                Bạn đã có tài khoản, vui lòng đăng nhập tại đây
+                              </p>
+                              <button
+                                onClick={() => setRegisterActive(false)}
+                                className="btn modal-login-overlay-btn"
+                              >
+                                Đăng ký
+                              </button>
+                            </div>
+                            <div className="modal-login-overlay-panel modal-login-overlay-right">
+                              <img
+                                onClick={close}
+                                src={icon_close}
+                                alt="icon"
+                                className="absolute top-4 right-4 cursor-pointer"
+                              />
+                              <p className="modal-panel-title">
+                                <span>Tuấn Phương</span> xin chào
+                              </p>
+                              <p className="modal-panel-subtext">
+                                Vui lòng đăng ký tại đây
+                              </p>
+                              <button
+                                onClick={() => setRegisterActive(true)}
+                                className="btn modal-login-overlay-btn"
+                              >
+                                Đăng ký
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="header-account-logined !hidden">
+                <div className="header-account-name">
+                  <div className="text-[var(--title-color)] text-right font-medium">
+                    Tuan Anh
+                  </div>
+                  <div className="font-normal">Số dư: 0</div>
+                </div>
+                <div className="header-account-avatar">
+                  <img src={anhdaidien} alt="avatar" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -78,23 +402,33 @@ function ClientLayout() {
           <div className="container">
             <a href="/" className="header-bot-item">
               <img className="pr-1 w-6" src={home} alt="" />
-              <span className="text-[15px] font-medium leading-normal">Trang Chủ</span>
+              <span className="text-[15px] font-medium leading-normal">
+                Trang Chủ
+              </span>
             </a>
             <a href="/cay-thue" className="header-bot-item">
               <img className="pr-1 w-6" src={top1} alt="" />
-              <span className="text-[15px] font-medium leading-normal">Cày Thuê</span>
+              <span className="text-[15px] font-medium leading-normal">
+                Cày Thuê
+              </span>
             </a>
             <a href="/mua-acc" className="header-bot-item">
               <img className="pr-1 w-6" src={homeCheck} alt="" />
-              <span className="text-[15px] font-medium leading-normal">Mua Acc</span>
+              <span className="text-[15px] font-medium leading-normal">
+                Mua Acc
+              </span>
             </a>
             <a href="/dich-vu" className="header-bot-item">
               <img className="pr-1 w-6" src={gaming} alt="" />
-              <span className="text-[15px] font-medium leading-normal">Dịch Vụ</span>
+              <span className="text-[15px] font-medium leading-normal">
+                Dịch Vụ
+              </span>
             </a>
             <a href="/tin-tuc" className="header-bot-item">
               <img className="pr-1 w-6" src={news} alt="" />
-              <span className="text-[15px] font-medium leading-normal">Tin Tức</span>
+              <span className="text-[15px] font-medium leading-normal">
+                Tin Tức
+              </span>
             </a>
           </div>
         </div>
@@ -194,5 +528,3 @@ function ClientLayout() {
     </>
   );
 }
-
-export default ClientLayout;

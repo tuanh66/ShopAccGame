@@ -25,7 +25,6 @@ class AuthController extends Controller
             $data = $request->validated();
 
             $user = User::create([
-                'name'         => $data['name'],
                 'username'     => $data['username'],
                 'password'     => bcrypt($data['password']),
                 'email'        => $data['email'],
@@ -85,22 +84,21 @@ class AuthController extends Controller
             ]);
 
             // trả refresh token qua cookie
-            // trả refresh token qua cookie
             Cookie::queue(
                 'refreshToken',
                 $refreshToken,
                 self::REFRESH_TOKEN_TTL / 60,
-                '/',
-                null,
-                true,   // secure
-                true,   // httpOnly
-                false,
-                'None'  // sameSite
+                '/',                // path
+                'null',             // domain
+                false,              // secure (HTTP thì false)
+                true,               // httpOnly
+                false,              // raw
+                'None'              // sameSite: Lax cho localhost / Postman
             );
 
             // trả access token
             return response()->json([
-                'message'     => "User {$user->name} đã logged in!",
+                'message'     => "User {$user->username} đã logged in!",
                 'accessToken' => $accessToken
             ], 200);
         } catch (\Exception $e) {
@@ -133,4 +131,10 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+    public function checkField()
+    {
+        
+    }
 }
+

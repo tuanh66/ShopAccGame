@@ -16,7 +16,6 @@ class User extends Authenticatable
     const ROLE_CTV = 2;
 
     protected $fillable = [
-        'name',
         'username',
         'password',
         'role',
