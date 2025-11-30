@@ -32,8 +32,6 @@ export default function ClientLayout() {
     useState(false);
   const [registerActive, setRegisterActive] = useState(false);
   const [showEffect, setShowEffect] = useState(false);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const open = () => {
     setOpenModal(true); // render modal
   };
@@ -54,18 +52,18 @@ export default function ClientLayout() {
       }, 10);
     }
   }, [openModal]); // watch openModal
-  // REGISTER STATES
+  // HANDLE REGISTER
   const [regUsername, setRegUsername] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regPasswordConfirm, setRegPasswordConfirm] = useState("");
+  const [serverErrorRegister, setServerErrorRegister] = useState("");
+
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    if (regPassword !== regPasswordConfirm) {
-      alert("Mật khẩu không trùng khớp!");
-      return;
-    }
+    const ok = validateRegisterAll();
+    if (!ok) return;
 
     try {
       await axios.post(`${API}/auth/signup`, {
@@ -75,21 +73,125 @@ export default function ClientLayout() {
         password_confirmation: regPasswordConfirm,
       });
 
+      setServerErrorRegister("");
       // Nếu thành công
       alert("Đăng ký thành công!");
       setRegisterActive(false); // chuyển sang login
     } catch (error) {
-      // axios tự throw khi status >= 400
       if (error.response) {
-        // lỗi từ server
-        alert(error.response.data.message || "Đăng ký thất bại");
+        const res = error.response.data;
+
+        // Laravel validation error dạng:
+        // { errors: { email: ["Email đã tồn tại"], username: [...] } }
+        if (res.errors) {
+          // Lấy lỗi đầu tiên
+          const firstError = Object.values(res.errors)[0][0];
+          setServerErrorRegister(firstError);
+        } else {
+          // Lỗi dạng message
+          setServerErrorRegister(res.message || "Đăng ký thất bại");
+        }
       } else {
-        // lỗi mạng, hoặc không nhận được response
-        console.log(error);
-        alert("Không thể đăng ký!");
+        setServerErrorRegister("Không thể đăng ký!");
       }
     }
   };
+
+  const [registerErrors, setRegisterErrors] = useState({
+    username: "",
+    email: "",
+    password: "",
+    password_confirm: "",
+  });
+
+  const validateRegisterField = (field, value) => {
+    let message = "";
+
+    switch (field) {
+      case "username":
+        if (!value.trim()) message = "Bạn chưa nhập tên tài khoản";
+        else if (value.trim().length < 4)
+          message = "Tên tài khoản phải có ít nhất 4 ký tự";
+        break;
+
+      case "email":
+        if (!value.trim()) message = "Bạn chưa nhập email";
+        else if (!/^\S+@\S+\.\S+$/.test(value))
+          message = "Email của bạn không hợp lệ";
+        break;
+
+      case "password":
+        if (!value.trim()) message = "Bạn chưa nhập mật khẩu";
+        else if (value.trim().length < 6)
+          message = "Mật khẩu phải có ít nhất 6 ký tự";
+        break;
+
+      case "password_confirm":
+        if (!value.trim()) message = "Bạn chưa nhập mật khẩu xác nhận";
+        else if (value !== regPassword)
+          message = "Mật khẩu xác nhận không trùng khớp";
+        break;
+    }
+
+    setRegisterErrors((prev) => ({ ...prev, [field]: message }));
+  };
+
+  const validateRegisterAll = () => {
+    validateRegisterField("username", regUsername);
+    validateRegisterField("email", regEmail);
+    validateRegisterField("password", regPassword);
+    validateRegisterField("password_confirm", regPasswordConfirm);
+
+    // Nếu còn lỗi -> return false
+    return (
+      regUsername.trim() &&
+      /^\S+@\S+\.\S+$/.test(regEmail) &&
+      regPassword.trim() &&
+      regPasswordConfirm.trim() &&
+      regPassword === regPasswordConfirm
+    );
+  };
+  // END HANDLE REGISTER
+
+  // HANDLE LOGIN
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  // const [serverRegisterError, setServerRegisterError] = useState("");
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    const ok = validateLoginAll();
+    if (!ok) return;
+  };
+
+  const [loginErrors, setLoginErrors] = useState({
+    username: "",
+    password: "",
+  });
+
+  const validateLoginField = (field, value) => {
+    let message = "";
+
+    switch (field) {
+      case "username":
+        if (!value.trim()) message = "Bạn chưa nhập tên tài khoản";
+        break;
+
+      case "password":
+        if (!value.trim()) message = "Bạn chưa nhập mật khẩu";
+        break;
+    }
+
+    setLoginErrors((prev) => ({ ...prev, [field]: message }));
+  };
+  const validateLoginAll = () => {
+    validateLoginField("username", username);
+    validateLoginField("password", password);
+
+    return username.trim() && password.trim();
+  };
+  // END HANDLE LOGIN
   return (
     <>
       {/* Header */}
@@ -170,26 +272,62 @@ export default function ClientLayout() {
                               Vui lòng đăng nhập để sử dụng dịch vụ của chúng
                               tôi
                             </small>
-                            <p className="form-message hidden"></p>
+                            <p
+                              className={`form-message ${
+                                serverErrorRegister ? "" : "hidden"
+                              }`}
+                            >
+                              {serverErrorRegister}
+                            </p>
                             <div className="modal-input-group mt-3">
                               <input
                                 type="text"
                                 placeholder="Nhập tên tài khoản"
-                                className="modal-input modal-input-username"
+                                className={`modal-input modal-input-username ${
+                                  registerErrors.username ? "input-error" : ""
+                                }`}
                                 value={regUsername}
-                                onChange={(e) => setRegUsername(e.target.value)}
+                                onChange={(e) => {
+                                  setRegUsername(e.target.value);
+                                  if (registerErrors.username) {
+                                    setRegisterErrors((prev) => ({
+                                      ...prev,
+                                      username: "",
+                                    }));
+                                  }
+                                }}
+                                onBlur={() =>
+                                  validateRegisterField("username", regUsername)
+                                }
                               />
-                              <p className="form-message hidden"></p>
+                              <p className="form-message">
+                                {registerErrors.username}
+                              </p>
                             </div>
                             <div className="modal-input-group mt-2">
                               <input
                                 type="email"
                                 placeholder="Nhập email của bạn"
-                                className="modal-input modal-input-username"
+                                className={`modal-input modal-input-username ${
+                                  registerErrors.email ? "input-error" : ""
+                                }`}
                                 value={regEmail}
-                                onChange={(e) => setRegEmail(e.target.value)}
+                                onChange={(e) => {
+                                  setRegEmail(e.target.value);
+                                  if (registerErrors.email) {
+                                    setRegisterErrors((prev) => ({
+                                      ...prev,
+                                      email: "",
+                                    }));
+                                  }
+                                }}
+                                onBlur={() =>
+                                  validateRegisterField("email", regEmail)
+                                }
                               />
-                              <p className="form-message hidden"></p>
+                              <p className="form-message">
+                                {registerErrors.email}
+                              </p>
                             </div>
                             <div className="modal-input-group">
                               <div className="password-input-container">
@@ -199,10 +337,24 @@ export default function ClientLayout() {
                                   }
                                   name="password"
                                   placeholder="Nhập mật khẩu của bạn"
-                                  className="modal-input modal-input-password !pr-9"
+                                  className={`modal-input modal-input-password !pr-9 ${
+                                    registerErrors.password ? "input-error" : ""
+                                  }`}
                                   value={regPassword}
-                                  onChange={(e) =>
-                                    setRegPassword(e.target.value)
+                                  onChange={(e) => {
+                                    setRegPassword(e.target.value);
+                                    if (registerErrors.password) {
+                                      setRegisterErrors((prev) => ({
+                                        ...prev,
+                                        password: "",
+                                      }));
+                                    }
+                                  }}
+                                  onBlur={() =>
+                                    validateRegisterField(
+                                      "password",
+                                      regPassword
+                                    )
                                   }
                                 />
                                 {showPasswordRegister ? (
@@ -225,7 +377,9 @@ export default function ClientLayout() {
                                   />
                                 )}
                               </div>
-                              <p className="form-message hidden"></p>
+                              <p className="form-message">
+                                {registerErrors.password}
+                              </p>
                             </div>
                             <div className="modal-input-group">
                               <div className="password-input-container">
@@ -237,10 +391,26 @@ export default function ClientLayout() {
                                   }
                                   name="password"
                                   placeholder="Nhập mật khẩu của bạn"
-                                  className="modal-input modal-input-password !pr-9"
+                                  className={`modal-input modal-input-password !pr-9 ${
+                                    registerErrors.password_confirm
+                                      ? "input-error"
+                                      : ""
+                                  }`}
                                   value={regPasswordConfirm}
-                                  onChange={(e) =>
-                                    setRegPasswordConfirm(e.target.value)
+                                  onChange={(e) => {
+                                    setRegPasswordConfirm(e.target.value);
+                                    if (registerErrors.password_confirm) {
+                                      setRegisterErrors((prev) => ({
+                                        ...prev,
+                                        password_confirm: "",
+                                      }));
+                                    }
+                                  }}
+                                  onBlur={() =>
+                                    validateRegisterField(
+                                      "password_confirm",
+                                      regPasswordConfirm
+                                    )
                                   }
                                 />
                                 {showPasswordRegisterConfirm ? (
@@ -263,7 +433,9 @@ export default function ClientLayout() {
                                   />
                                 )}
                               </div>
-                              <p className="form-message hidden"></p>
+                              <p className="form-message">
+                                {registerErrors.password_confirm}
+                              </p>
                             </div>
                             <button type="submit" className="btn modal-btn">
                               Đăng ký
@@ -272,7 +444,10 @@ export default function ClientLayout() {
                         </div>
                         <div className="modal-login-form-container sign-in-container">
                           <input type="hidden"></input>
-                          <form action="" className="modal-login-form">
+                          <form
+                            className="modal-login-form"
+                            onSubmit={handleLogin}
+                          >
                             <p className="modal-title">Đăng nhập</p>
                             <small className="modal-subtitle">
                               Vui lòng đăng ký để sử dụng dịch vụ của chúng tôi
@@ -283,11 +458,26 @@ export default function ClientLayout() {
                                 type="text"
                                 name="username"
                                 placeholder="Nhập tên tài khoản"
-                                className="modal-input modal-input-username"
+                                className={`modal-input modal-input-username ${
+                                  loginErrors.username ? "input-error" : ""
+                                }`}
                                 value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                onChange={(e) => {
+                                  setUsername(e.target.value);
+                                  if (loginErrors.username) {
+                                    setLoginErrors((prev) => ({
+                                      ...prev,
+                                      username: "",
+                                    }));
+                                  }
+                                }}
+                                onBlur={() =>
+                                  validateLoginField("username", username)
+                                }
                               />
-                              <p className="form-message hidden"></p>
+                              <p className="form-message">
+                                {loginErrors.username}
+                              </p>
                             </div>
                             <div className="modal-input-group">
                               <div className="password-input-container">
@@ -295,9 +485,22 @@ export default function ClientLayout() {
                                   type={showPassword ? "text" : "password"}
                                   name="password"
                                   placeholder="Nhập mật khẩu"
-                                  className="modal-input modal-input-password !pr-9"
+                                  className={`modal-input modal-input-password !pr-9 ${
+                                    loginErrors.password ? "input-error" : ""
+                                  }`}
                                   value={password}
-                                  onChange={(e) => setPassword(e.target.value)}
+                                  onChange={(e) => {
+                                    setPassword(e.target.value);
+                                    if (loginErrors.password) {
+                                      setLoginErrors((prev) => ({
+                                        ...prev,
+                                        password: "",
+                                      }));
+                                    }
+                                  }}
+                                  onBlur={() =>
+                                    validateLoginField("password", password)
+                                  }
                                 />
                                 {showPassword ? (
                                   <img
@@ -315,7 +518,9 @@ export default function ClientLayout() {
                                   />
                                 )}
                               </div>
-                              <p className="form-message hidden"></p>
+                              <p className="form-message">
+                                {loginErrors.password}
+                              </p>
                             </div>
                             <button type="submit" className="btn modal-btn">
                               Đăng nhập

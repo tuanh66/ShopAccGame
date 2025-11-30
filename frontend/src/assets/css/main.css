@@ -52,6 +52,10 @@ body {
     line-height: 16px;
 }
 
+.input-error {
+    border-color: var(--error-color) !important;
+}
+
 hr {
     border-top: 1px solid var(--border-color) !important;
     border: none;
@@ -174,7 +178,7 @@ input[type=search]::placeholder {
 input[type="text"]:focus,
 input[type="password"]:focus,
 input[type="email"]:focus {
-    border: 1px solid var(--primary-color);
+    border: 1px solid var(--primary-color) !important;
 }
 
 select {
