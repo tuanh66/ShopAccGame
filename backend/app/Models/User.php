@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'provider',
         'provider_id',
+        'balance',
     ];
 
     protected $hidden = [

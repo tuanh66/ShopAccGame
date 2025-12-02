@@ -12,10 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): array {
-        return [
-            AuthMiddleware::class,
-        ];
+    ->withMiddleware(function (Middleware $middleware) {
+        // đăng ký alias để dùng trong route
+        $middleware->alias([
+            'auth.jwt' => AuthMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

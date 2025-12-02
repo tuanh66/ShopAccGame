@@ -54,7 +54,7 @@ class AuthController extends Controller
             $user = User::where('username', $username)->first();
             if (!$user || !Hash::check($password, $user->password)) {
                 return response()->json([
-                    'message' => 'Username hoặc password không chính xác'
+                    'message' => 'Tài khoản hoặc mật khẩu không đúng'
                 ], 401);
             }
 
@@ -66,10 +66,10 @@ class AuthController extends Controller
             );
 
 
+            $refreshToken = Str::random(128);
             $ip = $request->ip();
             $userAgent = $request->header('User-Agent');
             // tạo refresh token ngẫu nhiên
-            $refreshToken = Str::random(128);
             $parser = new BrowserDetect();
             // lưu refresh token vào bảng sessions
             RefreshToken::create([
@@ -84,23 +84,23 @@ class AuthController extends Controller
             ]);
 
             // trả refresh token qua cookie
-            Cookie::queue(
+            $cookie = cookie(
                 'refreshToken',
                 $refreshToken,
-                self::REFRESH_TOKEN_TTL / 60,
-                '/',                // path
-                'null',             // domain
-                false,              // secure (HTTP thì false)
-                true,               // httpOnly
-                false,              // raw
-                'None'              // sameSite: Lax cho localhost / Postman
+                self::REFRESH_TOKEN_TTL / 60, // thời gian sống (phút)
+                '/',                          // path
+                null,                         // domain, null để mặc định domain hiện tại
+                false,                        // secure, false khi dùng http
+                true,                         // httpOnly
+                false,                        // raw
+                'Lax'                         // sameSite, dùng Lax cho localhost / Postman
             );
 
             // trả access token
             return response()->json([
-                'message'     => "User {$user->username} đã logged in!",
+                'message' => "User {$user->username} đã đăng nhập!",
                 'accessToken' => $accessToken
-            ], 200);
+            ])->withCookie($cookie);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Lỗi hệ thống',
@@ -132,9 +132,50 @@ class AuthController extends Controller
         }
     }
 
-    public function checkField()
+    public function authMe(Request $request)
     {
-        
+        try {
+            $user = $request->attributes->get('user');
+            $accessToken = $request->bearerToken();
+
+            return response()->json([
+                'info' => [
+                    'username' => $user->username,
+                    'balance'  => $user->balance,
+                ],
+                'jwt' => $accessToken,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Lỗi hệ thống',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function tokenRenewal(Request $request)
+    {
+        $refreshToken = $request->cookie('refreshToken');
+
+        if (!$refreshToken) {
+            return response()->json(['message' => 'Refresh token không tồn tại'], 401);
+        }
+
+        $tokenRecord = RefreshToken::where('refresh_token', $refreshToken)
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if (!$tokenRecord) {
+            return response()->json(['message' => 'Refresh token không hợp lệ hoặc hết hạn'], 401);
+        }
+
+        // Tạo accessToken mới
+        $accessToken = JWT::encode(
+            ['userId' => $tokenRecord->user_id, 'exp' => time() + self::ACCESS_TOKEN_TTL],
+            env('ACCESS_TOKEN_SECRET'),
+            'HS256'
+        );
+
+        return response()->json(['accessToken' => $accessToken]);
     }
 }
-

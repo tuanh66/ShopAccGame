@@ -9,7 +9,12 @@ import ring from "../assets/svg/ring.svg";
 import profile from "../assets/svg/profile.svg";
 import eye_show from "../assets/svg/eye-show.svg";
 import eye_hide from "../assets/svg/eye-hide.svg";
+import profile_close from "../assets/svg/profile_close.svg";
 import anhdaidien from "../assets/svg/anhdaidien.svg";
+import thongtintaikhoan from "../assets/svg/thongtintaikhoan.svg";
+import doimatkhau from "../assets/svg/doimatkhau.svg";
+import sidebar_logout from "../assets/svg/log-out.svg";
+import sidebar_arrow_right from "../assets/svg/sidebar_arrow_right.svg";
 import home from "../assets/svg/home.svg";
 import top1 from "../assets/svg/top1.svg";
 import homeCheck from "../assets/svg/homecheck.svg";
@@ -26,6 +31,7 @@ import icon_close from "../assets/svg/close.svg";
 export default function ClientLayout() {
   const API = import.meta.env.VITE_API_URL;
   const [openModal, setOpenModal] = useState(false);
+  const [openAccountBox, setOpenAccountBox] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordRegister, setShowPasswordRegister] = useState(false);
   const [showPasswordRegisterConfirm, setShowPasswordRegisterConfirm] =
@@ -52,12 +58,13 @@ export default function ClientLayout() {
       }, 10);
     }
   }, [openModal]); // watch openModal
+
   // HANDLE REGISTER
   const [regUsername, setRegUsername] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regPasswordConfirm, setRegPasswordConfirm] = useState("");
-  const [serverErrorRegister, setServerErrorRegister] = useState("");
+  const [serverRegisterError, setServerRegisterError] = useState("");
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -73,7 +80,7 @@ export default function ClientLayout() {
         password_confirmation: regPasswordConfirm,
       });
 
-      setServerErrorRegister("");
+      setServerRegisterError("");
       // Nếu thành công
       alert("Đăng ký thành công!");
       setRegisterActive(false); // chuyển sang login
@@ -86,13 +93,13 @@ export default function ClientLayout() {
         if (res.errors) {
           // Lấy lỗi đầu tiên
           const firstError = Object.values(res.errors)[0][0];
-          setServerErrorRegister(firstError);
+          setServerRegisterError(firstError);
         } else {
           // Lỗi dạng message
-          setServerErrorRegister(res.message || "Đăng ký thất bại");
+          setServerRegisterError(res.message || "Đăng ký thất bại");
         }
       } else {
-        setServerErrorRegister("Không thể đăng ký!");
+        setServerRegisterError("Không thể đăng ký!");
       }
     }
   };
@@ -156,14 +163,72 @@ export default function ClientLayout() {
   // HANDLE LOGIN
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  // const [serverRegisterError, setServerRegisterError] = useState("");
+  const [serverLoginError, setServerLoginError] = useState("");
+
+  const [userInfo, setUserInfo] = useState(null); // lưu thông tin user
+  // const [loginErrors, setLoginErrors] = useState({
+  //   username: "",
+  //   password: "",
+  // });
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     const ok = validateLoginAll();
     if (!ok) return;
+
+    try {
+      // 1. Gọi API đăng nhập
+      const res = await axios.post(`${API}/auth/signin`, {
+        username,
+        password,
+      });
+
+      const accessToken = res.data.accessToken;
+
+      // 2. Lưu token
+      localStorage.setItem("accessToken", accessToken);
+
+      // 3. Lấy thông tin user ngay sau login
+      const me = await axios.get(`${API}/users/auth-me`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      setUserInfo(me.data.info);
+
+      // 4. Ẩn modal
+      setOpenModal(false);
+    } catch (error) {
+      if (error.response) {
+        const res = error.response.data;
+
+        if (res.errors) {
+          // Lấy lỗi đầu tiên
+          const firstError = Object.values(res.errors)[0][0];
+          setServerLoginError(firstError);
+        } else {
+          // Lỗi dạng message
+          setServerLoginError(res.message || "Đăng ký thất bại");
+        }
+      } else {
+        setServerLoginError("Không thể đăng ký!");
+      }
+    }
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    axios
+      .get(`${API}/users/auth-me`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      })
+      .then((res) => setUserInfo(res.data.info))
+      .catch(() => localStorage.removeItem("accessToken"));
+  }, []);
 
   const [loginErrors, setLoginErrors] = useState({
     username: "",
@@ -192,6 +257,74 @@ export default function ClientLayout() {
     return username.trim() && password.trim();
   };
   // END HANDLE LOGIN
+
+  // HANDLE LOGOUT
+  const handleLogout = async () => {
+    try {
+      // 1. Gọi API backend để xoá refresh token + cookie
+      await axiosInstance.post("/auth/signout");
+
+      // 2. Xoá accessToken bên client
+      localStorage.removeItem("accessToken");
+
+      // 3. Xoá thông tin user
+      setUserInfo(null);
+
+      // 4. Đóng box tài khoản
+      setOpenAccountBox(false);
+    } catch (error) {
+      console.error("Logout lỗi:", error);
+    }
+  };
+  // END HANDLE LOGOUT
+
+  const renewToken = async () => {
+    try {
+      const res = await axios.post(
+        `${API}/auth/token-renewal`,
+        {},
+        { withCredentials: true }
+      );
+      const accessToken = res.data.accessToken;
+      localStorage.setItem("accessToken", accessToken);
+    } catch (err) {
+      console.error("Không thể gia hạn token", err);
+    }
+  };
+  // tạo instance axios
+  const axiosInstance = axios.create({
+    baseURL: API,
+    withCredentials: true, // gửi cookie refreshToken
+  });
+
+  // Thêm header Authorization tự động
+  axiosInstance.interceptors.request.use((config) => {
+    const token = localStorage.getItem("accessToken");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+  });
+
+  // Interceptor response: bắt 401
+  axiosInstance.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const originalRequest = error.config;
+
+      // nếu 401 và chưa retry
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+        try {
+          await renewToken(); // gọi API refresh token
+          return axiosInstance(originalRequest); // retry request cũ
+        } catch (err) {
+          handleLogout(); // refresh thất bại → logout
+          return Promise.reject(err);
+        }
+      }
+
+      return Promise.reject(error);
+    }
+  );
   return (
     <>
       {/* Header */}
@@ -242,10 +375,30 @@ export default function ClientLayout() {
               </div>
               {/* code sau */}
             </div>
-            <div className="header-actions-user">
-              <div className="header-menu-icon ml-4" onClick={open}>
-                <img src={profile} alt="icon" />
-              </div>
+            <div className="header-actions-user relative">
+              {userInfo ? (
+                <div
+                  className="header-account-logined"
+                  onClick={() => setOpenAccountBox(!openAccountBox)}
+                >
+                  <div className="header-account-name">
+                    <div className="text-[var(--title-color)] text-right font-medium">
+                      {userInfo.username}
+                    </div>
+                    <div className="font-normal">
+                      Số dư:{" "}
+                      {new Intl.NumberFormat("vi-VN").format(userInfo.balance)}
+                    </div>
+                  </div>
+                  <div className="header-account-avatar">
+                    <img src={anhdaidien} alt="avatar" />
+                  </div>
+                </div>
+              ) : (
+                <div className="header-menu-icon ml-4" onClick={open}>
+                  <img src={profile} alt="icon" />
+                </div>
+              )}
               {openModal && (
                 <div
                   className={`modal fade ${showEffect ? "show" : ""}`}
@@ -274,10 +427,10 @@ export default function ClientLayout() {
                             </small>
                             <p
                               className={`form-message ${
-                                serverErrorRegister ? "" : "hidden"
+                                serverRegisterError ? "" : "hidden"
                               }`}
                             >
-                              {serverErrorRegister}
+                              {serverRegisterError}
                             </p>
                             <div className="modal-input-group mt-3">
                               <input
@@ -452,7 +605,13 @@ export default function ClientLayout() {
                             <small className="modal-subtitle">
                               Vui lòng đăng ký để sử dụng dịch vụ của chúng tôi
                             </small>
-                            <p className="form-message hidden"></p>
+                            <p
+                              className={`form-message ${
+                                serverLoginError ? "" : "hidden"
+                              }`}
+                            >
+                              {serverLoginError}
+                            </p>
                             <div className="modal-input-group">
                               <input
                                 type="text"
@@ -589,17 +748,130 @@ export default function ClientLayout() {
                   </div>
                 </div>
               )}
-              <div className="header-account-logined !hidden">
-                <div className="header-account-name">
-                  <div className="text-[var(--title-color)] text-right font-medium">
-                    Tuan Anh
+              {openAccountBox && (
+                <div className="box-account-logined">
+                  <div className="box-account-title">
+                    <div className="text-[var(--title-color)] text-[20px] font-bold leading-[28px]">
+                      Tài khoản
+                    </div>
+                    <img
+                      src={profile_close}
+                      alt="icon"
+                      onClick={() => setOpenAccountBox(false)}
+                    />
                   </div>
-                  <div className="font-normal">Số dư: 0</div>
+                  <div className="box-account-content">
+                    <div className="sidebar">
+                      <div className="sidebar-section flex">
+                        <div className="sidebar-section-avatar">
+                          <img src={anhdaidien} alt="icon" />
+                        </div>
+                        <div className="sidebar-section-info">
+                          <div className="sidebar-section-info-title text-[15px] text-[var(--title-color)]">
+                            admin
+                          </div>
+                          <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">
+                            Số dư:{" "}
+                            <span className="text-[var(--primary-color)]">
+                              0đ
+                            </span>
+                          </div>
+                          <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">
+                            Số dư Acoin:{" "}
+                            <span className="text-[var(--primary-color)]">
+                              0 Acoin
+                            </span>
+                          </div>
+                          <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">
+                            Số dư khuyến mãi:{" "}
+                            <span className="text-[var(--primary-color)]">
+                              0đ
+                            </span>
+                            <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">
+                              ID:{" "}
+                              <span className="text-[var(--primary-color)]">
+                                2983929
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="sidebar-section">
+                        <p className="sidebar-section-title">MENU TÀI KHOẢN</p>
+                        <div className="sidebar-item">
+                          <a href="admin/dashboard" className="flex items-center">
+                            <div className="sidebar-item-icon">
+                              <img src={thongtintaikhoan} alt="" />
+                            </div>
+                            <p className="sidebar-item-text ">
+                              Vào trang Admin
+                            </p>
+                            <img src={sidebar_arrow_right} alt="" />
+                          </a>
+                        </div>
+                        <div className="sidebar-item-partition"></div>
+                        <div className="sidebar-item">
+                          <a href="/thong-tin" className="flex items-center">
+                            <div className="sidebar-item-icon">
+                              <img src={thongtintaikhoan} alt="" />
+                            </div>
+                            <p className="sidebar-item-text ">
+                              Thông tin tài khoản
+                            </p>
+                            <img src={sidebar_arrow_right} alt="" />
+                          </a>
+                        </div>
+                        <div className="sidebar-item-partition"></div>
+                        <div className="sidebar-item">
+                          <a href="#" className="flex items-center">
+                            <div className="sidebar-item-icon">
+                              <img src={doimatkhau} alt="" />
+                            </div>
+                            <p className="sidebar-item-text ">Đổi mật khẩu</p>
+                            <img src={sidebar_arrow_right} alt="" />
+                          </a>
+                        </div>
+                      </div>
+                      <div className="sidebar-section">
+                        <p className="sidebar-section-title">MENU GIAO DỊCH</p>
+                        <div className="sidebar-item">
+                          <a href="#" className="flex items-center">
+                            <div className="sidebar-item-icon">
+                              <img src={thongtintaikhoan} alt="" />
+                            </div>
+                            <p className="sidebar-item-text ">
+                              Lịch sử giao dịch
+                            </p>
+                            <img src={sidebar_arrow_right} alt="" />
+                          </a>
+                        </div>
+                        <div className="sidebar-item-partition"></div>
+                        <div className="sidebar-item">
+                          <a href="#" className="flex items-center">
+                            <div className="sidebar-item-icon">
+                              <img src={doimatkhau} alt="" />
+                            </div>
+                            <p className="sidebar-item-text ">
+                              Dịch vụ đã mua
+                            </p>
+                            <img src={sidebar_arrow_right} alt="" />
+                          </a>
+                        </div>
+                      </div>
+                      <div className="sidebar-section" onClick={handleLogout}>
+                        <div className="sidebar-item">
+                          <a href="#" className="flex items-center">
+                            <div className="sidebar-item-icon">
+                              <img src={sidebar_logout} alt="icon" />
+                            </div>
+                            <p className="sidebar-item-text">Đăng xuất</p>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="header-account-avatar">
-                  <img src={anhdaidien} alt="avatar" />
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

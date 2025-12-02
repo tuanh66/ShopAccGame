@@ -7,6 +7,7 @@ import Dashboard from "../components/Admin/Dashboard";
 import TrangChu from "../components/Client/TrangChu";
 import MuaAcc from "../components/Client/MuaAcc";
 import NapTien from "../components/Client/NapTien";
+import ThongTin from "../components/Client/ThongTin";
 
 const router = createBrowserRouter([
   {
@@ -16,6 +17,7 @@ const router = createBrowserRouter([
       { index: true, element: <TrangChu /> },
       { path: "nap-tien", element: <NapTien/>},
       { path: "mua-acc", element: <MuaAcc /> },
+      { path: "thong-tin", element: <ThongTin /> },
     ],
   },
   {

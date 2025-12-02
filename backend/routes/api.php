@@ -11,5 +11,5 @@ use Illuminate\Support\Facades\Route;
 Route::post('/auth/signup', [AuthController::class, 'signUp']);
 Route::post('/auth/signin', [AuthController::class, 'signIn']);
 Route::post('/auth/signout', [AuthController::class, 'signOut']);
-Route::get('/users/auth-me', [AuthController::class, 'authMe'])->middleware('AuthMiddleware');
-Route::post('/auth/check-field', [AuthController::class, 'checkField']);
+Route::post('/auth/token-renewal', [AuthController::class, 'tokenRenewal']);
+Route::middleware('auth.jwt')->get('/users/auth-me', [AuthController::class, 'authMe']);

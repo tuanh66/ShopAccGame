@@ -13,6 +13,8 @@
     --secondary-color: #f473b9;
     --secondary-hover-color: #CC609B;
     --secondary-focus-color: #A64E7D;
+    --filter-text-color: invert(25%) sepia(17%) saturate(560%) hue-rotate(194deg) brightness(97%) contrast(90%);
+    --filter-primary-color: invert(22%) sepia(98%) saturate(2861%) hue-rotate(225deg) brightness(81%) contrast(115%);
 
 
 
