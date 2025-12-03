@@ -9,7 +9,38 @@
 
 
 
+
 .history-right {
     flex: 1;
     margin-left: 16px;
+}
+
+.history-detail-title {
+    margin-bottom: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    background-color: #FFFFFF;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.history-detail-title h1 {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 28px;
+    color: var(--title-color);
+}
+
+.history-detail-content {
+    margin-bottom: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    background-color: #FFFFFF;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.history-detail-attr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
 }

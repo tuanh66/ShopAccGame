@@ -675,6 +675,23 @@ input[type=search].search-form-input~button[type=submit]:before {
     filter: var(--filter-primary-color);
 }
 
+.sidebar-item.active {
+    background-color: var(--switch-color);
+    border-radius: 8px;
+}
+
+.sidebar-item.active .sidebar-item-text {
+    color: var(--primary-color);
+}
+
+.sidebar-item.active .sidebar-item-icon {
+    background-color: var(--switch-color);
+}
+
+.sidebar-item.active .sidebar-item-icon img {
+    filter: var(--filter-primary-color);
+}
+
 .sidebar-section-avatar {
     width: 40px;
     height: 40px;

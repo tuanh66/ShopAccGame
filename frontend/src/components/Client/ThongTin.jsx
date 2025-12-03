@@ -1,11 +1,33 @@
+import axios from "axios";
+import { useState, useEffect } from "react";
 import "../../assets/css/client/thongtin.css";
 import anhdaidien from "../../assets/svg/anhdaidien.svg";
 import thongtintaikhoan from "../../assets/svg/thongtintaikhoan.svg";
 import doimatkhau from "../../assets/svg/doimatkhau.svg";
-// import sidebar_logout from "../../assets/svg/log-out.svg";
+import dichvudamua from "../../assets/svg/dichvudamua.svg";
+import sidebar_logout from "../../assets/svg/log-out.svg";
 import sidebar_arrow_right from "../../assets/svg/sidebar_arrow_right.svg";
 
 export default function ThongTin() {
+  const API = import.meta.env.VITE_API_URL;
+  const [activeHistory, setActiveHistory] = useState(1);
+  const [userInfo, setUserInfo] = useState({
+    id: "",
+    username: "",
+    balance: 0,
+  });
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const token = localStorage.getItem("accessToken"); // hoặc từ state/global store
+      const res = await axios.get(`${API}/users/auth-me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUserInfo(res.data.info);
+    };
+
+    fetchUserInfo();
+  }, []);
   return (
     <>
       <ul className="breadcrumb-list">
@@ -29,10 +51,13 @@ export default function ThongTin() {
               </div>
               <div className="sidebar-section-info">
                 <div className="sidebar-section-info-title text-[15px] text-[var(--title-color)]">
-                  admin
+                  {userInfo.username}
                 </div>
                 <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">
-                  Số dư: <span className="text-[var(--primary-color)]">0đ</span>
+                  Số dư:{" "}
+                  <span className="text-[var(--primary-color)]">
+                    {new Intl.NumberFormat("vi-VN").format(userInfo.balance)}đ
+                  </span>
                 </div>
                 <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">
                   Số dư Acoin:{" "}
@@ -43,14 +68,21 @@ export default function ThongTin() {
                   <span className="text-[var(--primary-color)]">0đ</span>
                   <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">
                     ID:{" "}
-                    <span className="text-[var(--primary-color)]">2983929</span>
+                    <span className="text-[var(--primary-color)]">
+                      {String(userInfo.id).padStart(6, "0")}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
             <div className="sidebar-section">
               <p className="sidebar-section-title">MENU TÀI KHOẢN</p>
-              <div className="sidebar-item">
+              <div
+                className={`sidebar-item ${
+                  activeHistory === 1 ? "active" : ""
+                }`}
+                onClick={() => setActiveHistory(1)}
+              >
                 <a href="/thong-tin" className="flex items-center">
                   <div className="sidebar-item-icon">
                     <img src={thongtintaikhoan} alt="" />
@@ -60,7 +92,12 @@ export default function ThongTin() {
                 </a>
               </div>
               <div className="sidebar-item-partition"></div>
-              <div className="sidebar-item">
+              <div
+                className={`sidebar-item ${
+                  activeHistory === 2 ? "active" : ""
+                }`}
+                onClick={() => setActiveHistory(2)}
+              >
                 <a href="#" className="flex items-center">
                   <div className="sidebar-item-icon">
                     <img src={doimatkhau} alt="" />
@@ -70,9 +107,82 @@ export default function ThongTin() {
                 </a>
               </div>
             </div>
+            <div className="sidebar-section">
+              <p className="sidebar-section-title">MENU GIAO DỊCH</p>
+              <div
+                className={`sidebar-item ${
+                  activeHistory === 3 ? "active" : ""
+                }`}
+                onClick={() => setActiveHistory(3)}
+              >
+                <a href="#" className="flex items-center">
+                  <div className="sidebar-item-icon">
+                    <img src={dichvudamua} alt="" />
+                  </div>
+                  <p className="sidebar-item-text ">Lịch sử giao dịch</p>
+                  <img src={sidebar_arrow_right} alt="" />
+                </a>
+              </div>
+              <div className="sidebar-item-partition"></div>
+              <div
+                className={`sidebar-item ${
+                  activeHistory === 4 ? "active" : ""
+                }`}
+                onClick={() => setActiveHistory(4)}
+              >
+                <a href="#" className="flex items-center">
+                  <div className="sidebar-item-icon">
+                    <img src={dichvudamua} alt="" />
+                  </div>
+                  <p className="sidebar-item-text ">Dịch vụ đã mua</p>
+                  <img src={sidebar_arrow_right} alt="" />
+                </a>
+              </div>
+            </div>
+            <div className="sidebar-section">
+              <div className="sidebar-item">
+                <a href="#" className="flex items-center">
+                  <div className="sidebar-item-icon">
+                    <img src={sidebar_logout} alt="icon" />
+                  </div>
+                  <p className="sidebar-item-text">Đăng xuất</p>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="history-right"></div>
+        <div className="history-right">
+          <div className="history-detail-title">
+            <h1>Thông tin tài khoản</h1>
+          </div>
+          <div className="history-detail-content">
+            <div className="history-detail-attr">
+              <p className="text-[var(--text-link)]">ID của bạn</p>
+              <p className="font-medium">
+                {String(userInfo.id).padStart(6, "0")}
+              </p>
+            </div>
+            <div className="history-detail-attr">
+              <p className="text-[var(--text-link)]">Tên tài khoản</p>
+              <p className="font-medium">{userInfo.username}</p>
+            </div>
+            <div className="history-detail-attr">
+              <p className="text-[var(--text-link)]">Số dư tài khoản</p>
+              <p className="text-[var(--primary-color)] font-medium">
+                {new Intl.NumberFormat("vi-VN").format(userInfo.balance)}đ
+              </p>
+            </div>
+            <div className="flex items-center mt-3">
+              <form className="flex w-full">
+                <input type="text" placeholder="Nhập mã giới thiệu" />
+                <button type="submit" className="btn ml-4">
+                  Gửi
+                </button>
+              </form>
+              <p className="form-message hidden"></p>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );

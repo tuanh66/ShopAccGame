@@ -228,6 +228,12 @@ export default function ClientLayout() {
       })
       .then((res) => setUserInfo(res.data.info))
       .catch(() => localStorage.removeItem("accessToken"));
+
+    const redirectTo = localStorage.getItem("redirectTo");
+    if (redirectTo) {
+      localStorage.removeItem("redirectTo");
+      window.location.href = redirectTo; // redirect ở đây là ok
+    }
   }, []);
 
   const [loginErrors, setLoginErrors] = useState({
@@ -799,7 +805,10 @@ export default function ClientLayout() {
                       <div className="sidebar-section">
                         <p className="sidebar-section-title">MENU TÀI KHOẢN</p>
                         <div className="sidebar-item">
-                          <a href="admin/dashboard" className="flex items-center">
+                          <a
+                            href="admin/dashboard"
+                            className="flex items-center"
+                          >
                             <div className="sidebar-item-icon">
                               <img src={thongtintaikhoan} alt="" />
                             </div>
@@ -851,9 +860,7 @@ export default function ClientLayout() {
                             <div className="sidebar-item-icon">
                               <img src={doimatkhau} alt="" />
                             </div>
-                            <p className="sidebar-item-text ">
-                              Dịch vụ đã mua
-                            </p>
+                            <p className="sidebar-item-text ">Dịch vụ đã mua</p>
                             <img src={sidebar_arrow_right} alt="" />
                           </a>
                         </div>

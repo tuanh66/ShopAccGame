@@ -1,4 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
+import ProtectedClientRoute from "../router/ProtectedClientRoute";
 import AdminLayout from "../layout/AdminLayout";
 import ClientLayout from "../layout/ClientLayout";
 // Admin
@@ -15,9 +16,16 @@ const router = createBrowserRouter([
     element: <ClientLayout />,
     children: [
       { index: true, element: <TrangChu /> },
-      { path: "nap-tien", element: <NapTien/>},
+      { path: "nap-tien", element: <NapTien /> },
       { path: "mua-acc", element: <MuaAcc /> },
-      { path: "thong-tin", element: <ThongTin /> },
+      {
+        path: "thong-tin",
+        element: (
+          <ProtectedClientRoute>
+            <ThongTin />
+          </ProtectedClientRoute>
+        ),
+      },
     ],
   },
   {

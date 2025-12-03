@@ -140,6 +140,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'info' => [
+                    'id'       => $user->id,
                     'username' => $user->username,
                     'balance'  => $user->balance,
                 ],
