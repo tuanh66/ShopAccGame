@@ -178,25 +178,17 @@ export default function ClientLayout() {
     if (!ok) return;
 
     try {
-      // 1. Gọi API đăng nhập
       const res = await axios.post(`${API}/auth/signin`, {
         username,
         password,
       });
+      localStorage.setItem("accessToken", res.data.accessToken);
 
-      const accessToken = res.data.accessToken;
-
-      // 2. Lưu token
-      localStorage.setItem("accessToken", accessToken);
-
-      // 3. Lấy thông tin user ngay sau login
-      const me = await axios.get(`${API}/users/auth-me`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+      const me = await axios.get(`${API}/users/me`, {
+        headers: { Authorization: `Bearer ${res.data.accessToken}` },
       });
+      setUserInfo(me.data.user);
 
-      setUserInfo(me.data.info);
-
-      // 4. Ẩn modal
       setOpenModal(false);
     } catch (error) {
       if (error.response) {
@@ -221,12 +213,12 @@ export default function ClientLayout() {
     if (!token) return;
 
     axios
-      .get(`${API}/users/auth-me`, {
+      .get(`${API}/users/me`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       })
-      .then((res) => setUserInfo(res.data.info))
+      .then((res) => setUserInfo(res.data.user))
       .catch(() => localStorage.removeItem("accessToken"));
 
     const redirectTo = localStorage.getItem("redirectTo");
@@ -268,7 +260,7 @@ export default function ClientLayout() {
   const handleLogout = async () => {
     try {
       // 1. Gọi API backend để xoá refresh token + cookie
-      await axiosInstance.post("/auth/signout");
+      await axios.post(`${API}/auth/signout`, {}, { withCredentials: true });
 
       // 2. Xoá accessToken bên client
       localStorage.removeItem("accessToken");
@@ -283,54 +275,6 @@ export default function ClientLayout() {
     }
   };
   // END HANDLE LOGOUT
-
-  const renewToken = async () => {
-    try {
-      const res = await axios.post(
-        `${API}/auth/token-renewal`,
-        {},
-        { withCredentials: true }
-      );
-      const accessToken = res.data.accessToken;
-      localStorage.setItem("accessToken", accessToken);
-    } catch (err) {
-      console.error("Không thể gia hạn token", err);
-    }
-  };
-  // tạo instance axios
-  const axiosInstance = axios.create({
-    baseURL: API,
-    withCredentials: true, // gửi cookie refreshToken
-  });
-
-  // Thêm header Authorization tự động
-  axiosInstance.interceptors.request.use((config) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-  });
-
-  // Interceptor response: bắt 401
-  axiosInstance.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-      const originalRequest = error.config;
-
-      // nếu 401 và chưa retry
-      if (error.response?.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
-        try {
-          await renewToken(); // gọi API refresh token
-          return axiosInstance(originalRequest); // retry request cũ
-        } catch (err) {
-          handleLogout(); // refresh thất bại → logout
-          return Promise.reject(err);
-        }
-      }
-
-      return Promise.reject(error);
-    }
-  );
   return (
     <>
       {/* Header */}
@@ -671,14 +615,14 @@ export default function ClientLayout() {
                                   <img
                                     src={eye_show}
                                     alt="show"
-                                    className="password-input-hide"
+                                    className="password-input-show"
                                     onClick={() => setShowPassword(false)}
                                   />
                                 ) : (
                                   <img
                                     src={eye_hide}
                                     alt="hide"
-                                    className="password-input-show"
+                                    className="password-input-hide"
                                     onClick={() => setShowPassword(true)}
                                   />
                                 )}
@@ -774,12 +718,15 @@ export default function ClientLayout() {
                         </div>
                         <div className="sidebar-section-info">
                           <div className="sidebar-section-info-title text-[15px] text-[var(--title-color)]">
-                            admin
+                            {userInfo.username}
                           </div>
                           <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">
                             Số dư:{" "}
                             <span className="text-[var(--primary-color)]">
-                              0đ
+                              {new Intl.NumberFormat("vi-VN").format(
+                                userInfo.balance
+                              )}
+                              đ
                             </span>
                           </div>
                           <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">
@@ -796,7 +743,7 @@ export default function ClientLayout() {
                             <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">
                               ID:{" "}
                               <span className="text-[var(--primary-color)]">
-                                2983929
+                                {userInfo.id}
                               </span>
                             </div>
                           </div>
@@ -919,7 +866,7 @@ export default function ClientLayout() {
       </header>
       {/* End Header */}
       <div className="container">
-        <Outlet />
+        <Outlet context={{ userInfo, setUserInfo }} />
       </div>
       {/* Footer */}
       <footer className="footer">

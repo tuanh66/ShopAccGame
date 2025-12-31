@@ -1,3 +1,4 @@
+import { useOutletContext } from "react-router-dom";
 import { useState } from "react";
 import "../../assets/css/Client/napthe.css";
 import recharge_coupon from "../../assets/img/recharge-coupon.png";
@@ -6,7 +7,13 @@ import reload from "../../assets/svg/reload.svg";
 import copy from "../../assets/svg/copy.svg";
 
 export default function NapTien() {
-  const [activeTab, setActiveTab] = useState("card");
+  const { userInfo } = useOutletContext();
+  const userId = userInfo?.id ?? ''
+  const transferContent = `NAP SHOPTP ${userId}`;
+  const qrLink = `https://qr.sepay.vn/img?bank=MbBank&acc=0002135238747&template=amount&des=NAP+SHOPTP+${userId}`;
+  const [copied, setCopied] = useState(false);
+
+  const [activeTab, setActiveTab] = useState("atm");
   return (
     <>
       <ul className="breadcrumb-list">
@@ -35,7 +42,7 @@ export default function NapTien() {
                   }`}
                   onClick={() => setActiveTab("card")}
                 >
-                  <p class="recharge-tabs-text">Nạp thẻ cào</p>
+                  <p className="recharge-tabs-text">Nạp thẻ cào</p>
                 </li>
                 <li
                   className={`recharge-tabs-item ${
@@ -43,7 +50,7 @@ export default function NapTien() {
                   }`}
                   onClick={() => setActiveTab("atm")}
                 >
-                  <p class="recharge-tabs-text">ATM tự động</p>
+                  <p className="recharge-tabs-text">ATM tự động</p>
                 </li>
               </ul>
             </div>
@@ -230,8 +237,8 @@ export default function NapTien() {
                             <td>Chi nhánh</td>
                           </tr>
                           <tr>
-                            <td>TP BANK</td>
-                            <td>54551159888</td>
+                            <td>MB BANK</td>
+                            <td>0002135238747</td>
                             <td>Đà Nẵng</td>
                           </tr>
                         </tbody>
@@ -272,17 +279,28 @@ export default function NapTien() {
                         </p>
                         <div className="flex">
                           <div className="text-[13px] font-bold leading-[24px]">
-                            NAP SHOPT1 2910100
+                            NAP SHOPTP {userId}
                           </div>
-                          <div className="copy-transfer">
+                          <div
+                            className="copy-transfer"
+                            onClick={() => {
+                              navigator.clipboard.writeText(transferContent);
+                              setCopied(true);
+                              setTimeout(() => setCopied(false), 3500); // tự tắt sau 1.5s
+                            }}
+                          >
                             <img src={copy} alt="" />
+                            {copied && (
+                              <div className="copy-toast">Đã copy!</div>
+                            )}
                           </div>
                         </div>
                       </div>
                       <div className="mt-[30px]">
-                        <img className="h-[320px] mx-auto"
-                          src="https://img.vietqr.io/image/TPB-54551159888-print.jpg?addInfo=NAP%20SHOPTUANPHUONG%202910100&accountName=Tran%20Quang%20Tuan%20Anh"
-                          alt=""
+                        <img
+                          className="h-[320px] mx-auto"
+                          src={qrLink}
+                          alt="logo_ck"
                         />
                       </div>
                     </div>

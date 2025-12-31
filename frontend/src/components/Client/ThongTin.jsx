@@ -1,33 +1,27 @@
-import axios from "axios";
-import { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
+import { useState } from "react";
 import "../../assets/css/client/thongtin.css";
 import anhdaidien from "../../assets/svg/anhdaidien.svg";
 import thongtintaikhoan from "../../assets/svg/thongtintaikhoan.svg";
+import eye_show from "../../assets/svg/eye-show.svg";
+import eye_hide from "../../assets/svg/eye-hide.svg";
 import doimatkhau from "../../assets/svg/doimatkhau.svg";
 import dichvudamua from "../../assets/svg/dichvudamua.svg";
 import sidebar_logout from "../../assets/svg/log-out.svg";
 import sidebar_arrow_right from "../../assets/svg/sidebar_arrow_right.svg";
 
 export default function ThongTin() {
-  const API = import.meta.env.VITE_API_URL;
+  const { userInfo } = useOutletContext();
+  const userId = userInfo?.id ?? "";
+  const userName = userInfo?.username ?? "";
+  const userBalance = userInfo?.balance
+    ? Number(userInfo.balance).toLocaleString("vi-VN")
+    : "0";
   const [activeHistory, setActiveHistory] = useState(1);
-  const [userInfo, setUserInfo] = useState({
-    id: "",
-    username: "",
-    balance: 0,
-  });
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      const token = localStorage.getItem("accessToken"); // hoặc từ state/global store
-      const res = await axios.get(`${API}/users/auth-me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUserInfo(res.data.info);
-    };
-
-    fetchUserInfo();
-  }, []);
   return (
     <>
       <ul className="breadcrumb-list">
@@ -51,12 +45,12 @@ export default function ThongTin() {
               </div>
               <div className="sidebar-section-info">
                 <div className="sidebar-section-info-title text-[15px] text-[var(--title-color)]">
-                  {userInfo.username}
+                  {userName}
                 </div>
                 <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">
                   Số dư:{" "}
                   <span className="text-[var(--primary-color)]">
-                    {new Intl.NumberFormat("vi-VN").format(userInfo.balance)}đ
+                    {userBalance}đ
                   </span>
                 </div>
                 <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">
@@ -69,7 +63,7 @@ export default function ThongTin() {
                   <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">
                     ID:{" "}
                     <span className="text-[var(--primary-color)]">
-                      {String(userInfo.id).padStart(6, "0")}
+                      {userId}
                     </span>
                   </div>
                 </div>
@@ -83,13 +77,13 @@ export default function ThongTin() {
                 }`}
                 onClick={() => setActiveHistory(1)}
               >
-                <a href="/thong-tin" className="flex items-center">
+                <div className="flex items-center">
                   <div className="sidebar-item-icon">
                     <img src={thongtintaikhoan} alt="" />
                   </div>
                   <p className="sidebar-item-text ">Thông tin tài khoản</p>
                   <img src={sidebar_arrow_right} alt="" />
-                </a>
+                </div>
               </div>
               <div className="sidebar-item-partition"></div>
               <div
@@ -98,13 +92,13 @@ export default function ThongTin() {
                 }`}
                 onClick={() => setActiveHistory(2)}
               >
-                <a href="#" className="flex items-center">
+                <div className="flex items-center">
                   <div className="sidebar-item-icon">
                     <img src={doimatkhau} alt="" />
                   </div>
                   <p className="sidebar-item-text ">Đổi mật khẩu</p>
                   <img src={sidebar_arrow_right} alt="" />
-                </a>
+                </div>
               </div>
             </div>
             <div className="sidebar-section">
@@ -152,36 +146,129 @@ export default function ThongTin() {
           </div>
         </div>
         <div className="history-right">
-          <div className="history-detail-title">
-            <h1>Thông tin tài khoản</h1>
-          </div>
-          <div className="history-detail-content">
-            <div className="history-detail-attr">
-              <p className="text-[var(--text-link)]">ID của bạn</p>
-              <p className="font-medium">
-                {String(userInfo.id).padStart(6, "0")}
-              </p>
-            </div>
-            <div className="history-detail-attr">
-              <p className="text-[var(--text-link)]">Tên tài khoản</p>
-              <p className="font-medium">{userInfo.username}</p>
-            </div>
-            <div className="history-detail-attr">
-              <p className="text-[var(--text-link)]">Số dư tài khoản</p>
-              <p className="text-[var(--primary-color)] font-medium">
-                {new Intl.NumberFormat("vi-VN").format(userInfo.balance)}đ
-              </p>
-            </div>
-            <div className="flex items-center mt-3">
-              <form className="flex w-full">
-                <input type="text" placeholder="Nhập mã giới thiệu" />
-                <button type="submit" className="btn ml-4">
-                  Gửi
-                </button>
-              </form>
-              <p className="form-message hidden"></p>
-            </div>
-          </div>
+          {activeHistory === 1 && (
+            <>
+              <div className="history-detail-title">
+                <h1>Thông tin tài khoản</h1>
+              </div>
+              <div className="history-detail-content">
+                <div className="history-detail-attr">
+                  <p className="text-[var(--text-link)]">ID của bạn</p>
+                  <p className="font-medium">{userId}</p>
+                </div>
+                <div className="history-detail-attr">
+                  <p className="text-[var(--text-link)]">Tên tài khoản</p>
+                  <p className="font-medium">{userName}</p>
+                </div>
+                <div className="history-detail-attr">
+                  <p className="text-[var(--text-link)]">Số dư tài khoản</p>
+                  <p className="text-[var(--primary-color)] font-medium">
+                    {userBalance}đ
+                  </p>
+                </div>
+                <div className="flex items-center mt-3">
+                  <form className="flex w-full">
+                    <input type="text" placeholder="Nhập mã giới thiệu" />
+                    <button type="submit" className="btn ml-4">
+                      Gửi
+                    </button>
+                  </form>
+                  <p className="form-message hidden"></p>
+                </div>
+              </div>
+            </>
+          )}
+          {activeHistory === 2 && (
+            <>
+              <div className="card">
+                <div className="card-header">
+                  <h1>Đổi mật khẩu</h1>
+                </div>
+                <div className="px-4 pt-4">
+                  <form className="">
+                    <div className="">
+                      <span className="">Mật khẩu cũ</span>
+                      <div className="password">
+                        <input
+                          type={showOldPassword ? "text" : "password"}
+                          placeholder="Vui lòng nhập mật khẩu cũ"
+                          className="!pr-9"
+                        />
+                        {showOldPassword ? (
+                          <img
+                            src={eye_show}
+                            alt="show"
+                            className="password-input-show"
+                            onClick={() => setShowOldPassword(false)}
+                          />
+                        ) : (
+                          <img
+                            src={eye_hide}
+                            alt="hide"
+                            className="password-input-hide"
+                            onClick={() => setShowOldPassword(true)}
+                          />
+                        )}
+                      </div>
+                      <p className="form-message hidden"></p>
+                    </div>
+                    <div className="">
+                      <span className="">Mật khẩu mới</span>
+                      <div className="password">
+                        <input
+                          type={showNewPassword ? "text" : "password"}
+                          placeholder="Vui lòng nhập mật khẩu mới"
+                          className="!pr-9"
+                        />
+                        {showNewPassword ? (
+                          <img
+                            src={eye_show}
+                            alt="show"
+                            className="password-input-show"
+                            onClick={() => setShowNewPassword(false)}
+                          />
+                        ) : (
+                          <img
+                            src={eye_hide}
+                            alt="hide"
+                            className="password-input-hide"
+                            onClick={() => setShowNewPassword(true)}
+                          />
+                        )}
+                      </div>
+                      <p className="form-message hidden"></p>
+                    </div>
+                    <div className="">
+                      <span className="">Xác nhận mật khẩu mới</span>
+                      <div className="password">
+                        <input
+                          type={showConfirmNewPassword ? "text" : "password"}
+                          placeholder="Vui lòng nhập xác mật khẩu mới"
+                          className="!pr-9"
+                        />
+                        {showConfirmNewPassword ? (
+                          <img
+                            src={eye_show}
+                            alt="show"
+                            className="password-input-show"
+                            onClick={() => setShowConfirmNewPassword(false)}
+                          />
+                        ) : (
+                          <img
+                            src={eye_hide}
+                            alt="hide"
+                            className="password-input-hide"
+                            onClick={() => setShowConfirmNewPassword(true)}
+                          />
+                        )}
+                      </div>
+                      <p className="form-message hidden"></p>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>

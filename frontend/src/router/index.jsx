@@ -16,8 +16,15 @@ const router = createBrowserRouter([
     element: <ClientLayout />,
     children: [
       { index: true, element: <TrangChu /> },
-      { path: "nap-tien", element: <NapTien /> },
       { path: "mua-acc", element: <MuaAcc /> },
+      {
+        path: "nap-tien",
+        element: (
+          <ProtectedClientRoute>
+            <NapTien />
+          </ProtectedClientRoute>
+        ),
+      },
       {
         path: "thong-tin",
         element: (
