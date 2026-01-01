@@ -25,43 +25,14 @@ const generateAttributeKey = (label) => {
     .replace(/_+/g, "_"); // xoá __ dư
 };
 
+// Admin
+
 const generateAccountCode = (prefix = "DTU") => {
   const randomNumber = Math.floor(100000 + Math.random() * 900000); // 6 số
   return `${prefix}${randomNumber}`;
 };
 
-export const readAccountCategory = async (req, res) => {
-  try {
-    const category = await AccountCategory.aggregate([
-      { $match: { status: true } },
-      {
-        $lookup: {
-          from: "accountdetails",
-          localField: "_id",
-          foreignField: "category_id",
-          as: "accounts",
-        },
-      },
-      {
-        $project: {
-          name_game: 1,
-          slug_game: 1,
-          image_game: 1,
-          status: 1,
-          count: { $size: "$accounts" },
-        },
-      },
-    ]);
-
-    return res.status(200).json({
-      message: "Lấy danh sách thành công",
-      data: category,
-    });
-  } catch (error) {
-    console.error("Lỗi khi gọi readAccountCategory", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
-  }
-};
+export const readAccountCategory = async (req, res) => {};
 
 export const createAccountCategory = async (req, res) => {
   try {
@@ -458,6 +429,128 @@ export const deleteAccountDetail = async (req, res) => {
     });
   } catch (error) {
     console.error("Lỗi khi gọi deleteAccountDetail", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+// Client
+
+export const readAccountCategoryClient = async (req, res) => {
+  try {
+    const category = await AccountCategory.aggregate([
+      { $match: { status: true } },
+      {
+        $lookup: {
+          from: "accountdetails",
+          localField: "_id",
+          foreignField: "category_id",
+          as: "accounts",
+        },
+      },
+      {
+        $project: {
+          name_category: 1,
+          slug_category: 1,
+          image_category: 1,
+          count: { $size: "$accounts" },
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      message: "Lấy danh sách thành công",
+      data: category,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi readAccountCategory", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const readAccountByCategorySlug = async (req, res) => {
+  try {
+    const { slugCategory } = req.params;
+
+    // 1. tìm category theo slug
+    const category = await AccountCategory.findOne({
+      slug_category: slugCategory,
+      status: true,
+    });
+
+    if (!category) {
+      return res.status(404).json({
+        message: "Danh mục không tồn tại",
+      });
+    }
+
+    // 2. lấy account theo category_id
+    const accounts = await AccountDetail.find(
+      {
+        category_id: category._id,
+        status: true,
+      },
+      {
+        price_detail: 1,
+        price_old_detail: 1,
+        slug_detail: 1,
+        image_detail: 1,
+        attributes_detail: 1,
+      }
+    ).sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      message: "Lấy danh sách account thành công",
+      category: {
+        id: category._id,
+        name: category.name_category,
+        slug: category.slug_category,
+        attributes: category.attributes_category,
+      },
+      data: accounts,
+    });
+  } catch (error) {
+    console.error("Lỗi readAccountByCategorySlug:", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const readAccountByDetailSlug = async (req, res) => {
+  try {
+    const { slugDetail } = req.params;
+
+    // 1. tìm account theo slug_detail
+    const account = await AccountDetail.findOne({
+      slug_detail: slugDetail,
+      status: true,
+    });
+
+    if (!account) {
+      return res.status(404).json({
+        message: "Account không tồn tại",
+      });
+    }
+
+    // 2. lấy category tương ứng
+    const category = await AccountCategory.findById(account.category_id);
+
+    if (!category) {
+      return res.status(404).json({
+        message: "Danh mục không tồn tại",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Lấy chi tiết account thành công",
+      category: {
+        id: category._id,
+        name: category.name_category,
+        slug: category.slug_category,
+        attributes: category.attributes_category,
+      },
+      data: account,
+    });
+  } catch (error) {
+    console.error("Lỗi readAccountByDetailSlug:", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };

@@ -12,60 +12,68 @@ import {
   createAccountDetail,
   updateAccountDetail,
   deleteAccountDetail,
+  readAccountCategoryClient,
+  readAccountByCategorySlug,
+  readAccountByDetailSlug
 } from "../controllers/accountController.js";
 
 const router = express.Router();
 
-router.get("/category", readAccountCategory);
-// router.get("/category/:id");
+// Admin
+router.get("/admin/category", readAccountCategory);
 router.post(
-  "/category/create",
+  "/admin/category/create",
   protectedRoute,
   authorize(ROLES.ADMIN),
   createAccountCategory
 );
 router.post(
-  "/category/:id/attribute/add",
+  "/admin/category/:id/attribute/add",
   protectedRoute,
   authorize(ROLES.ADMIN),
   addAccountCategoryAttribute
 );
 router.post(
-  "/category/:id/attribute/:key",
+  "/admin/category/:id/attribute/:key",
   protectedRoute,
   authorize(ROLES.ADMIN),
   removeAccountCategoryAttribute
 );
 router.post(
-  "/category/update/:id",
+  "/admin/category/update/:id",
   protectedRoute,
   authorize(ROLES.ADMIN),
   updateAccountCategory
 );
 router.post(
-  "/category/delete/:id",
+  "/admin/category/delete/:id",
   protectedRoute,
   authorize(ROLES.ADMIN),
   deleteAccountCategory
 );
-router.get("/detail", readAccountDetail);
-router.get("/detail/:id");
+router.get("/admin/detail", readAccountDetail);
 router.post(
-  "/detail/create",
+  "/admin/detail/create",
   protectedRoute,
   authorize(ROLES.ADMIN),
   createAccountDetail
 );
 router.post(
-  "/detail/update/:id",
+  "/admin/detail/update/:id",
   protectedRoute,
   authorize(ROLES.ADMIN),
   updateAccountDetail
 );
 router.post(
-  "/detail/delete/:id",
+  "/admin/detail/delete/:id",
   protectedRoute,
   authorize(ROLES.ADMIN),
   deleteAccountDetail
 );
 export default router;
+
+// Client
+router.get("/category", readAccountCategoryClient);
+router.get("/category/:slugCategory", readAccountByCategorySlug);
+router.get("/detail/:slugDetail", readAccountByDetailSlug);
+

@@ -1,6 +1,23 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Link } from "react-router-dom";
 import "../../assets/css/Client/muaacc.css";
 
 const MuaAccount = () => {
+  const API = import.meta.env.VITE_API_URL;
+  const [category, setCategory] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get(`${API}/account/category`)
+      .then((res) => {
+        setCategory(res.data.data);
+      })
+      .catch((err) => {
+        console.error("Lỗi lấy category", err);
+      });
+  }, []);
+
   return (
     <>
       <ul className="breadcrumb-list">
@@ -26,22 +43,28 @@ const MuaAccount = () => {
           Chọn game muốn mua account
         </div>
         <div className="account-list">
-          <div className="account-item">
-            <div className="card card-hover">
-              <a href="#" className="p-4 card-body">
-                <div className="card-image">
-                  <img
-                    src="https://static2.mingame89.store/19426957-cdnimaget1/upload/fastcdn/acc-category-shopt1com/82460/images/ACC_FF_T%E1%BB%B0_CH%E1%BB%8CN_%5B41AF991%5D%5B1%5D.gif"
-                    alt="Ảnh game"
-                  />
-                </div>
-                <div className="account-info">
-                  <div className="account-name text-limit">Nick Free Fire tự chọn</div>
-                  <div className="text-[var(--text-link)] text-[13px] font-normal leading-[20px]">Số tài khoản: 1000</div>
-                </div>
-              </a>
+          {category.map((item) => (
+            <div className="account-item" key={item._id}>
+              <div className="card card-hover">
+                <Link
+                  to={`/mua-acc/${item.slug_category}`}
+                  className="p-4 card-body"
+                >
+                  <div className="card-image">
+                    <img src={item.image_category} alt="Ảnh game" />
+                  </div>
+                  <div className="account-info">
+                    <div className="account-name text-limit">
+                      {item.name_category}
+                    </div>
+                    <div className="text-[var(--text-link)] text-[13px] font-normal leading-[20px]">
+                      Số tài khoản: {item.count}
+                    </div>
+                  </div>
+                </Link>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
       </section>
     </>

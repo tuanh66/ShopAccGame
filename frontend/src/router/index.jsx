@@ -7,6 +7,8 @@ import Dashboard from "../components/Admin/Dashboard";
 // Client
 import TrangChu from "../components/Client/TrangChu";
 import MuaAcc from "../components/Client/MuaAcc";
+import DanhSachAccount from "../components/Client/DanhSachAccount";
+import ChiTietAccount from "../components/Client/ChiTietAccount";
 import NapTien from "../components/Client/NapTien";
 import ThongTin from "../components/Client/ThongTin";
 
@@ -17,6 +19,8 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <TrangChu /> },
       { path: "mua-acc", element: <MuaAcc /> },
+      { path: "mua-acc/:slugCategory", element: <DanhSachAccount /> },
+      { path: "mua-acc/:slugCategory/:slugDetail", element: <ChiTietAccount /> },
       {
         path: "nap-tien",
         element: (

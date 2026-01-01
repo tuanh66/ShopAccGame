@@ -47,3 +47,34 @@
     -webkit-line-clamp: 1;
     line-clamp: 1;
 }
+
+.price {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.price_current {
+    color: var(--primary-color);
+    font-size: 16px;
+    font-weight: 700;
+    margin-right: 8px;
+}
+
+.price_old {
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 16px;
+    color: var(--text-link);
+    text-decoration: line-through;
+}
+
+.discount {
+    background-color: var(--secondary-color);
+    border-radius: 16px;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+    color: #FFFFFF;
+    padding: 0 8px;
+}
