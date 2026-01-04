@@ -470,6 +470,9 @@ export const readAccountCategoryClient = async (req, res) => {
 export const readAccountByCategorySlug = async (req, res) => {
   try {
     const { slugCategory } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 30;
+    const skip = (page - 1) * limit;
 
     // 1. tìm category theo slug
     const category = await AccountCategory.findOne({
@@ -482,6 +485,11 @@ export const readAccountByCategorySlug = async (req, res) => {
         message: "Danh mục không tồn tại",
       });
     }
+
+    const total = await AccountDetail.countDocuments({
+      category_id: category._id,
+      status: true,
+    });
 
     // 2. lấy account theo category_id
     const accounts = await AccountDetail.find(
@@ -496,7 +504,10 @@ export const readAccountByCategorySlug = async (req, res) => {
         image_detail: 1,
         attributes_detail: 1,
       }
-    ).sort({ createdAt: -1 });
+    )
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     return res.status(200).json({
       message: "Lấy danh sách account thành công",
@@ -505,6 +516,12 @@ export const readAccountByCategorySlug = async (req, res) => {
         name: category.name_category,
         slug: category.slug_category,
         attributes: category.attributes_category,
+      },
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
       data: accounts,
     });

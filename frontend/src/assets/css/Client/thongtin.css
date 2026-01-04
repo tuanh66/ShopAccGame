@@ -27,7 +27,7 @@
     font-size: 20px;
     font-weight: 700;
     line-height: 28px;
-    color: var(--title-color);
+    color: var(--text-title-color);
 }
 
 .history-detail-content {

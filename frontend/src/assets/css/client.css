@@ -235,7 +235,7 @@ input[type=search].search-form-input~button[type=submit]:before {
 }
 
 .footer-title {
-    color: var(--title-color);
+    color: var(--text-title-color);
     font-size: 15px;
     font-weight: 700;
     line-height: normal;
@@ -257,7 +257,7 @@ input[type=search].search-form-input~button[type=submit]:before {
 }
 
 .footer-bot {
-    color: var(--title-color);
+    color: var(--text-title-color);
     background-color: none;
     text-align: center;
     padding: 10px 0;
@@ -714,7 +714,7 @@ input[type=search].search-form-input~button[type=submit]:before {
 .sidebar-section-title {
     font-size: 15px;
     font-weight: 500;
-    color: var(--title-color);
+    color: var(--text-title-color);
     margin-bottom: 16px;
 }
 

@@ -44,7 +44,7 @@ export default function ThongTin() {
                 <img src={anhdaidien} alt="icon" />
               </div>
               <div className="sidebar-section-info">
-                <div className="sidebar-section-info-title text-[15px] text-[var(--title-color)]">
+                <div className="sidebar-section-info-title text-[15px] text-[var(--text-title-color)]">
                   {userName}
                 </div>
                 <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">

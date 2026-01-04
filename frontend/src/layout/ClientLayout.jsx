@@ -332,7 +332,7 @@ export default function ClientLayout() {
                   onClick={() => setOpenAccountBox(!openAccountBox)}
                 >
                   <div className="header-account-name">
-                    <div className="text-[var(--title-color)] text-right font-medium">
+                    <div className="text-[var(--text-title-color)] text-right font-medium">
                       {userInfo.username}
                     </div>
                     <div className="font-normal">
@@ -701,7 +701,7 @@ export default function ClientLayout() {
               {openAccountBox && (
                 <div className="box-account-logined">
                   <div className="box-account-title">
-                    <div className="text-[var(--title-color)] text-[20px] font-bold leading-[28px]">
+                    <div className="text-[var(--text-title-color)] text-[20px] font-bold leading-[28px]">
                       Tài khoản
                     </div>
                     <img
@@ -717,7 +717,7 @@ export default function ClientLayout() {
                           <img src={anhdaidien} alt="icon" />
                         </div>
                         <div className="sidebar-section-info">
-                          <div className="sidebar-section-info-title text-[15px] text-[var(--title-color)]">
+                          <div className="sidebar-section-info-title text-[15px] text-[var(--text-title-color)]">
                             {userInfo.username}
                           </div>
                           <div className="sidebar-section-info-title text-[13px] text-[var(--text-color)]">

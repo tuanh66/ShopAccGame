@@ -58,7 +58,7 @@
     color: var(--primary-color);
     font-size: 16px;
     font-weight: 700;
-    margin-right: 8px;
+    line-height: 24px;
 }
 
 .price_old {
@@ -78,3 +78,71 @@
     color: #FFFFFF;
     padding: 0 8px;
 }
+
+/* Chi Tiết Account */
+.section-content {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -15px;
+    margin-left: -15px;
+}
+
+.section-content-left {
+    flex: 0 0 58.333333%;
+    max-width: 58.333333%;
+    width: 100%;
+    padding-right: 8px;
+    padding-left: 15px;
+}
+
+.section-content-right {
+    flex: 0 0 41.666667%;
+    max-width: 41.666667%;
+    width: 100%;
+    padding-left: 8px;
+    padding-right: 15px;
+}
+
+.section-content-right .card-body {
+    padding: 16px;
+}
+
+.section-title {
+    color: var(--text-title-color);
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 32px;
+    display: flex;
+    align-items: center;
+}
+
+.card.disabled_color {
+    all: unset;
+    display: block;
+    background: var(--input-background-color);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.flex .price_old {
+    color: var(--text-link);
+    text-decoration: line-through;
+}
+
+.flex .price_current {
+    font-weight: 500;
+    font-size: 40px;
+    line-height: 56px;
+    color: var(--secondary-color);
+}
+
+.flex .discount {
+    padding: 0 8px;
+    background-color: var(--primary-color);
+    color: #FFF;
+    font-size: 12px;
+    line-height: 16px;
+    border-radius: 16px;
+}
+
+/* End Chi Tiết Account */
