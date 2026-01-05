@@ -116,6 +116,51 @@
     align-items: center;
 }
 
+.scroll-default {
+    max-height: 132px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+.scroll-default::-webkit-scrollbar {
+    width: 8px;
+    border: none;
+}
+
+.scroll-default::-webkit-scrollbar-thumb {
+    background: #BCBFD6;
+    border-radius: 100px;
+    border: none;
+    margin-left: 20px;
+    height: 20px;
+}
+
+.scroll-default::-webkit-scrollbar-track {
+    position: absolute;
+    top: 100px;
+    left: -60px;
+    background-color: #ffffff;
+    border: none;
+}
+
+.scroll-default tbody tr:nth-child(odd) {
+    background: #FFFFFF;
+}
+
+.scroll-default tbody tr:nth-child(even) {
+    background: var(--w-ghost-hover-color);
+}
+
+.scroll-default .table td:first-child {
+    text-align: left;
+}
+
+.scroll-default .table td:last-child {
+    text-align: right;
+}
+
 .card.disabled_color {
     all: unset;
     display: block;
