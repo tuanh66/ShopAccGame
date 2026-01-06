@@ -14,7 +14,8 @@ import {
   deleteAccountDetail,
   readAccountCategoryClient,
   readAccountByCategorySlug,
-  readAccountByDetailSlug
+  readAccountByDetailSlug,
+  readRelatedAccounts,
 } from "../controllers/accountController.js";
 
 const router = express.Router();
@@ -76,4 +77,4 @@ export default router;
 router.get("/category", readAccountCategoryClient);
 router.get("/category/:slugCategory", readAccountByCategorySlug);
 router.get("/detail/:slugDetail", readAccountByDetailSlug);
-
+router.get("/related/:slugDetail", readRelatedAccounts);

@@ -3,9 +3,6 @@ import axios from "axios";
 import { Link, useParams } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
 import Lightbox from "yet-another-react-lightbox";
 import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
@@ -17,10 +14,13 @@ import "yet-another-react-lightbox/plugins/counter.css";
 const ChiTietAccount = () => {
   const API = import.meta.env.VITE_API_URL;
   const { slugCategory, slugDetail } = useParams();
-  const [account, setAccount] = useState(null);
   const [category, setCategory] = useState(null);
-  const prevRef = useRef(null);
-  const nextRef = useRef(null);
+  const [account, setAccount] = useState(null);
+  const [relatedAccount, setRelatedAccount] = useState([]);
+  const prevAccount = useRef(null);
+  const nextAccount = useRef(null);
+  const prevRelate = useRef(null);
+  const nextRelate = useRef(null);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -34,6 +34,23 @@ const ChiTietAccount = () => {
     };
     fetchDetail();
   }, [slugDetail]);
+
+  useEffect(() => {
+    if (!account?.slug_detail) return;
+
+    const fetchRelated = async () => {
+      try {
+        const res = await axios.get(
+          `${API}/account/related/${account.slug_detail}?limit=10`
+        );
+        setRelatedAccount(res.data.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchRelated();
+  }, [account]);
 
   const images = account?.image_detail || [];
 
@@ -75,10 +92,10 @@ const ChiTietAccount = () => {
       <section className="mb-6 lg:mb-8">
         <div className="section-content">
           <div className="section-content-left">
-            <div className="card">
+            <div className="card h-[466px]">
               <div className="card-body p-4">
                 <Swiper
-                  className="rounded-[12px]"
+                  className="rounded-[12px] h-full"
                   modules={[Navigation, Pagination, Autoplay]}
                   loop={account?.image_detail?.length > 1}
                   autoplay={{
@@ -88,8 +105,8 @@ const ChiTietAccount = () => {
                   }}
                   pagination={{ clickable: true }}
                   onBeforeInit={(swiper) => {
-                    swiper.params.navigation.prevEl = prevRef.current;
-                    swiper.params.navigation.nextEl = nextRef.current;
+                    swiper.params.navigation.prevEl = prevAccount.current;
+                    swiper.params.navigation.nextEl = nextAccount.current;
                     swiper.navigation.init();
                     swiper.navigation.update();
                   }}
@@ -113,8 +130,8 @@ const ChiTietAccount = () => {
                     index={index}
                     plugins={[Thumbnails, Zoom, Counter]}
                   />
-                  <div ref={prevRef} className="button-prev"></div>
-                  <div ref={nextRef} className="button-next"></div>
+                  <div ref={prevAccount} className="button-prev"></div>
+                  <div ref={nextAccount} className="button-next"></div>
                 </Swiper>
               </div>
             </div>
@@ -193,6 +210,102 @@ const ChiTietAccount = () => {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+      <section className="section-extra-accounts">
+        <div className="section-relate-accounts">
+          <h2 className="section-title mb-6">Tài khoản liên quan</h2>
+          <div className="relate-swiper-wrapper">
+            <Swiper
+              modules={[Navigation]}
+              slidesPerView={5} // 👈 hiện 5 card
+              slidesPerGroup={5} // 👈 bấm 1 lần → trượt 5 card
+              spaceBetween={16}
+              onSwiper={(swiper) => {
+                if (!prevRelate.current || !nextRelate.current) return;
+
+                swiper.params.navigation = {
+                  prevEl: prevRelate.current,
+                  nextEl: nextRelate.current,
+                };
+
+                swiper.navigation.init();
+                swiper.navigation.update();
+              }}
+            >
+              {relatedAccount.map((item) => (
+                <SwiperSlide key={item._id}>
+                  <div className="card card-hover">
+                    <Link
+                      to={`/mua-acc/${category.slug}/${item.slug_detail}`}
+                      className="p-4 card-body"
+                    >
+                      <div className="card-image">
+                        <img
+                          src={
+                            item.image_detail && item.image_detail.length > 0
+                              ? item.image_detail[0]
+                              : "/no-image.png"
+                          }
+                          alt="Ảnh game"
+                        />
+                      </div>
+                      <div className="account-info">
+                        <div className="account-name text-limit">
+                          {category.name}
+                        </div>
+                        <div className="mb-2">
+                          <div className="text-[var(--text-link)] text-[13px] font-normal leading-[20px] mb-2">
+                            ID: #{item.slug_detail}
+                          </div>
+                          {category?.attributes &&
+                            item.attributes_detail &&
+                            Object.entries(category.attributes).map(
+                              ([key, attr]) => (
+                                <div
+                                  key={key}
+                                  className="text-[var(--text-link)] text-[13px] font-normal leading-[20px]"
+                                >
+                                  {attr.label}:{" "}
+                                  {item.attributes_detail[key] ?? ""}
+                                </div>
+                              )
+                            )}
+                        </div>
+                        <div className="price">
+                          <div className="price_current w-full">
+                            {new Intl.NumberFormat("vi-VN").format(
+                              item.price_detail
+                            )}
+                            đ
+                          </div>
+                          <div className="price_old mr-2">
+                            {new Intl.NumberFormat("vi-VN").format(
+                              item.price_old_detail
+                            )}
+                            đ
+                          </div>
+                          <div className="discount">
+                            {Math.round(
+                              ((item.price_old_detail - item.price_detail) /
+                                item.price_old_detail) *
+                                100
+                            )}
+                            %
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+            <div ref={prevRelate} className="button-prev"></div>
+            <div ref={nextRelate} className="button-next"></div>
+          </div>
+        </div>
+        <div className="section-watched-accounts">
+          <h2 className="section-title mb-6">Tài khoản đã xem</h2>
         </div>
       </section>
     </>

@@ -571,3 +571,35 @@ export const readAccountByDetailSlug = async (req, res) => {
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
+
+export const readRelatedAccounts = async (req, res) => {
+  try {
+    const { slugDetail } = req.params;
+    const limit = Number(req.query.limit) || 10;
+
+    const currentAccount = await AccountDetail.findOne({
+      slug_detail: slugDetail,
+      status: true,
+    });
+
+    if (!currentAccount) {
+      return res.status(404).json({ message: "Account không tồn tại" });
+    }
+
+    const relatedAccounts = await AccountDetail.find({
+      category_id: currentAccount.category_id,
+      slug_detail: { $ne: slugDetail },
+      status: true,
+    })
+      .sort({ createdAt: -1 })
+      .limit(limit);
+
+    return res.status(200).json({
+      message: "Lấy account liên quan thành công",
+      data: relatedAccounts,
+    });
+  } catch (err) {
+    console.error("Lỗi readRelatedAccounts:", err);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};

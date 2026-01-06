@@ -1,12 +1,17 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, Link, NavLink, useMatch } from "react-router-dom";
+import { FaHouse, FaBars } from "react-icons/fa6";
+import { LuGamepad, LuUserRound } from "react-icons/lu";
+import { IoWalletOutline } from "react-icons/io5";
+
 import "../assets/css/client.css";
 import logo from "../assets/img/logo.png";
 import support from "../assets/svg/support.svg";
 import viewed from "../assets/svg/viewed.svg";
 import ring from "../assets/svg/ring.svg";
 import profile from "../assets/svg/profile.svg";
+import search from "../assets/svg/search.svg";
 import eye_show from "../assets/svg/eye-show.svg";
 import eye_hide from "../assets/svg/eye-hide.svg";
 import profile_close from "../assets/svg/profile_close.svg";
@@ -275,6 +280,19 @@ export default function ClientLayout() {
     }
   };
   // END HANDLE LOGOUT
+
+  function MenuBottomItem({ to, icon, label }) {
+    const match = useMatch(to);
+
+    return (
+      <li className={`menu-bottom-item ${match ? "active" : ""}`}>
+        <NavLink to={to} className="menu-bottom-item-link">
+          <span className="menu-bottom-item-image">{icon}</span>
+          <span className="menu-bottom-item-text">{label}</span>
+        </NavLink>
+      </li>
+    );
+  }
   return (
     <>
       {/* Header */}
@@ -864,6 +882,10 @@ export default function ClientLayout() {
           </div>
         </div>
       </header>
+      <form className="mobi-search">
+        <img src={search} alt="" />
+        <input type="text" className="search-form-input" />
+      </form>
       {/* End Header */}
       <div className="container">
         <Outlet context={{ userInfo, setUserInfo }} />
@@ -956,6 +978,27 @@ export default function ClientLayout() {
         </div>
       </footer>
       {/* End Footer */}
+      <div className="menu-bottom-tabs">
+        <ul className="menu-bottom-list">
+          <MenuBottomItem to="/" icon={<FaHouse />} label="Trang chủ" />
+          <MenuBottomItem to="/dich-vu" icon={<FaBars />} label="Dịch vụ" />
+          <MenuBottomItem
+            to="/nap-tien"
+            icon={<IoWalletOutline />}
+            label="Nạp tiền"
+          />
+          <MenuBottomItem
+            to="/mini-game"
+            icon={<LuGamepad />}
+            label="Mini Game"
+          />
+          <MenuBottomItem
+            to="/thong-tin"
+            icon={<LuUserRound />}
+            label="Tài khoản"
+          />
+        </ul>
+      </div>
     </>
   );
 }

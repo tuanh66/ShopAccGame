@@ -135,7 +135,7 @@ input[type=search].search-form-input~button[type=submit]:before {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    -webkit-mask-image: url(../svg/icon-search.svg);
+    -webkit-mask-image: url(../svg/search.svg);
     -webkit-mask-repeat: no-repeat;
     -webkit-mask-size: cover;
     -webkit-mask-position: center;
@@ -235,7 +235,7 @@ input[type=search].search-form-input~button[type=submit]:before {
 }
 
 .footer-title {
-    color: var(--text-title-color);
+    color: var(--title-color);
     font-size: 15px;
     font-weight: 700;
     line-height: normal;
@@ -257,7 +257,7 @@ input[type=search].search-form-input~button[type=submit]:before {
 }
 
 .footer-bot {
-    color: var(--text-title-color);
+    color: var(--title-color);
     background-color: none;
     text-align: center;
     padding: 10px 0;
@@ -714,7 +714,7 @@ input[type=search].search-form-input~button[type=submit]:before {
 .sidebar-section-title {
     font-size: 15px;
     font-weight: 500;
-    color: var(--text-title-color);
+    color: var(--title-color);
     margin-bottom: 16px;
 }
 
@@ -747,3 +747,150 @@ input[type=search].search-form-input~button[type=submit]:before {
 }
 
 /* End Box Account Logined */
+
+.mobi-search {
+    display: none;
+}
+
+.menu-bottom-tabs {
+    display: none;
+}
+
+
+/* TrangChu */
+.ads-banner {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    margin-bottom: 12px;
+}
+
+.ads-banner-card {
+    flex: 0 0 25%;
+    max-width: 25%;
+    padding-right: 15px;
+}
+
+.ads-banner-slide {
+    flex: 0 0 75%;
+    max-width: 75%;
+    padding-left: 15px;
+}
+
+.ads-banner-slide .swiper-slide {
+    padding-bottom: 40%;
+}
+
+/* End TrangChu */
+
+
+
+/* Mobile & Tablet */
+@media only screen and (max-width: 1023px) {
+    .header-top {
+        height: 56px;
+        box-shadow: 0 2px rgb(0, 0, 0, 0.05);
+    }
+
+    .header-bot,
+    .header-menu,
+    .header-search,
+    .header-actions-recharge,
+    .header-actions-user {
+        display: none;
+    }
+
+    .header-menu-icon {
+        background-color: transparent;
+    }
+
+    .footer {
+        margin-bottom: 84px;
+    }
+
+    .menu-bottom-tabs {
+        display: flex;
+        width: 100%;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        background: #fff;
+        box-shadow: 0 -2px #E8E8E8;
+        z-index: 100;
+        padding: 4px 0 0;
+        height: 84px;
+    }
+
+    .menu-bottom-list {
+        display: flex;
+        flex-grow: 1;
+        flex-shrink: 0;
+        margin-bottom: 8px;
+    }
+
+    .menu-bottom-item {
+        width: 20%;
+    }
+
+    .menu-bottom-item-link {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 5px;
+    }
+
+    .menu-bottom-item-image {
+        text-align: center;
+        padding: 6px 0px;
+        margin-bottom: 4px;
+        border-radius: 24px;
+    }
+
+    .menu-bottom-item-image svg {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        color: var(--text-link);
+    }
+
+    .menu-bottom-item-text {
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 20px;
+        color: var(--text-link);
+    }
+
+    .menu-bottom-item.active .menu-bottom-item-image,
+    .menu-bottom-item.active .menu-bottom-item-image svg {
+        background-color: #F5F6FC;
+        width: 85%;
+        color: var(--primary-color);
+    }
+
+    .menu-bottom-item.active .menu-bottom-item-text {
+        color: var(--primary-color);
+    }
+
+    .mobi-search {
+        display: block;
+        position: relative;
+        padding: 12px;
+    }
+
+    .mobi-search img {
+        position: absolute;
+        top: 20px;
+        left: 12px;
+        margin-left: 12px;
+    }
+
+    .mobi-search input {
+        border: 1px solid var(--border-hover-color) !important;
+        padding-left: 40px !important;
+        border-radius: 8px !important;
+    }
+}
+
+/* PC Low, Ipad Pro */
+@media (min-width: 1024px) and (max-width: 1239px) {}
