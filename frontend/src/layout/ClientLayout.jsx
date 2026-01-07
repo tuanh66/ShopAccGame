@@ -884,7 +884,11 @@ export default function ClientLayout() {
       </header>
       <form className="mobi-search">
         <img src={search} alt="" />
-        <input type="text" className="search-form-input" />
+        <input
+          type="text"
+          className="search-form-input"
+          placeholder="Tìm kiếm"
+        />
       </form>
       {/* End Header */}
       <div className="container">
@@ -894,76 +898,101 @@ export default function ClientLayout() {
       <footer className="footer">
         <div className="footer-top">
           <div className="footer-top-container container">
-            <div className="col-30 mb-20 px-10">
-              <div className="header-logo mb-15">
+            <div className="w-[30%] mb-[20px] px-[10px]">
+              <div className="header-logo mb-[15px]">
                 <img src={logo} alt="logo" />
               </div>
-              <div className="fz-15 fw-400 lh-20 text-justify">
+              <div className="text-[15px] font-normal leading-[20px] text-justify">
                 Shop Tuấn Phương – Chuyên mua bán acc Liên Quân Mobile uy tín,
                 chất lượng. Cam kết tài khoản thật 100%, hỗ trợ tận tâm và bảo
                 hành đầy đủ cho anh em game thủ.
               </div>
             </div>
-            <div className="col-20 mb-20 px-10">
+            <div className="w-[20%] mb-[20px] px-[10px]">
               <h4 className="footer-title">Lưu ý cần biết</h4>
               <ul className="footer-list">
-                <li className="footer-item py-5">
-                  <a href="#" className="fz-15 fw-400 text-color">
+                <li className="footer-item py-[5px]">
+                  <a
+                    href="#"
+                    className="text-[var(--text-color)] text-[15px] font-normal"
+                  >
                     Kiểm tra uy tín của các shop
                   </a>
                 </li>
-                <li className="footer-item py-5">
-                  <a href="#" className="fz-15 fw-400 text-color">
+                <li className="footer-item py-[5px]">
+                  <a
+                    href="#"
+                    className="text-[var(--text-color)] text-[15px] font-normal"
+                  >
                     Đấu trường danh vọng
                   </a>
                 </li>
               </ul>
             </div>
-            <div className="col-20 mb-20 px-10">
+            <div className="w-[20%] mb-[20px] px-[10px]">
               <h4 className="footer-title">Hướng dẫn</h4>
               <ul className="footer-list">
-                <li className="footer-item py-5">
-                  <a href="#" className="fz-15 fw-400 text-color">
+                <li className="footer-item py-[5px]">
+                  <a
+                    href="#"
+                    className="text-[var(--text-color)] text-[15px] font-normal"
+                  >
                     Quyền lợi khi mua acc
+                  </a>
+                </li>
+                <li className="footer-item py-[5px]">
+                  <a
+                    href="#"
+                    className="text-[var(--text-color)] text-[15px] font-normal"
+                  >
+                    Kiểm tra uy tín của các uy tín
                   </a>
                 </li>
               </ul>
             </div>
-            <div className="col-30 mb-20 px-10">
+            <div className="w-[30%] mb-[20px] px-[10px]">
               <h4 className="footer-title">Kết nối với chúng tôi</h4>
-              <div className="footer-social d-flex">
-                <a href="#" className="mx-5">
+              <div className="footer-social flex">
+                <a href="#" className="mx-[5px]">
                   <img
-                    className="w-35 h-35"
+                    className="w-[35px] h-[35px]"
                     src={logo_facebook}
                     alt="facebook"
                   />
                 </a>
-                <a href="#" className="mx-5">
-                  <img className="w-35 h-35" src={logo_zalo} alt="zalo" />
-                </a>
-                <a href="#" className="mx-5">
-                  <img className="w-35 h-35" src={logo_tiktok} alt="tiktok" />
-                </a>
-                <a href="#" className="mx-5">
+                <a href="#" className="mx-[5px]">
                   <img
-                    className="w-35 h-35"
+                    className="w-[35px] h-[35px]"
+                    src={logo_zalo}
+                    alt="zalo"
+                  />
+                </a>
+                <a href="#" className="mx-[5px]">
+                  <img
+                    className="w-[35px] h-[35px]"
+                    src={logo_tiktok}
+                    alt="tiktok"
+                  />
+                </a>
+                <a href="#" className="mx-[5px]">
+                  <img
+                    className="w-[35px] h-[35px]"
                     src={logo_telegram}
                     alt="telegram"
                   />
                 </a>
               </div>
               <div className="footer-info">
-                <p className="text-color fz-15 fw-400">
+                <p className="text-[var(--text-color)] text-[15px] font-normal">
                   👉Hotline CSKH: <span className="fw-700">0702775297</span>
                 </p>
-                <p className="text-color fz-15 fw-400">
+                <p className="text-[var(--text-color)] text-[15px] font-normal">
                   👉Thời gian CSKH: <span className="fw-700">9h - 23h30</span>
                 </p>
-                <p className="text-color fz-15 fw-400">
+                <p className="text-[var(--text-color)] text-[15px] font-normal">
                   👉Thành viên shop: <span className="fw-700">84.528</span>
                 </p>
-                <p className="text-color fz-15 fw-400">
+                <p className="text-[var(--text-color)] text-[15px] font-normal">
                   👉Acc đã giao dịch: <span className="fw-700">84.528</span>
                 </p>
               </div>
@@ -971,7 +1000,7 @@ export default function ClientLayout() {
           </div>
         </div>
         <div className="footer-bot">
-          <p className="text-[14px] font-normal leading-[20px] select-none">
+          <p className="text-[14px] font-normal leading-[20px]">
             © Bản quyền thuộc về&nbsp;
             <span className="font-bold">Tuấn Phương | 15/05/2025</span>
           </p>

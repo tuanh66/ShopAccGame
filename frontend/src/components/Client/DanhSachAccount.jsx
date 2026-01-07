@@ -93,8 +93,8 @@ const DanhSachAccount = () => {
           </h2>
         </div>
         <hr />
-        <div className="py-4 text-[15px] font-bold leading-[24px]">
-          Chọn game muốn mua account
+        <div className="text-title pt-[2px] pb-[10px] lg:py-4 !font-bold">
+          {category?.name}
         </div>
         <div className="account-list">
           {account.map((item) => (
@@ -115,21 +115,18 @@ const DanhSachAccount = () => {
                     />
                   </div>
                   <div className="account-info">
-                    <div className="account-name text-limit">
+                    <div className="text-title !font-bold text-limit limit-1">
                       {category.name}
                     </div>
                     <div className="mb-2">
-                      <div className="text-[var(--text-link)] text-[13px] font-normal leading-[20px] mb-2">
+                      <div className="info-attr mb-2">
                         ID: #{item.slug_detail}
                       </div>
                       {category?.attributes &&
                         item.attributes_detail &&
                         Object.entries(category.attributes).map(
                           ([key, attr]) => (
-                            <div
-                              key={key}
-                              className="text-[var(--text-link)] text-[13px] font-normal leading-[20px]"
-                            >
+                            <div key={key} className="info-attr">
                               {attr.label}: {item.attributes_detail[key] ?? ""}
                             </div>
                           )

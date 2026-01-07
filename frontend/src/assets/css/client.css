@@ -563,7 +563,6 @@ input[type=search].search-form-input~button[type=submit]:before {
     transform: translateX(0);
 }
 
-
 .modal-panel-title {
     font-size: 24px;
     font-weight: 700;
@@ -771,14 +770,91 @@ input[type=search].search-form-input~button[type=submit]:before {
     padding-right: 15px;
 }
 
+.banner-card-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-top: 16px;
+}
+
+.topup-user-rank {
+    position: relative;
+    height: 40px;
+    margin-bottom: 12px;
+    padding: 0 15px;
+}
+
+.topup-user-icon:first-child,
+.topup-user-number:first-child {
+    float: left;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: bold;
+    display: inline-block;
+    text-align: center;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    border-radius: 50%;
+}
+
+.topup-user-icon {
+    background: url(../img/star.png);
+}
+
+.topup-user-number {
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.topup-user-name {
+    margin: 0 110px 0 35px;
+    padding-top: 5px;
+    font-weight: 500;
+    font-size: 14px;
+    color: #414141;
+    display: block;
+    height: 26px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.topup-user-amount {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: inline-block;
+    width: 118px;
+    height: 26px;
+    line-height: 26px;
+    text-align: center;
+    white-space: nowrap;
+    font-weight: 400;
+    font-size: 14px;
+    color: #434657;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
 .ads-banner-slide {
     flex: 0 0 75%;
     max-width: 75%;
     padding-left: 15px;
 }
 
+.ads-banner-slide .swiper,
+.ads-banner-slide .swiper-wrapper,
 .ads-banner-slide .swiper-slide {
-    padding-bottom: 40%;
+    height: 371px;
+}
+
+.ads-banner-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 /* End TrangChu */
@@ -890,7 +966,38 @@ input[type=search].search-form-input~button[type=submit]:before {
         padding-left: 40px !important;
         border-radius: 8px !important;
     }
+
+    /* TrangChu */
+    .ads-banner {
+        flex-direction: column-reverse;
+        padding-bottom: 28px;
+    }
+
+    .ads-banner-card,
+    .ads-banner-slide {
+        padding: 0 !important;
+        max-width: 100%;
+    }
+
+    .ads-banner-card {
+        margin-top: 16px;
+    }
+
+    .topup-user-rank {
+        height: 30px;
+        margin-bottom: 8px;
+    }
+
+    .ads-banner-slide .swiper,
+    .ads-banner-slide .swiper-wrapper,
+    .ads-banner-slide .swiper-slide {
+        height: 160px !important;
+    }
+
+    /* End TrangChu */
 }
+
+/* End Mobile & Tablet */
 
 /* PC Low, Ipad Pro */
 @media (min-width: 1024px) and (max-width: 1239px) {}

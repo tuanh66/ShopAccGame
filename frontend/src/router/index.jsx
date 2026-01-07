@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import ProtectedClientRoute from "../router/ProtectedClientRoute";
 import AdminLayout from "../layout/AdminLayout";
 import ClientLayout from "../layout/ClientLayout";
+import MobileLayout from "../layout/MobileLayout";
 // Admin
 import Dashboard from "../components/Admin/Dashboard";
 // Client
@@ -18,9 +19,17 @@ const router = createBrowserRouter([
     element: <ClientLayout />,
     children: [
       { index: true, element: <TrangChu /> },
-      { path: "mua-acc", element: <MuaAcc /> },
-      { path: "mua-acc/:slugCategory", element: <DanhSachAccount /> },
-      { path: "mua-acc/:slugCategory/:slugDetail", element: <ChiTietAccount /> },
+      {
+        element: <MobileLayout />,
+        children: [
+          { path: "mua-acc", element: <MuaAcc /> },
+          { path: "mua-acc/:slugCategory", element: <DanhSachAccount /> },
+          {
+            path: "mua-acc/:slugCategory/:slugDetail",
+            element: <ChiTietAccount />,
+          },
+        ],
+      },
       {
         path: "nap-tien",
         element: (
@@ -39,6 +48,7 @@ const router = createBrowserRouter([
       },
     ],
   },
+
   {
     path: "/admin",
     element: <AdminLayout />,

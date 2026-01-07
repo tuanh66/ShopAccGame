@@ -39,7 +39,7 @@ const MuaAccount = () => {
           </h2>
         </div>
         <hr />
-        <div className="py-4 text-[15px] font-bold leading-[24px]">
+        <div className="text-title pt-[2px] pb-[10px] lg:py-4 !font-bold">
           Chọn game muốn mua account
         </div>
         <div className="account-list">
@@ -54,12 +54,10 @@ const MuaAccount = () => {
                     <img src={item.image_category} alt="Ảnh game" />
                   </div>
                   <div className="account-info">
-                    <div className="account-name text-limit">
+                    <div className="text-title !font-bold text-limit limit-1">
                       {item.name_category}
                     </div>
-                    <div className="text-[var(--text-link)] text-[13px] font-normal leading-[20px]">
-                      Số tài khoản: {item.count}
-                    </div>
+                    <div className="info-attr">Số tài khoản: {item.count}</div>
                   </div>
                 </Link>
               </div>
