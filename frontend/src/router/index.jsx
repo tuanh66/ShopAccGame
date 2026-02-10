@@ -8,6 +8,8 @@ import Dashboard from "../components/Admin/Dashboard";
 // Client
 import TrangChu from "../components/Client/TrangChu";
 import MuaAcc from "../components/Client/MuaAcc";
+import Profile from "../components/Client/Profile";
+import DichVu from "../components/Client/DichVu";
 import DanhSachAccount from "../components/Client/DanhSachAccount";
 import ChiTietAccount from "../components/Client/ChiTietAccount";
 import NapTien from "../components/Client/NapTien";
@@ -29,6 +31,14 @@ const router = createBrowserRouter([
             element: <ChiTietAccount />,
           },
         ],
+      },
+      {
+        path: "dich-vu",
+        element: <DichVu />,
+      },
+      {
+        path: "profile",
+        element: <Profile />,
       },
       {
         path: "nap-tien",

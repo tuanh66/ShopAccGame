@@ -880,6 +880,10 @@ input[type=search].search-form-input~button[type=submit]:before {
         background-color: transparent;
     }
 
+    .hide-footer-mobile .footer {
+        display: none;
+    }
+
     .footer {
         margin-bottom: 84px;
     }
@@ -970,6 +974,7 @@ input[type=search].search-form-input~button[type=submit]:before {
     /* TrangChu */
     .ads-banner {
         flex-direction: column-reverse;
+        margin-top: 0;
         padding-bottom: 28px;
     }
 
@@ -999,5 +1004,8 @@ input[type=search].search-form-input~button[type=submit]:before {
 
 /* End Mobile & Tablet */
 
-/* PC Low, Ipad Pro */
-@media (min-width: 1024px) and (max-width: 1239px) {}
+@media only screen and (min-width: 1024px) {
+    .search-form {
+        width: 200px;
+    }
+}

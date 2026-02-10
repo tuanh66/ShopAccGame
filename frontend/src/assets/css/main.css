@@ -40,11 +40,15 @@ body {
     -ms-user-select: none; */
 }
 
+.background-history {
+    background: #F5F5F5;
+}
+
 .container {
     margin: auto;
+    width: 100%;
     padding-left: 16px;
     padding-right: 16px;
-    max-width: 1264px;
 }
 
 /* Pagination */
@@ -470,7 +474,8 @@ select {
 
     .header-mobile {
         display: block;
-        position: sticky;
+        /* position: sticky; */
+        position: fixed;
         top: 0;
         right: 0;
         left: 0;
@@ -525,3 +530,31 @@ select {
 }
 
 /* End Mobile & Tablet */
+
+/* Mobile */
+@media only screen and (max-width: 739px) {}
+
+/* Tablet */
+@media only screen and (min-width: 740px) and (max-width: 1023px) {
+    .container {
+        max-width: 720px;
+    }
+}
+
+/* PC Low, Ipad Pro */
+@media (min-width: 1024px) and (max-width: 1239px) {
+    .container {
+        max-width: 960px;
+    }
+}
+
+/* Desktop */
+@media only screen and (min-width: 1024px) {
+    .c-container {
+        max-width: 1264px;
+    }
+
+    .c-container-side {
+        max-width: 1024px;
+    }
+}

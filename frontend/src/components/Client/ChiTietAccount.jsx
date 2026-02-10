@@ -92,7 +92,7 @@ const ChiTietAccount = () => {
       <section className="mb-6 lg:mb-8">
         <div className="section-content">
           <div className="section-content-left">
-            <div className="card h-[466px]">
+            <div className="card lg:h-[466px]">
               <div className="card-body p-4">
                 <Swiper
                   className="rounded-[12px] h-full"
@@ -143,9 +143,9 @@ const ChiTietAccount = () => {
                 <div className="text-title !font-bold !mb-[6px]">
                   Mã số: #{account?.slug_detail}
                 </div>
-                <hr />
-                <div className="text-title py-2">Thông tin acc</div>
-                <div className="flex flex-wrap w-full my-0 mx-auto">
+                <hr className="pb-3 lg:pb-0"/>
+                <div className="hidden lg:block text-title py-2">Thông tin acc</div>
+                <div className="hidden lg:flex flex-wrap w-full my-0 mx-auto">
                   <div className="scroll-default">
                     <table className="table w-full mb-6 ">
                       <tbody>
@@ -198,10 +198,10 @@ const ChiTietAccount = () => {
                     </span>
                   </div>
                 </div>
-                <div className="py-6">
+                <div className="hidden lg:block py-6">
                   <hr />
                 </div>
-                <button className="btn w-full">Mua ngay</button>
+                <button className="hidden lg:block btn w-full">Mua ngay</button>
                 {/* <div className="w-full mb-4">
                   <p className="text-center text-[var(--text-link)]">
                     --- hoặc ---

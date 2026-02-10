@@ -56,7 +56,6 @@
 .section-content {
     display: flex;
     flex-wrap: wrap;
-    margin-bottom: 32px;
 }
 
 .section-content-left {
@@ -184,6 +183,72 @@
         width: 50%;
     }
 
+    .section-content {
+        flex-direction: column-reverse;
+    }
+
+    .section-content-left,
+    .section-content-right {
+        max-width: 100%;
+        padding: 0;
+    }
+
+    .section-content-right .card {
+        border: none;
+        box-shadow: none;
+        border-radius: 8px;
+    }
+
+    .card.disabled_color {
+        border-radius: 12px;
+        background-color: #fff;
+        border: 1px solid var(--border-color);
+    }
+
+    .section-content-left .card-body,
+    .section-content-right .card-body {
+        padding: 0;
+    }
+
 }
 
 /* End Mobile & Tablet */
+
+/* Danh mục */
+.menu-category {
+    padding-top: 8px;
+    border-top: 1px solid #E4E5F0;
+}
+
+.menu-category-list {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -8px;
+    margin-right: -8px;
+}
+
+.menu-category-item {
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+    width: 100%;
+    padding: 8px;
+    background: white;
+}
+
+.menu-category-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+    box-shadow: 0 2px rgb(0 0 0 / 5%);
+    border: 1px solid #E4E5F0;
+    border-radius: 8px;
+}
+
+.menu-category-img {
+    width: 32px;
+    height: 32px;
+    color: var(--secondary-color);
+}
+
+/* End Danh mục */
