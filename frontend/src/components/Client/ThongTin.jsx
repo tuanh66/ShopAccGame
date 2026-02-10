@@ -1,6 +1,6 @@
 import { useOutletContext } from "react-router-dom";
 import { useState } from "react";
-import "../../assets/css/client/thongtin.css";
+import "../../assets/css/client/profile.css";
 import anhdaidien from "../../assets/svg/anhdaidien.svg";
 import thongtintaikhoan from "../../assets/svg/thongtintaikhoan.svg";
 import eye_show from "../../assets/svg/eye-show.svg";
@@ -146,129 +146,34 @@ export default function ThongTin() {
           </div>
         </div>
         <div className="history-right">
-          {activeHistory === 1 && (
-            <>
-              <div className="history-detail-title">
-                <h1>Thông tin tài khoản</h1>
-              </div>
-              <div className="history-detail-content">
-                <div className="history-detail-attr">
-                  <p className="text-[var(--text-link)]">ID của bạn</p>
-                  <p className="font-medium">{userId}</p>
-                </div>
-                <div className="history-detail-attr">
-                  <p className="text-[var(--text-link)]">Tên tài khoản</p>
-                  <p className="font-medium">{userName}</p>
-                </div>
-                <div className="history-detail-attr">
-                  <p className="text-[var(--text-link)]">Số dư tài khoản</p>
-                  <p className="text-[var(--primary-color)] font-medium">
-                    {userBalance}đ
-                  </p>
-                </div>
-                <div className="flex items-center mt-3">
-                  <form className="flex w-full">
-                    <input type="text" placeholder="Nhập mã giới thiệu" />
-                    <button type="submit" className="btn ml-4">
-                      Gửi
-                    </button>
-                  </form>
-                  <p className="form-message hidden"></p>
-                </div>
-              </div>
-            </>
-          )}
-          {activeHistory === 2 && (
-            <>
-              <div className="card">
-                <div className="card-header">
-                  <h1>Đổi mật khẩu</h1>
-                </div>
-                <div className="px-4 pt-4">
-                  <form className="">
-                    <div className="">
-                      <span className="">Mật khẩu cũ</span>
-                      <div className="password">
-                        <input
-                          type={showOldPassword ? "text" : "password"}
-                          placeholder="Vui lòng nhập mật khẩu cũ"
-                          className="!pr-9"
-                        />
-                        {showOldPassword ? (
-                          <img
-                            src={eye_show}
-                            alt="show"
-                            className="password-input-show"
-                            onClick={() => setShowOldPassword(false)}
-                          />
-                        ) : (
-                          <img
-                            src={eye_hide}
-                            alt="hide"
-                            className="password-input-hide"
-                            onClick={() => setShowOldPassword(true)}
-                          />
-                        )}
-                      </div>
-                      <p className="form-message hidden"></p>
-                    </div>
-                    <div className="">
-                      <span className="">Mật khẩu mới</span>
-                      <div className="password">
-                        <input
-                          type={showNewPassword ? "text" : "password"}
-                          placeholder="Vui lòng nhập mật khẩu mới"
-                          className="!pr-9"
-                        />
-                        {showNewPassword ? (
-                          <img
-                            src={eye_show}
-                            alt="show"
-                            className="password-input-show"
-                            onClick={() => setShowNewPassword(false)}
-                          />
-                        ) : (
-                          <img
-                            src={eye_hide}
-                            alt="hide"
-                            className="password-input-hide"
-                            onClick={() => setShowNewPassword(true)}
-                          />
-                        )}
-                      </div>
-                      <p className="form-message hidden"></p>
-                    </div>
-                    <div className="">
-                      <span className="">Xác nhận mật khẩu mới</span>
-                      <div className="password">
-                        <input
-                          type={showConfirmNewPassword ? "text" : "password"}
-                          placeholder="Vui lòng nhập xác mật khẩu mới"
-                          className="!pr-9"
-                        />
-                        {showConfirmNewPassword ? (
-                          <img
-                            src={eye_show}
-                            alt="show"
-                            className="password-input-show"
-                            onClick={() => setShowConfirmNewPassword(false)}
-                          />
-                        ) : (
-                          <img
-                            src={eye_hide}
-                            alt="hide"
-                            className="password-input-hide"
-                            onClick={() => setShowConfirmNewPassword(true)}
-                          />
-                        )}
-                      </div>
-                      <p className="form-message hidden"></p>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </>
-          )}
+          <div className="history-detail-title">
+            <h1>Thông tin tài khoản</h1>
+          </div>
+          <div className="history-detail-content">
+            <div className="history-detail-attr">
+              <p className="text-[var(--text-link)]">ID của bạn</p>
+              <p className="font-medium">{userId}</p>
+            </div>
+            <div className="history-detail-attr">
+              <p className="text-[var(--text-link)]">Tên tài khoản</p>
+              <p className="font-medium">{userName}</p>
+            </div>
+            <div className="history-detail-attr">
+              <p className="text-[var(--text-link)]">Số dư tài khoản</p>
+              <p className="text-[var(--primary-color)] font-medium">
+                {userBalance}đ
+              </p>
+            </div>
+            <div className="flex items-center mt-3">
+              <form className="flex w-full">
+                <input type="text" placeholder="Nhập mã giới thiệu" />
+                <button type="submit" className="btn ml-4">
+                  Gửi
+                </button>
+              </form>
+              <p className="form-message hidden"></p>
+            </div>
+          </div>
         </div>
       </div>
     </>

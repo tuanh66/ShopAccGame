@@ -9,6 +9,7 @@ import Dashboard from "../components/Admin/Dashboard";
 import TrangChu from "../components/Client/TrangChu";
 import MuaAcc from "../components/Client/MuaAcc";
 import Profile from "../components/Client/Profile";
+import DoiMatKhau from "../components/Client/DoiMatKhau";
 import DichVu from "../components/Client/DichVu";
 import DanhSachAccount from "../components/Client/DanhSachAccount";
 import ChiTietAccount from "../components/Client/ChiTietAccount";
@@ -30,15 +31,27 @@ const router = createBrowserRouter([
             path: "mua-acc/:slugCategory/:slugDetail",
             element: <ChiTietAccount />,
           },
+          {
+            path: "thong-tin",
+            element: (
+              <ProtectedClientRoute>
+                <ThongTin />
+              </ProtectedClientRoute>
+            ),
+          },
+          {
+            path: "doi-mat-khau",
+            element: (
+              <ProtectedClientRoute>
+                <DoiMatKhau />
+              </ProtectedClientRoute>
+            ),
+          },
         ],
       },
       {
         path: "dich-vu",
         element: <DichVu />,
-      },
-      {
-        path: "profile",
-        element: <Profile />,
       },
       {
         path: "nap-tien",
@@ -49,12 +62,8 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "thong-tin",
-        element: (
-          <ProtectedClientRoute>
-            <ThongTin />
-          </ProtectedClientRoute>
-        ),
+        path: "profile",
+        element: <Profile />,
       },
     ],
   },

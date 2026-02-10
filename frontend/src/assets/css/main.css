@@ -474,13 +474,13 @@ select {
 
     .header-mobile {
         display: block;
-        /* position: sticky; */
         position: fixed;
         top: 0;
         right: 0;
         left: 0;
         height: 56px;
         background-color: #fff;
+        box-shadow: 0 2px rgb(0, 0, 0, 0.05);
         z-index: 1000;
     }
 

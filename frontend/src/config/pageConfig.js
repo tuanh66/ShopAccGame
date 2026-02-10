@@ -9,4 +9,7 @@ export const pageConfig = {
   "/thong-tin": {
     containerClass: "c-container-side",
   },
+  "/doi-mat-khau": {
+    containerClass: "c-container-side",
+  },
 };

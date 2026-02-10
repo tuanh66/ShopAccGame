@@ -1,6 +1,7 @@
 import { useOutletContext, Link } from "react-router-dom";
 import { useState } from "react";
-import "../../assets/css/client/thongtin.css";
+import "../../assets/css/client/profile.css";
+import login_robot from "../../assets/img/login-robot.png";
 import anhdaidien from "../../assets/svg/anhdaidien.svg";
 import thongtintaikhoan from "../../assets/svg/thongtintaikhoan.svg";
 import doimatkhau from "../../assets/svg/doimatkhau.svg";
@@ -15,6 +16,27 @@ const Profile = () => {
   const userBalance = userInfo?.balance
     ? Number(userInfo.balance).toLocaleString("vi-VN")
     : "0";
+
+  const isLoggedIn = !!userInfo;
+
+  if (!isLoggedIn) {
+    return (
+      <div className="login-popup">
+        <div className="login-popup-img">
+            <img src={login_robot} alt="" />
+        </div>
+        <div className="login-popup-content">
+          <div className="login-popup-title">Shop Tuấn Phương xin chào!</div>
+          <div className="login-popup-text">
+            Vui lòng đăng nhập để sử dụng dịch vụ của chúng tôi
+          </div>
+          <button className="btn w-full">
+            Đăng nhập
+          </button>
+        </div>
+      </div>
+    );
+  }
   return (
     <>
       <div className="sidebar">
@@ -76,6 +98,56 @@ const Profile = () => {
                 <img src={dichvudamua} alt="" />
               </div>
               <p className="sidebar-item-text ">Lịch sử giao dịch</p>
+              <img src={sidebar_arrow_right} alt="" />
+            </Link>
+          </div>
+          <div className="sidebar-item-partition"></div>
+          <div className="sidebar-item">
+            <Link to="/dich-vu-da-mua" className="flex items-center">
+              <div className="sidebar-item-icon">
+                <img src={dichvudamua} alt="" />
+              </div>
+              <p className="sidebar-item-text ">Dịch vụ đã mua</p>
+              <img src={sidebar_arrow_right} alt="" />
+            </Link>
+          </div>
+          <div className="sidebar-item-partition"></div>
+          <div className="sidebar-item">
+            <Link to="/dich-vu-da-mua" className="flex items-center">
+              <div className="sidebar-item-icon">
+                <img src={dichvudamua} alt="" />
+              </div>
+              <p className="sidebar-item-text ">Dịch vụ đã mua</p>
+              <img src={sidebar_arrow_right} alt="" />
+            </Link>
+          </div>
+          <div className="sidebar-item-partition"></div>
+          <div className="sidebar-item">
+            <Link to="/dich-vu-da-mua" className="flex items-center">
+              <div className="sidebar-item-icon">
+                <img src={dichvudamua} alt="" />
+              </div>
+              <p className="sidebar-item-text ">Dịch vụ đã mua</p>
+              <img src={sidebar_arrow_right} alt="" />
+            </Link>
+          </div>
+          <div className="sidebar-item-partition"></div>
+          <div className="sidebar-item">
+            <Link to="/dich-vu-da-mua" className="flex items-center">
+              <div className="sidebar-item-icon">
+                <img src={dichvudamua} alt="" />
+              </div>
+              <p className="sidebar-item-text ">Dịch vụ đã mua</p>
+              <img src={sidebar_arrow_right} alt="" />
+            </Link>
+          </div>
+          <div className="sidebar-item-partition"></div>
+          <div className="sidebar-item">
+            <Link to="/dich-vu-da-mua" className="flex items-center">
+              <div className="sidebar-item-icon">
+                <img src={dichvudamua} alt="" />
+              </div>
+              <p className="sidebar-item-text ">Dịch vụ đã mua</p>
               <img src={sidebar_arrow_right} alt="" />
             </Link>
           </div>

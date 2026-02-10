@@ -1,8 +1,9 @@
 import { useEffect } from "react";
-import { Outlet, Link, useNavigate } from "react-router-dom";
+import { Outlet, useOutletContext, Link, useNavigate } from "react-router-dom";
 import da_xem from "../assets/img/da_xem.png";
 
 const MobileLayout = () => {
+  const outletContext = useOutletContext();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,7 +23,7 @@ const MobileLayout = () => {
           <img className="header-mobile-view" src={da_xem} alt="icon" />
         </Link>
       </div>
-      <Outlet />
+      <Outlet context={outletContext} />
     </>
   );
 };

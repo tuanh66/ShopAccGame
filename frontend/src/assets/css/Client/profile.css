@@ -31,6 +31,7 @@
     margin-bottom: 16px;
     padding: 16px;
     border-radius: 12px;
+    border: 1px solid #E4E5F0;
     background-color: #FFFFFF;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15);
 }
@@ -40,4 +41,36 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
+}
+
+.background-history:has(.login-popup) {
+    background: transparent;
+}
+
+/* Mobile & Tablet */
+@media only screen and (max-width: 1023px) {
+    .hide-footer-mobile .background-history {
+        margin-bottom: 84px;
+    }
+
+    .background-history .sidebar-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .history-row,
+    .account-section {
+        margin-top: 72px;
+    }
+
+    .history-left {
+        display: none;
+    }
+
+    .history-right {
+        margin-left: 0;
+    }
+
+    .history-detail-title {
+        display: none;
+    }
 }
