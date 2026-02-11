@@ -445,7 +445,7 @@ input[type=search].search-form-input~button[type=submit]:before {
     color: var(--text-color);
 }
 
-.modal-input-group {
+.input-group {
     position: relative;
     display: flex;
     flex-wrap: wrap;
@@ -454,7 +454,7 @@ input[type=search].search-form-input~button[type=submit]:before {
     margin-bottom: 8px;
 }
 
-/* .modal-input-group input[name="username"] {
+/* .input-group input[name="username"] {
     margin-top: 12px;
 } */
 

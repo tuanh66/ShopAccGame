@@ -4,7 +4,7 @@ export const pageConfig = {
   },
   "/profile": {
     hideFooterOnMobile: true,
-    containerClass: "c-container-side background-history py-4",
+    containerClass: "c-container-side background-history",
   },
   "/thong-tin": {
     containerClass: "c-container-side",

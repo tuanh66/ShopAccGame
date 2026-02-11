@@ -43,13 +43,61 @@
     margin-bottom: 8px;
 }
 
+/* Login */
+
 .background-history:has(.login-popup) {
     background: transparent;
 }
 
+.login-popup {
+    display: flex;
+    justify-content: space-between;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-top: 16px;
+    padding: 16px;
+}
+
+.mobile-auth-form {
+    display: none;
+}
+
+.login-popup-title {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 28px;
+    color: var(--secondary-color);
+}
+
+.login-popup-text {
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+.login-line {
+    display: flex;
+    align-items: center;
+    margin-top: 24px;
+    padding-left: 25px;
+    padding-right: 25px;
+}
+
+.login-line span {
+    height: 1px;
+    background-color: var(--border-color);
+    flex: 1;
+}
+
+/* End Login */
+
 /* Mobile & Tablet */
 @media only screen and (max-width: 1023px) {
-    .hide-footer-mobile .background-history {
+    .hide-footer-mobile .background-history:has(.login-popup) {
+        margin-bottom: 0;
+    }
+
+    .hide-footer-mobile .background-history:has(.sidebar) {
+        padding: 16px;
         margin-bottom: 84px;
     }
 
@@ -73,4 +121,63 @@
     .history-detail-title {
         display: none;
     }
+
+    /* Login */
+    .mobile-auth {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #FFFFFF;
+        transform: translateX(130%);
+        transition: all ease .4s;
+        z-index: 1000;
+        box-shadow: -2px 0 8px rgba(45, 42, 42, 0.25);
+    }
+
+    .mobile-auth.active {
+        transform: translateX(0);
+    }
+
+    .mobile-auth-form {
+        display: block;
+        padding: 72px 16px 0 16px;
+    }
+
+    .mobile-auth-form .mobile-auth-register,
+    .mobile-auth-form .mobile-auth-login {
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        opacity: 0;
+    }
+
+    .mobile-auth-form .mobile-auth-register.flex,
+    .mobile-auth-form .mobile-auth-login.flex {
+        opacity: 1;
+        animation: authFlash .3s ease;
+    }
+
+    @keyframes authFlash {
+        0% {
+            opacity: 0;
+        }
+
+        40% {
+            opacity: 0.4;
+        }
+
+        70% {
+            opacity: 0.8;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+
+    /* End Login */
 }

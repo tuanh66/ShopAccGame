@@ -5,7 +5,8 @@ import { FaHouse, FaBars } from "react-icons/fa6";
 import { LuGamepad, LuUserRound } from "react-icons/lu";
 import { IoWalletOutline } from "react-icons/io5";
 import { pageConfig } from "../config/pageConfig";
-
+import useLogin from "../hooks/auth/useLogin";
+import useRegister from "../hooks/auth/useRegister";
 import "../assets/css/client.css";
 import logo from "../assets/img/logo.png";
 import support from "../assets/svg/support.svg";
@@ -36,6 +37,34 @@ import icon_close from "../assets/svg/close.svg";
 
 export default function ClientLayout() {
   const API = import.meta.env.VITE_API_URL;
+  const [userInfo, setUserInfo] = useState(null);
+  const {
+    username,
+    setUsername,
+    password,
+    setPassword,
+    handleLogin,
+    loginErrors,
+    setLoginErrors,
+    validateLoginField,
+    serverLoginError,
+  } = useLogin(setUserInfo);
+  const {
+    regUsername,
+    setRegUsername,
+    regEmail,
+    setRegEmail,
+    regPassword,
+    setRegPassword,
+    regPasswordConfirm,
+    setRegPasswordConfirm,
+    serverRegisterError,
+    registerErrors,
+    setRegisterErrors,
+    validateRegisterField,
+    handleRegister,
+  } = useRegister();
+
   const [openModal, setOpenModal] = useState(false);
   const [openAccountBox, setOpenAccountBox] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -64,203 +93,6 @@ export default function ClientLayout() {
       }, 10);
     }
   }, [openModal]); // watch openModal
-
-  // HANDLE REGISTER
-  const [regUsername, setRegUsername] = useState("");
-  const [regEmail, setRegEmail] = useState("");
-  const [regPassword, setRegPassword] = useState("");
-  const [regPasswordConfirm, setRegPasswordConfirm] = useState("");
-  const [serverRegisterError, setServerRegisterError] = useState("");
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-
-    const ok = validateRegisterAll();
-    if (!ok) return;
-
-    try {
-      await axios.post(`${API}/auth/signup`, {
-        username: regUsername,
-        email: regEmail,
-        password: regPassword,
-        password_confirmation: regPasswordConfirm,
-      });
-
-      setServerRegisterError("");
-      // Nếu thành công
-      alert("Đăng ký thành công!");
-      setRegisterActive(false); // chuyển sang login
-    } catch (error) {
-      if (error.response) {
-        const res = error.response.data;
-
-        // Laravel validation error dạng:
-        // { errors: { email: ["Email đã tồn tại"], username: [...] } }
-        if (res.errors) {
-          // Lấy lỗi đầu tiên
-          const firstError = Object.values(res.errors)[0][0];
-          setServerRegisterError(firstError);
-        } else {
-          // Lỗi dạng message
-          setServerRegisterError(res.message || "Đăng ký thất bại");
-        }
-      } else {
-        setServerRegisterError("Không thể đăng ký!");
-      }
-    }
-  };
-
-  const [registerErrors, setRegisterErrors] = useState({
-    username: "",
-    email: "",
-    password: "",
-    password_confirm: "",
-  });
-
-  const validateRegisterField = (field, value) => {
-    let message = "";
-
-    switch (field) {
-      case "username":
-        if (!value.trim()) message = "Bạn chưa nhập tên tài khoản";
-        else if (value.trim().length < 4)
-          message = "Tên tài khoản phải có ít nhất 4 ký tự";
-        break;
-
-      case "email":
-        if (!value.trim()) message = "Bạn chưa nhập email";
-        else if (!/^\S+@\S+\.\S+$/.test(value))
-          message = "Email của bạn không hợp lệ";
-        break;
-
-      case "password":
-        if (!value.trim()) message = "Bạn chưa nhập mật khẩu";
-        else if (value.trim().length < 6)
-          message = "Mật khẩu phải có ít nhất 6 ký tự";
-        break;
-
-      case "password_confirm":
-        if (!value.trim()) message = "Bạn chưa nhập mật khẩu xác nhận";
-        else if (value !== regPassword)
-          message = "Mật khẩu xác nhận không trùng khớp";
-        break;
-    }
-
-    setRegisterErrors((prev) => ({ ...prev, [field]: message }));
-  };
-
-  const validateRegisterAll = () => {
-    validateRegisterField("username", regUsername);
-    validateRegisterField("email", regEmail);
-    validateRegisterField("password", regPassword);
-    validateRegisterField("password_confirm", regPasswordConfirm);
-
-    // Nếu còn lỗi -> return false
-    return (
-      regUsername.trim() &&
-      /^\S+@\S+\.\S+$/.test(regEmail) &&
-      regPassword.trim() &&
-      regPasswordConfirm.trim() &&
-      regPassword === regPasswordConfirm
-    );
-  };
-  // END HANDLE REGISTER
-
-  // HANDLE LOGIN
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [serverLoginError, setServerLoginError] = useState("");
-
-  const [userInfo, setUserInfo] = useState(null); // lưu thông tin user
-  // const [loginErrors, setLoginErrors] = useState({
-  //   username: "",
-  //   password: "",
-  // });
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-
-    const ok = validateLoginAll();
-    if (!ok) return;
-
-    try {
-      const res = await axios.post(`${API}/auth/signin`, {
-        username,
-        password,
-      });
-      localStorage.setItem("accessToken", res.data.accessToken);
-
-      const me = await axios.get(`${API}/users/me`, {
-        headers: { Authorization: `Bearer ${res.data.accessToken}` },
-      });
-      setUserInfo(me.data.user);
-
-      setOpenModal(false);
-    } catch (error) {
-      if (error.response) {
-        const res = error.response.data;
-
-        if (res.errors) {
-          // Lấy lỗi đầu tiên
-          const firstError = Object.values(res.errors)[0][0];
-          setServerLoginError(firstError);
-        } else {
-          // Lỗi dạng message
-          setServerLoginError(res.message || "Đăng ký thất bại");
-        }
-      } else {
-        setServerLoginError("Không thể đăng ký!");
-      }
-    }
-  };
-
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-
-    axios
-      .get(`${API}/users/me`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      })
-      .then((res) => setUserInfo(res.data.user))
-      .catch(() => localStorage.removeItem("accessToken"));
-
-    const redirectTo = localStorage.getItem("redirectTo");
-    if (redirectTo) {
-      localStorage.removeItem("redirectTo");
-      window.location.href = redirectTo; // redirect ở đây là ok
-    }
-  }, []);
-
-  const [loginErrors, setLoginErrors] = useState({
-    username: "",
-    password: "",
-  });
-
-  const validateLoginField = (field, value) => {
-    let message = "";
-
-    switch (field) {
-      case "username":
-        if (!value.trim()) message = "Bạn chưa nhập tên tài khoản";
-        break;
-
-      case "password":
-        if (!value.trim()) message = "Bạn chưa nhập mật khẩu";
-        break;
-    }
-
-    setLoginErrors((prev) => ({ ...prev, [field]: message }));
-  };
-  const validateLoginAll = () => {
-    validateLoginField("username", username);
-    validateLoginField("password", password);
-
-    return username.trim() && password.trim();
-  };
-  // END HANDLE LOGIN
 
   // HANDLE LOGOUT
   const handleLogout = async () => {
@@ -397,7 +229,14 @@ export default function ClientLayout() {
                             <img onClick={close} src={icon_close} alt="icon" />
                             <form
                               className="modal-login-form formRegister"
-                              onSubmit={handleRegister}
+                              onSubmit={async (e) => {
+                                e.preventDefault();
+                                const success = await handleRegister();
+                                if (success) {
+                                  alert("Đăng ký thành công!");
+                                  setRegisterActive(false);
+                                }
+                              }}
                             >
                               <p className="modal-title">Đăng ký</p>
                               <small className="modal-subtitle">
@@ -411,7 +250,7 @@ export default function ClientLayout() {
                               >
                                 {serverRegisterError}
                               </p>
-                              <div className="modal-input-group mt-3">
+                              <div className="input-group mt-3">
                                 <input
                                   type="text"
                                   placeholder="Nhập tên tài khoản"
@@ -439,7 +278,7 @@ export default function ClientLayout() {
                                   {registerErrors.username}
                                 </p>
                               </div>
-                              <div className="modal-input-group mt-2">
+                              <div className="input-group mt-2">
                                 <input
                                   type="email"
                                   placeholder="Nhập email của bạn"
@@ -464,7 +303,7 @@ export default function ClientLayout() {
                                   {registerErrors.email}
                                 </p>
                               </div>
-                              <div className="modal-input-group">
+                              <div className="input-group">
                                 <div className="password-input-container">
                                   <input
                                     type={
@@ -518,7 +357,7 @@ export default function ClientLayout() {
                                   {registerErrors.password}
                                 </p>
                               </div>
-                              <div className="modal-input-group">
+                              <div className="input-group">
                                 <div className="password-input-container">
                                   <input
                                     type={
@@ -583,7 +422,14 @@ export default function ClientLayout() {
                             <input type="hidden"></input>
                             <form
                               className="modal-login-form"
-                              onSubmit={handleLogin}
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                handleLogin().then((success) => {
+                                  if (success) {
+                                    close(); // đóng modal
+                                  }
+                                });
+                              }}
                             >
                               <p className="modal-title">Đăng nhập</p>
                               <small className="modal-subtitle">
@@ -597,7 +443,7 @@ export default function ClientLayout() {
                               >
                                 {serverLoginError}
                               </p>
-                              <div className="modal-input-group">
+                              <div className="input-group mt-3">
                                 <input
                                   type="text"
                                   name="username"
@@ -623,7 +469,7 @@ export default function ClientLayout() {
                                   {loginErrors.username}
                                 </p>
                               </div>
-                              <div className="modal-input-group">
+                              <div className="input-group">
                                 <div className="password-input-container">
                                   <input
                                     type={showPassword ? "text" : "password"}
@@ -1031,27 +877,27 @@ export default function ClientLayout() {
           </div>
         </footer>
         {/* End Footer */}
-      </div>
-      <div className="menu-bottom-tabs">
-        <ul className="menu-bottom-list">
-          <MenuBottomItem to="/" icon={<FaHouse />} label="Trang chủ" />
-          <MenuBottomItem to="/dich-vu" icon={<FaBars />} label="Dịch vụ" />
-          <MenuBottomItem
-            to="/nap-tien"
-            icon={<IoWalletOutline />}
-            label="Nạp tiền"
-          />
-          <MenuBottomItem
-            to="/mini-game"
-            icon={<LuGamepad />}
-            label="Mini Game"
-          />
-          <MenuBottomItem
-            to="/profile"
-            icon={<LuUserRound />}
-            label="Tài khoản"
-          />
-        </ul>
+        <div className="menu-bottom-tabs">
+          <ul className="menu-bottom-list">
+            <MenuBottomItem to="/" icon={<FaHouse />} label="Trang chủ" />
+            <MenuBottomItem to="/dich-vu" icon={<FaBars />} label="Dịch vụ" />
+            <MenuBottomItem
+              to="/nap-tien"
+              icon={<IoWalletOutline />}
+              label="Nạp tiền"
+            />
+            <MenuBottomItem
+              to="/mini-game"
+              icon={<LuGamepad />}
+              label="Mini Game"
+            />
+            <MenuBottomItem
+              to="/profile"
+              icon={<LuUserRound />}
+              label="Tài khoản"
+            />
+          </ul>
+        </div>
       </div>
     </>
   );
