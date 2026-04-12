@@ -1,11 +1,7 @@
 import mongoose from "mongoose";
+import AutoIncrementFactory from "mongoose-sequence";
 
-const counterSchema = new mongoose.Schema({
-  _id: { type: String, required: true }, // tên collection, ví dụ "userId"
-  seq: { type: Number, default: 0 },
-});
-
-const Counter = mongoose.model("Counter", counterSchema);
+const AutoIncrement = AutoIncrementFactory(mongoose);
 
 const userSchema = new mongoose.Schema(
   {
@@ -28,46 +24,37 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
     },
     role: {
-      type: Number,
-      enum: [0, 1, 2],
-      default: 0,
-    },
-    name: {
       type: String,
+      enum: ["member", "admin"],
+      default: "member",
     },
     email: {
       type: String,
       required: true,
       trim: true,
     },
-    phone: {
-      type: String,
-      unique: true,
-      trim: true,
-      sparse: true,
-    },
     balance: {
       type: Number,
       default: 0,
     },
+    maxBalance: {
+      type: Number,
+      default: 0,
+    },
+    lastIp: {
+      type: String,
+    },
+    status: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-userSchema.pre("save", async function (next) {
-  if (!this.isNew) return next();
-
-  const counter = await Counter.findByIdAndUpdate(
-    { _id: "userId" },
-    { $inc: { seq: 1 } },
-    { new: true, upsert: true }
-  );
-
-  this.userId = counter.seq;
-  next();
-});
+userSchema.plugin(AutoIncrement, { inc_field: "userId" });
 
 const User = mongoose.model("User", userSchema);
 export default User;

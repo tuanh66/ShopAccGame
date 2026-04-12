@@ -1,7 +1,6 @@
 export const ROLES = {
-  USER: 0,
-  ADMIN: 1,
-  COLLABORATOR: 2,
+  MEMBER: "member",
+  ADMIN: "admin",
 };
 
 export const authorize = (...allowedRoles) => {

@@ -24,16 +24,21 @@ export const protectedRoute = (req, res, next) => {
         }
         // tìm user
         const user = await User.findById(decodedUser.userId).select(
-          "-password -__v"
+          "-password -__v",
         );
         if (!user) {
           return res.status(404).json({ message: "Người dùng không tồn tại" });
         }
 
+        // check tài khoản bị khoá
+        if (!user.status) {
+          return res.status(403).json({ message: "Tài khoản đã bị khóa" });
+        }
+
         // trả user về trong req
         req.user = user;
         next();
-      }
+      },
     );
   } catch (error) {
     console.error("Lỗi khi xác minh JWT trong authMiddleware:", error);
