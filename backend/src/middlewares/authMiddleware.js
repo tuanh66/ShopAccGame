@@ -17,7 +17,8 @@ export const protectedRoute = (req, res, next) => {
       process.env.ACCESS_TOKEN_SECRET,
       async (err, decodedUser) => {
         if (err) {
-          console.error(err);
+          // Xoá log báo lỗi để tránh rác terminal khi token hết hạn
+          // console.error(err);
           return res
             .status(403)
             .json({ message: "Access token hết hạn hoặc không đúng" });

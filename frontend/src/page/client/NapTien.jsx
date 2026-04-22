@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import { HiOutlineRefresh } from "react-icons/hi";
 import { BsCopy } from "react-icons/bs";
 import { paymentService } from "@/service/paymentService";
@@ -12,8 +13,18 @@ const NapTien = () => {
   const [captchaKey, setCaptchaKey] = useState(Date.now());
   const [isSpinning, setIsSpinning] = useState(false);
   const [bankConfig, setBankConfig] = useState(null);
+  const [cardConfig, setCardConfig] = useState(null);
+  const [selectedProvider, setSelectedProvider] = useState("");
+  const [selectedAmount, setSelectedAmount] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [cardForm, setCardForm] = useState({
+    pin: "",
+    serial: "",
+    captcha: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   const accessToken = useAuthStore((s) => s.accessToken);
-
   const { user } = useAuthStore();
 
   const handleRefreshCaptcha = (e) => {
@@ -31,11 +42,77 @@ const NapTien = () => {
           setBankConfig(res.data);
         }
       } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu", error);
+        console.error("Lỗi khi lấy dữ liệu ATM", error);
       }
     };
-    getBankConfig();
-  }, []);
+
+    const getCardConfig = async () => {
+      try {
+        const res = await paymentService.readCardTopUpClient();
+        if (res?.data) {
+          setCardConfig(res.data);
+          if (res.data.telecoms?.length > 0) {
+            setSelectedProvider(res.data.telecoms[0].name.toLowerCase());
+            if (res.data.telecoms[0].amounts?.length > 0) {
+              setSelectedAmount(res.data.telecoms[0].amounts[0]);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy config nạp thẻ", error);
+      }
+    };
+
+    if (accessToken) {
+      getBankConfig();
+      getCardConfig();
+    }
+  }, [accessToken]);
+
+  const handleCardSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate từng trường
+    const errors = {};
+    if (!cardForm.pin.trim()) errors.pin = "Bạn chưa nhập mã thẻ";
+    if (!cardForm.serial.trim()) errors.serial = "Bạn chưa nhập số sê-ri";
+    if (!cardForm.captcha.trim()) errors.captcha = "Bạn chưa nhập mã bảo vệ";
+    if (!selectedProvider) errors.provider = "Vui lòng chọn nhà mạng";
+    if (!selectedAmount) errors.amount = "Vui lòng chọn mệnh giá";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    setFormErrors({});
+    setIsSubmitting(true);
+    try {
+      const res = await paymentService.submitCardTopUp({
+        telco: selectedProvider.toUpperCase(),
+        pin: cardForm.pin,
+        serial: cardForm.serial,
+        amount: selectedAmount,
+        captcha: cardForm.captcha,
+        captchaKey,
+      });
+      toast.success(res.message || "Thẻ đã được gửi đi, đang chờ xử lý.");
+      setCardForm({ pin: "", serial: "", captcha: "" });
+      setFormErrors({});
+      setCaptchaKey(Date.now());
+    } catch (error) {
+      if (error.response?.status === 422) {
+        // Server trả về lỗi validate từng trường
+        setFormErrors(error.response.data);
+      } else {
+        toast.error(
+          error.response?.data?.message || "Gửi thẻ thất bại. Vui lòng thử lại.",
+        );
+      }
+      setCaptchaKey(Date.now());
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <>
       <ul className="breadcrumb-list">
@@ -83,7 +160,7 @@ const NapTien = () => {
               <div className="tab-content">
                 {activeTab === "card" && (
                   <div className="tab-pane active p-16 fade show">
-                    <form className="w-100">
+                    <form className="w-100" onSubmit={handleCardSubmit}>
                       <div className="row content-block">
                         <div className="col-12 col-lg-6 pr-8">
                           <div className="money-form-group mb-16">
@@ -97,13 +174,33 @@ const NapTien = () => {
                               name="provider"
                               id="provider"
                               className="money-select"
+                              value={selectedProvider}
+                              onChange={(e) => {
+                                const newProvider = e.target.value;
+                                setSelectedProvider(newProvider);
+
+                                const telcoInfo = cardConfig?.telecoms?.find(
+                                  (t) => t.name.toLowerCase() === newProvider,
+                                );
+                                if (telcoInfo?.amounts?.length > 0) {
+                                  setSelectedAmount(telcoInfo.amounts[0]);
+                                } else {
+                                  setSelectedAmount(0);
+                                }
+                              }}
                             >
-                              <option value="0">Chọn nhà mạng</option>
-                              <option value="viettel">VIETTEL</option>
-                              <option value="mobifone">MOBIFONE</option>
-                              <option value="vinaphone">VINAPHONE</option>
-                              <option value="garena">GARENA</option>
-                              <option value="zing">ZING</option>
+                              {cardConfig?.telecoms?.length > 0 ? (
+                                cardConfig.telecoms.map((telco) => (
+                                  <option
+                                    key={telco._id}
+                                    value={telco.name.toLowerCase()}
+                                  >
+                                    {telco.name}
+                                  </option>
+                                ))
+                              ) : (
+                                <option value="">Đang bảo trì nạp thẻ</option>
+                              )}
                             </select>
                           </div>
                           <div className="money-form-group mb-16">
@@ -115,11 +212,26 @@ const NapTien = () => {
                             </label>
                             <input
                               id="card_number"
-                              name="card_number"
+                              name="pin"
                               type="text"
                               placeholder="Nhập mã số thẻ của bạn"
                               className="money-input"
+                              value={cardForm.pin}
+                              onChange={(e) => {
+                                setCardForm({
+                                  ...cardForm,
+                                  pin: e.target.value,
+                                });
+                                if (formErrors.pin) {
+                                  setFormErrors({ ...formErrors, pin: "" });
+                                }
+                              }}
                             />
+                            {formErrors.pin && (
+                              <p className="form-message-error">
+                                {formErrors.pin}
+                              </p>
+                            )}
                           </div>
                           <div className="money-form-group mb-16">
                             <label
@@ -130,13 +242,28 @@ const NapTien = () => {
                             </label>
                             <input
                               id="serial_number"
-                              name="serial_number"
+                              name="serial"
                               type="text"
                               placeholder="Nhập số sê-ri trên thẻ"
                               className="money-input"
+                              value={cardForm.serial}
+                              onChange={(e) => {
+                                setCardForm({
+                                  ...cardForm,
+                                  serial: e.target.value,
+                                });
+                                if (formErrors.serial) {
+                                  setFormErrors({ ...formErrors, serial: "" });
+                                }
+                              }}
                             />
+                            {formErrors.serial && (
+                              <p className="form-message-error">
+                                {formErrors.serial}
+                              </p>
+                            )}
                           </div>
-                          <div className="money-form-group mb-16">
+                          <div className="money-form-group">
                             <label
                               htmlFor="captcha"
                               className="text-color fz-13 fw-500 mb-4"
@@ -151,6 +278,16 @@ const NapTien = () => {
                                   type="text"
                                   className="money-input"
                                   placeholder="Nhập mã bảo vệ"
+                                  value={cardForm.captcha}
+                                  onChange={(e) => {
+                                    setCardForm({
+                                      ...cardForm,
+                                      captcha: e.target.value,
+                                    });
+                                    if (formErrors.captcha) {
+                                      setFormErrors({ ...formErrors, captcha: "" });
+                                    }
+                                  }}
                                 />
                               </div>
                               <div className="captcha px-8">
@@ -166,9 +303,74 @@ const NapTien = () => {
                                 <HiOutlineRefresh />
                               </button>
                             </div>
+                            {formErrors.captcha && (
+                              <p className="form-message-error">
+                                {formErrors.captcha}
+                              </p>
+                            )}
                           </div>
                         </div>
-                        <div className="col-lg-6 pl-8"></div>
+                        <div className="col-lg-6 pl-8">
+                          <div className="money-form-group mb-16">
+                            <label
+                              htmlFor="amount"
+                              className="text-color fz-13 fw-500 mb-4"
+                            >
+                              Chọn mệnh giá
+                            </label>
+                            <div className="col-md-12 p-0">
+                              <div className="row m-0 d-none d-lg-flex">
+                                {cardConfig?.telecoms
+                                  ?.find(
+                                    (t) =>
+                                      t.name.toLowerCase() === selectedProvider,
+                                  )
+                                  ?.amounts.map((amount) => (
+                                    <div
+                                      key={amount}
+                                      className="col-4 px-4 money-radio-form my-auto"
+                                    >
+                                      <label
+                                        onClick={() =>
+                                          setSelectedAmount(amount)
+                                        }
+                                        className={`px-8 py-16 mb-8 brs-8 ${selectedAmount === amount ? "active" : ""}`}
+                                        style={{ cursor: "pointer" }}
+                                      >
+                                        <p
+                                          className={`fz-13 fw-500 ${selectedAmount === amount ? "" : "text-color"}`}
+                                        >
+                                          {amount.toLocaleString("vi-VN")}đ
+                                        </p>
+                                        <p className="fz-12 fw-500 text-link">
+                                          Nhận{" "}
+                                          {(
+                                            100 - (cardConfig.discount || 0)
+                                          ).toFixed(1)}
+                                          %
+                                        </p>
+                                      </label>
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="d-none d-lg-block">
+                            <p
+                              className="fz-13"
+                              style={{ marginBottom: "8px", color: "#DA4343" }}
+                            >
+                              *Chú ý: Nạp thẻ sai mệnh giá mất 100% giá trị thẻ.
+                            </p>
+                            <button
+                              type="submit"
+                              className="btn primary w-100"
+                              disabled={isSubmitting}
+                            >
+                              {isSubmitting ? "Đang gửi..." : "Nạp ngay"}
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </form>
                   </div>
@@ -250,9 +452,11 @@ const NapTien = () => {
                           </tr>
                         </tbody>
                       </table>
-                      <div 
-                        className="my-16 bank-note-content" 
-                        dangerouslySetInnerHTML={{ __html: bankConfig.bank_note}} 
+                      <div
+                        className="my-16 bank-note-content"
+                        dangerouslySetInnerHTML={{
+                          __html: bankConfig.bank_note,
+                        }}
                       />
                       <div className="d-flex justify-content-between align-items-center">
                         <p className="fz-13 fw-400">Nội dung chuyển khoản</p>
@@ -266,9 +470,14 @@ const NapTien = () => {
                             onClick={() => {
                               const content = `${bankConfig.bank_syntax} ${user.id}`;
                               navigator.clipboard.writeText(content);
+                              setCopied(true);
+                              setTimeout(() => setCopied(false), 3500);
                             }}
                           >
                             <BsCopy />
+                            {copied && (
+                              <div className="copy-toast">Đã copy!</div>
+                            )}
                           </div>
                         </div>
                       </div>

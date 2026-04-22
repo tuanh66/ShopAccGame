@@ -786,6 +786,28 @@
   color: var(--primary-color);
 }
 
+.money-radio-form label {
+  width: 100%;
+  background-color: #ffffff;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  border: 1px solid;
+  border-color: var(--border-default-color);
+  cursor: pointer;
+}
+
+.money-radio-form label.active {
+  background-color: #e8ebf9;
+}
+
+.money-radio-form label > p:first-child {
+  color: var(--text-color);
+}
+
+.money-radio-form label.active p:first-child {
+  color: var(--primary-color);
+}
+
 @keyframes spin-refresh {
   0% {
     transform: rotate(0deg);
@@ -813,8 +835,23 @@
 }
 
 .copy-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
+}
+
+.copy-icon .copy-toast {
+  position: absolute;
+  position: absolute;
+  top: -32px;
+  right: -5px;
+  background: #333;
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0.9;
+  z-index: 10;
 }
 
 /* Fix Rich Text HTML (Bank Note) */
@@ -837,7 +874,6 @@
   height: 200px;
   margin: 0 auto;
 }
-
 /* End Nap tiền */
 
 /* 404 */

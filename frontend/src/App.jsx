@@ -71,16 +71,19 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="admin" element={<AdminLayout />}>
               <Route index element={<Dashboard />} />
+              {/* Categories */}
               <Route path="categories">
                 <Route index element={<Categories />} />
                 <Route path="create" element={<CategoriesCreate />} />
                 <Route path="edit/:id" element={<CategoriesEdit />} />
               </Route>
+              {/* Accounts */}
               <Route path="accounts/:slugCategories">
                 <Route index element={<Accounts />} />
                 <Route path="create" element={<AccountsCreate />} />
                 <Route path="edit/:id" element={<AccountsEdit />} />
               </Route>
+              {/* Bank Accounts */}
               <Route path="bank-accounts">
                 <Route index element={<BankAccounts />} />
                 <Route path="history" element={<BankAccountsHistory />} />

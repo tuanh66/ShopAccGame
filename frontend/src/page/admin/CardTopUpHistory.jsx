@@ -95,11 +95,11 @@ const CardTopUpHistory = () => {
                 ) : (
                   histories.map((item, index) => (
                     <tr key={item._id || index}>
-                      <td>{index + 1}</td>
-                      <td>{item.depositor?.username}</td>
+                      <td>{histories.length - index}</td>
+                      <td>{item.userId.username}</td>
                       <td>{item.telco}</td>
                       <td>{formatCurrency(item.amount)}</td>
-                      <td>{formatCurrency(item.real_amount)}</td>
+                      <td>{formatCurrency(item.amount_received)}</td>
                       <td>{item.pin}</td>
                       <td>{item.serial}</td>
                       <td>

@@ -93,8 +93,8 @@ const BankAccountsHistory = () => {
                   </tr>
                 ) : (
                   histories.map((item, index) => (
-                    <tr key={item._id || index}>
-                      <td>{index + 1}</td>
+                    <tr key={item._id}>
+                      <td>{histories.length - index}</td>
                       <td>{item.transaction_id}</td>
                       <td>{item.depositor?.username}</td>
                       <td>{formatCurrency(item.amount)}</td>

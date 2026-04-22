@@ -1,5 +1,8 @@
 import express from "express";
-import { readBankAccountsHistory } from "../controllers/historyController.js";
+import {
+  readBankAccountsHistory,
+  readCardTopUpHistory,
+} from "../controllers/historyController.js";
 import { protectedRoute } from "../middlewares/authMiddleware.js";
 import { authorize, ROLES } from "../middlewares/authorizeMiddleware.js";
 
@@ -11,6 +14,12 @@ router.get(
   protectedRoute,
   authorize(ROLES.ADMIN),
   readBankAccountsHistory,
+);
+router.get(
+  "/admin/card-top-up",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  readCardTopUpHistory,
 );
 
 // Client

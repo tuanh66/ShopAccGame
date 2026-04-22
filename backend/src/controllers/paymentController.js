@@ -1,8 +1,13 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import BankAccountsHistory from "../models/BankAccountsHistory.js";
 import User from "../models/User.js";
 import UserHistory from "../models/UserHistory.js";
 import BankAccounts from "../models/BankAccounts.js";
+import CardTopUp from "../models/CardTopUp.js";
+import CardTopUpHistory from "../models/CardTopUpHistory.js";
+import Telecom from "../models/Telecom.js";
 
 // Chuyển khoản ngân hàng
 export const sepayWebhook = async (req, res) => {
@@ -222,7 +227,7 @@ export const readBankAccountsClient = async (req, res) => {
   try {
     // Dùng select("-tên_trường") để ẩn các trường cấu hình nội bộ khỏi con mắt của user/Client
     const bankAccount = await BankAccounts.findOne({}).select(
-      "-sepay_access_token -bank_active -bank_auto_confirm"
+      "-sepay_access_token -bank_active -bank_auto_confirm -createdAt -updatedAt -__v -_id",
     );
     if (!bankAccount) {
       return res.status(200).json({
@@ -241,9 +246,58 @@ export const readBankAccountsClient = async (req, res) => {
 };
 
 // Nạp thẻ cào
-export const cardTopUpWebhook = async (req, res) => {
+export const cardTopUpCallback = async (req, res) => {
   try {
-  } catch (error) {}
+    // API đối tác gửi dữ liệu qua Webhook dạng POST JSON (hoặc urlencoded đối với GET)
+    const {
+      status,
+      message,
+      request_id,
+      declared_value,
+      value,
+      amount,
+      code,
+      serial,
+      telco,
+      trans_id,
+      callback_sign,
+    } = req.body;
+
+    // 1. Lấy thông tin cấu hình nạp thẻ để lấy partner_key (Mã bí mật)
+    const cardTopUpConfig = await CardTopUp.findOne({});
+    if (!cardTopUpConfig || !cardTopUpConfig.partner_key) {
+      return res
+        .status(400)
+        .json({ message: "Chưa có cấu hình kết nối thẻ trên hệ thống." });
+    }
+
+    // 2. Mã hoá kiểm chứng chữ ký: md5(partner_key + code + serial) theo tài liệu
+    const signString = cardTopUpConfig.partner_key + code + serial;
+    const expectedSign = crypto
+      .createHash("md5")
+      .update(signString)
+      .digest("hex");
+
+    if (callback_sign !== expectedSign) {
+      console.log("[Cảnh báo Fake Callback] Chữ ký không khớp!", req.body);
+      return res.status(400).json({ message: "Sai chữ ký bảo mật." });
+    }
+
+    // 3. Tìm giao dịch thẻ đã gửi trước đó lên hệ thống qua request_id
+    // TODO: (Sắp làm) Khi nạp thẻ từ web, ta lưu vào CardTopUpHistory với mã request_id.
+    // Lấy thẻ ra kiểm tra xem "pending" không.
+
+    // 4. Nếu status == 1 hoặc 2: Cộng tiền cho User; Nếu status == 3 hoặc 100: Báo thẻ lỗi.
+    // TODO: Cập nhật biến số dư tài khoản người nạp.
+
+    // Phản hồi về HTTP 200 cho bên TheSieuRe biết mình đã xử lý xong để họ không Gửi lại rác nữa
+    return res
+      .status(200)
+      .json({ status: "success", message: "Đã ghi nhận Callback" });
+  } catch (error) {
+    console.error("Lỗi khi gọi cardTopUpCallback", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
 };
 
 export const createCardTopUp = async (req, res) => {
@@ -291,6 +345,8 @@ export const updateCardTopUp = async (req, res) => {
     const data = req.body;
     const cardTopUp = await CardTopUp.findOneAndUpdate({}, data, {
       new: true,
+      upsert: true,
+      runValidators: true,
     });
     return res.status(200).json({
       message: "Cập nhật thẻ cào thành công",
@@ -298,6 +354,191 @@ export const updateCardTopUp = async (req, res) => {
     });
   } catch (error) {
     console.error("Lỗi khi gọi updateCardTopUp", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const readCardTopUpClient = async (req, res) => {
+  try {
+    const cardTopUpConfig = await CardTopUp.findOne({});
+    const discount = cardTopUpConfig ? cardTopUpConfig.discount : 0;
+    const telecoms = await Telecom.find({ status: true });
+
+    return res.status(200).json({
+      data: {
+        discount,
+        telecoms,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi readCardTopUpClient", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+// Người dùng gửi thẻ cào lên server -> server gửi sang TheSieuRe để check
+export const submitCardTopUp = async (req, res) => {
+  try {
+    const { telco, pin, serial, amount, captcha } = req.body;
+    const userId = req.user._id;
+
+    // 0. Xác thực mã captcha
+    const captchaToken = req.cookies?.captchaToken;
+    if (!captchaToken) {
+      return res
+        .status(400)
+        .json({ message: "Mã captcha đã hết hạn. Vui lòng làm mới captcha." });
+    }
+    try {
+      const decoded = jwt.verify(
+        captchaToken,
+        process.env.ACCESS_TOKEN_SECRET || "CAPTCHA_SECRET",
+      );
+      if (decoded.text !== String(captcha)) {
+        return res.status(400).json({ message: "Mã captcha không chính xác." });
+      }
+    } catch {
+      return res
+        .status(400)
+        .json({ message: "Mã captcha không hợp lệ hoặc đã hết hạn." });
+    }
+    // Xóa cookie captcha sau khi dùng để chống dùng lại
+    res.clearCookie("captchaToken");
+
+    // 1. Validate đầu vào
+    if (!telco || !pin || !serial || !amount) {
+      return res
+        .status(400)
+        .json({ message: "Vui lòng nhập đầy đủ thông tin thẻ." });
+    }
+
+    // 2. Lấy cấu hình đối tác (partner_id, partner_key)
+    const config = await CardTopUp.findOne({});
+    if (!config || !config.partner_id || !config.partner_key) {
+      return res
+        .status(400)
+        .json({ message: "Hệ thống chưa cấu hình nạp thẻ. Vui lòng liên hệ Admin." });
+    }
+
+    // 3. Tính chiết khấu -> số tiền thực nhận
+    const discount = config.discount || 0;
+    const amountReceived = Math.round(amount * (1 - discount / 100));
+
+    // 4. Lưu lịch sử nạp thẻ vào DB với trạng thái pending
+    const history = await CardTopUpHistory.create({
+      userId,
+      telco: telco.toUpperCase(),
+      amount,
+      amount_received: amountReceived,
+      pin,
+      serial,
+      status: "pending",
+    });
+
+    // 5. Tạo chữ ký: md5(partner_key + code + serial)
+    const sign = crypto
+      .createHash("md5")
+      .update(config.partner_key + pin + serial)
+      .digest("hex");
+
+    // 6. Gửi thẻ sang API TheSieuRe
+    const partnerUrl = "https://thesieure.com/chargingws/v2";
+    const body = {
+      telco: telco.toUpperCase(),
+      code: pin,
+      serial: serial,
+      amount: amount,
+      request_id: history._id.toString(),
+      partner_id: config.partner_id,
+      sign: sign,
+      command: "charging",
+    };
+
+    const partnerRes = await fetch(partnerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const partnerData = await partnerRes.json();
+
+    console.log("[TheSieuRe Response]", partnerData);
+
+    // 7. Nếu đối tác trả về lỗi ngay lập tức (ví dụ sai partner_id)
+    if (partnerData.status && Number(partnerData.status) >= 100) {
+      history.status = "failed";
+      await history.save();
+      return res.status(400).json({
+        message: partnerData.message || "Đối tác từ chối thẻ.",
+        data: history,
+      });
+    }
+
+    // 8. Trả về cho Client biết thẻ đang được xử lý
+    return res.status(200).json({
+      message: "Thẻ đã được gửi đi, đang chờ xử lý.",
+      data: history,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi submitCardTopUp", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+// Telecom
+export const createTelecom = async (req, res) => {
+  try {
+    const data = req.body;
+    const telecom = await Telecom.create(data);
+    return res.status(200).json({
+      message: "Tạo nhà mạng thành công",
+      data: telecom,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi createTelecom", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const readTelecom = async (req, res) => {
+  try {
+    const telecom = await Telecom.find({});
+    return res.status(200).json({
+      message: `Lấy danh sách nhà mạng thành công`,
+      data: telecom,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi readTelecom", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const updateTelecom = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    const telecom = await Telecom.findByIdAndUpdate(id, data, {
+      new: true,
+    });
+    return res.status(200).json({
+      message: "Cập nhật nhà mạng thành công",
+      data: telecom,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi updateTelecom", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const deleteTelecom = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const telecom = await Telecom.findByIdAndDelete(id);
+    return res.status(200).json({
+      message: "Xóa nhà mạng thành công",
+      data: telecom,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi deleteTelecom", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
