@@ -84,7 +84,7 @@ const Accounts = () => {
         <div className="page-btn">
           <Link to="create" className="btn primary btn-added">
             <img src={icon_plus} alt="add" className=" me-1" />
-            Thêm tài khoản mới
+            Thêm tài khoản
           </Link>
         </div>
       </div>
@@ -161,67 +161,64 @@ const Accounts = () => {
                             }}
                           />
                         </Link>
-                        {showModalDelete && (
-                          <>
-                            <div
-                              className={`modal fade ${showEffect ? "show" : ""}`}
-                              style={{
-                                display: showModalDelete ? "block" : "none",
-                              }}
-                              onClick={close}
-                            >
-                              <div
-                                className="modal-dialog"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <div className="modal-content">
-                                  <div className="modal-header">
-                                    <h1 className="modal-title fs-5">
-                                      Xác nhận xoá
-                                    </h1>
-                                    <button
-                                      type="button"
-                                      className="btn-close"
-                                      data-bs-dismiss="modal"
-                                      onClick={close}
-                                    ></button>
-                                  </div>
-                                  <div className="modal-body">
-                                    Bạn có chắc chắn muốn xóa tài khoản{" "}
-                                    <b>{deleteAccount.username}</b> này không?
-                                    Tất cả dữ liệu có liên quan đến nó sẽ biến
-                                    mất khỏi hệ thống!
-                                  </div>
-                                  <div className="modal-footer">
-                                    <button
-                                      type="button"
-                                      className="btn btn-submit red"
-                                      onClick={handleDelete}
-                                    >
-                                      Xoá
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="btn btn-cancel"
-                                      onClick={close}
-                                    >
-                                      Huỷ
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div
-                              className={`modal-backdrop fade ${showEffect ? "show" : ""}`}
-                            ></div>
-                          </>
-                        )}
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {showModalDelete && (
+              <>
+                <div
+                  className={`modal fade ${showEffect ? "show" : ""}`}
+                  style={{
+                    display: showModalDelete ? "block" : "none",
+                  }}
+                  onClick={close}
+                >
+                  <div
+                    className="modal-dialog"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h1 className="modal-title fs-5">Xác nhận xoá</h1>
+                        <button
+                          type="button"
+                          className="btn-close"
+                          data-bs-dismiss="modal"
+                          onClick={close}
+                        ></button>
+                      </div>
+                      <div className="modal-body">
+                        Bạn có chắc chắn muốn xóa tài khoản{" "}
+                        <b>{deleteAccount.username}</b> này không? Tất cả dữ
+                        liệu có liên quan đến nó sẽ biến mất khỏi hệ thống!
+                      </div>
+                      <div className="modal-footer">
+                        <button
+                          type="button"
+                          className="btn btn-submit red"
+                          onClick={handleDelete}
+                        >
+                          Xoá
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-cancel"
+                          onClick={close}
+                        >
+                          Huỷ
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className={`modal-backdrop fade ${showEffect ? "show" : ""}`}
+                ></div>
+              </>
+            )}
             <div className="table-pagination-control">
               <span className="me-1">Show per page :</span>
               <select className="custom-select">

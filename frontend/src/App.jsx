@@ -38,6 +38,10 @@ import CardTopUp from "./page/admin/CardTopUp";
 import CardTopUpHistory from "./page/admin/CardTopUpHistory";
 import User from "./page/admin/Users";
 import UserEdit from "./page/admin/UsersEdit";
+import DiscountCode from "./page/admin/DiscountCode";
+import DiscountCodeCreate from "./page/admin/DiscountCodeCreate";
+import DiscountCodeEdit from "./page/admin/DiscountCodeEdit";
+import DiscountCodeHistory from "./page/admin/DiscountCodeHistory";
 
 function App() {
   const authLoading = useAuthStore((s) => s.loading);
@@ -92,6 +96,13 @@ function App() {
               <Route path="card-top-up">
                 <Route index element={<CardTopUp />} />
                 <Route path="history" element={<CardTopUpHistory />} />
+              </Route>
+              {/* Discount Code */}
+              <Route path="discount-code">
+                <Route index element={<DiscountCode />} />
+                <Route path="create" element={<DiscountCodeCreate />} />
+                <Route path="edit/:id" element={<DiscountCodeEdit />} />
+                <Route path="history" element={<DiscountCodeHistory />} />
               </Route>
               <Route path="users">
                 <Route index element={<User />} />

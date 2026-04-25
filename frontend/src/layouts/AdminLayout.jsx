@@ -17,7 +17,9 @@ const AdminLayout = () => {
     if (location.pathname.includes("/admin/accounts")) return "Tài khoản";
     if (location.pathname.includes("/admin/categories")) return "Danh mục";
     if (location.pathname.includes("/admin/users")) return "Người dùng";
-    if (location.pathname.includes("/admin/payment") || location.pathname.includes("/admin/bank-accounts")) return "Nạp tiền";
+    if (location.pathname.includes("/admin/bank-accounts")) return "Nạp tiền";
+    if (location.pathname.includes("/admin/card-top-up")) return "Nạp tiền";
+    if (location.pathname.includes("/admin/discount-code")) return "Mã giảm giá";
     return "Danh mục";
   });
   const [categories, setCategories] = useState([]);
@@ -30,6 +32,7 @@ const AdminLayout = () => {
     else if (path.includes("/admin/categories")) setOpenMenu("Danh mục");
     else if (path.includes("/admin/users")) setOpenMenu("Người dùng");
     else if (path.includes("/admin/payment") || path.includes("/admin/bank-accounts")) setOpenMenu("Nạp tiền");
+    else if (path.includes("/admin/discount-code")) setOpenMenu("Mã giảm giá");
   }, [location.pathname]);
 
   useEffect(() => {
@@ -458,9 +461,9 @@ const AdminLayout = () => {
                   >
                     <li>
                       <Link
-                        to="/admin/discount-codes"
+                        to="/admin/discount-code"
                         className={
-                          location.pathname === "/admin/discount-codes"
+                          location.pathname === "/admin/discount-code"
                             ? "active"
                             : ""
                         }
@@ -470,14 +473,14 @@ const AdminLayout = () => {
                     </li>
                     <li>
                       <Link
-                        to="/admin/discount-codes/create"
+                        to="/admin/discount-code/history"
                         className={
-                          location.pathname === "/admin/discount-codes/create"
+                          location.pathname === "/admin/discount-code/history"
                             ? "active"
                             : ""
                         }
                       >
-                        Thêm mã giảm giá
+                        Lịch sử sử dụng mã giảm giá
                       </Link>
                     </li>
                   </ul>
