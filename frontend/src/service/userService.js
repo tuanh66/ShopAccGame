@@ -2,8 +2,8 @@ import api from "../lib/axios";
 
 export const userService = {
   // Admin
-  readUser: async (id) => {
-    const res = await api.get(`/users/admin/${id}`);
+  readUser: async (id, page = 1, limit = 10) => {
+    const res = await api.get(`/users/admin/${id}?page=${page}&limit=${limit}`);
     return res.data;
   },
   updateUser: async (id, data) => {

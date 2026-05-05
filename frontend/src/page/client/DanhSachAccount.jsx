@@ -459,10 +459,10 @@ const DanhSachAccount = () => {
         </div>
         <div className="account-list">
           {accounts?.map((item) => (
-            <div className="account-item" key={item._id}>
+            <div className="account-item" key={item.accountsId}>
               <div className="card card-hover">
                 <Link
-                  to={`/mua-acc/${slug}/${item._id}`}
+                  to={`/mua-acc/${slug}/${item.accountsId}`}
                   className="card-body scale-thumb"
                 >
                   <div className="account-thumb mb-8">
@@ -474,7 +474,7 @@ const DanhSachAccount = () => {
                     </div>
                   </div>
                   <div className="account-info mb-8">
-                    <div className="info-attr mb-8">ID: #{item._id}</div>
+                    <div className="info-attr mb-8">ID: #{item.accountsId}</div>
                     {categories?.attributes &&
                       item.attributes &&
                       Object.entries(categories.attributes).map(

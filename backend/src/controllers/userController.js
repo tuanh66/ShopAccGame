@@ -38,6 +38,9 @@ export const readListUser = async (req, res) => {
 export const readUserById = async (req, res) => {
   try {
     const { userId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
     const user = await User.findOne({ userId }).select("-password");
 
@@ -47,14 +50,26 @@ export const readUserById = async (req, res) => {
       });
     }
 
+    const totalTransactions = await UserHistory.countDocuments({
+      userId: user._id,
+    });
     const transactions = await UserHistory.find({
       userId: user._id,
-    }).sort({ createdAt: -1 });
+    })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     return res.status(200).json({
       message: "Lấy thông tin user thành công",
       user,
       transactions,
+      pagination: {
+        totalItems: totalTransactions,
+        totalPages: Math.ceil(totalTransactions / limit),
+        currentPage: page,
+        limit,
+      },
     });
   } catch (error) {
     console.error("Lỗi khi gọi readUserById", error);

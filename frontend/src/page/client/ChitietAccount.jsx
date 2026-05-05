@@ -1,4 +1,5 @@
 import axios from "axios";
+import toast from "react-hot-toast";
 import { useEffect, useState, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -8,8 +9,9 @@ import { useAuthStore } from "../../store/useAuthStore";
 import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import Counter from "yet-another-react-lightbox/plugins/counter";
-import { FaLess, FaRegTimesCircle } from "react-icons/fa";
+import { FaLess, FaRegTimesCircle, FaRegCheckCircle } from "react-icons/fa";
 import successBuyAccount from "../../assets/img/success.png";
+import { discountCodeService } from "../../service/discountCodeService";
 
 const ChitietAccount = () => {
   // Data processing
@@ -26,25 +28,12 @@ const ChitietAccount = () => {
         );
         setCategories(res.data.category);
         setAccount(res.data.account);
+        setRelated(res.data.related); // Nhận dữ liệu liên quan từ API chính
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu", error);
       }
     };
     fetchAccount();
-  }, [slug, id]);
-
-  useEffect(() => {
-    const fetchRelated = async () => {
-      try {
-        const res = await axios.get(
-          `http://localhost:5001/api/accounts/${slug}/${id}/relate`,
-        );
-        setRelated(res.data.accounts);
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu", error);
-      }
-    };
-    fetchRelated();
   }, [slug, id]);
   const selectAttributes = Object.entries(categories?.attributes || {}).filter(
     ([, attr]) => attr.type === "select",
@@ -76,12 +65,7 @@ const ChitietAccount = () => {
       avatar: account.avatar,
       price: account.price,
       price_sale: account.price_sale,
-      attributes: Object.entries(categories.attributes)
-        .filter(([, attr]) => attr.type === "select") // ✅ chỉ lấy select
-        .map(([key, attr]) => ({
-          label: attr.label,
-          value: account.attributes?.[key] || "Không có",
-        })),
+      attributes: account.attributes || [],
     });
 
     viewed = viewed.slice(0, 10);
@@ -124,8 +108,53 @@ const ChitietAccount = () => {
   }, [showModalBuyAccount]);
   // Modal Check Buy Account
 
-  const finalPrice =
+  const basePrice =
     account?.price_sale > 0 ? account.price_sale : account?.price;
+
+  // Discount Code
+  const [discountInput, setDiscountInput] = useState("");
+  const [discountData, setDiscountData] = useState(null); // dữ liệu từ API
+  const [discountError, setDiscountError] = useState("");
+  const [discountSuccess, setDiscountSuccess] = useState("");
+
+  const discountAmount = discountData?.discountAmount || 0;
+  const finalPrice = basePrice - discountAmount;
+
+  const handleApplyDiscount = async (e) => {
+    e.preventDefault();
+    setDiscountError("");
+    setDiscountSuccess("");
+    setDiscountData(null);
+
+    if (!discountInput.trim()) {
+      setDiscountError("Vui lòng nhập mã giảm giá");
+      return;
+    }
+
+    try {
+      const res = await discountCodeService.applyDiscountCode({
+        code: discountInput.trim(),
+        originalPrice: basePrice,
+        applyTo: "account",
+      });
+      setDiscountData(res.data);
+      setDiscountSuccess(
+        `Áp dụng mã ${res.data.code} thành công! Giảm ${new Intl.NumberFormat("vi-VN").format(res.data.discountAmount)}đ`,
+      );
+    } catch (error) {
+      const msg =
+        error.response?.data?.message ||
+        "Mã không hợp lệ. Vui lòng kiểm tra lại mã";
+      setDiscountError(msg);
+    }
+  };
+
+  const handleRemoveDiscount = () => {
+    setDiscountInput("");
+    setDiscountData(null);
+    setDiscountError("");
+    setDiscountSuccess("");
+  };
 
   const isEnoughMoney = user && user.balance >= finalPrice;
 
@@ -138,6 +167,7 @@ const ChitietAccount = () => {
         `http://localhost:5001/api/accounts/${id}/buy-account`,
         {
           accountId: account._id,
+          discountCode: discountData?.code || "",
         },
         {
           withCredentials: true,
@@ -146,14 +176,12 @@ const ChitietAccount = () => {
           },
         },
       );
-
-      // 👉 thành công
-      console.log(res.data);
-
       setShowModalDetailAccount(false);
       setShowModalBuyAccount(true);
     } catch (error) {
-      console.error("Lỗi mua account:", error);
+      const msg = error.response?.data?.message || "Mua thất bại, vui lòng thử lại";
+      console.error("Lỗi mua account:", msg);
+      toast.error(msg);
     }
   };
   // End BuyAccount
@@ -183,10 +211,10 @@ const ChitietAccount = () => {
         {account && (
           <li className="breadcrumb-item">
             <Link
-              to={`/mua-acc/${categories.slug}/${account._id}`}
+              to={`/mua-acc/${categories.slug}/${account.accountsId}`}
               className="breadcrumb-link active"
             >
-              {account._id}
+              {account.accountsId}
             </Link>
           </li>
         )}
@@ -242,7 +270,7 @@ const ChitietAccount = () => {
                   {categories?.name}
                 </div>
                 <div className="text-color fz-15 fw-700 lh-24 mb-6">
-                  Mã số: #{account?._id}
+                  Mã số: #{account?.accountsId}
                 </div>
                 <hr />
                 <div className="text-color fz-15 fw-700 lh-24 my-8">
@@ -252,24 +280,20 @@ const ChitietAccount = () => {
                   <div className="col-md-12 scroll-detail-account">
                     <table className="table-acc-info mb-24 d-none d-lg-table">
                       <tbody>
-                        {categories?.attributes &&
-                          account?.attributes &&
-                          Object.entries(categories.attributes).map(
-                            ([key, attr]) => (
-                              <tr key={key}>
-                                <td>
-                                  <span className="text-link fz-13">
-                                    {attr.label}
-                                  </span>
-                                </td>
-                                <td>
-                                  <span className="fz-13">
-                                    {account.attributes?.[key] || ""}
-                                  </span>
-                                </td>
-                              </tr>
-                            ),
-                          )}
+                        {account?.attributes?.map((attr, index) => (
+                          <tr key={index}>
+                            <td>
+                              <span className="text-link fz-13">
+                                {attr.label}
+                              </span>
+                            </td>
+                            <td>
+                              <span className="fz-13">
+                                {attr.value || "Không có"}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
@@ -373,36 +397,25 @@ const ChitietAccount = () => {
                                   </span>
                                 </div>
                               </div>
-                              {account?.attributes &&
-                                Object.keys(account.attributes).length > 0 && (
-                                  <div className="card-gray py-8 px-12 mb-16">
-                                    {Object.entries(account.attributes).map(
-                                      ([key, value], index, arr) => {
-                                        const label =
-                                          categories?.attributes?.[key]
-                                            ?.label || key;
-
-                                        return (
-                                          <div
-                                            key={key}
-                                            className={`d-flex justify-content-between align-items-center ${
-                                              index !== arr.length - 1
-                                                ? "mb-16"
-                                                : ""
-                                            }`}
-                                          >
-                                            <span className="fz-13 fw-400 text-link">
-                                              {label}
-                                            </span>
-                                            <span className="fz-13 fw-500">
-                                              {value || "Không có"}
-                                            </span>
-                                          </div>
-                                        );
-                                      },
-                                    )}
-                                  </div>
-                                )}
+                              {account?.attributes?.length > 0 && (
+                                <div className="card-gray py-8 px-12 mb-16">
+                                  {account.attributes.map((attr, index, arr) => (
+                                    <div
+                                      key={index}
+                                      className={`d-flex justify-content-between align-items-center ${
+                                        index !== arr.length - 1 ? "mb-16" : ""
+                                      }`}
+                                    >
+                                      <span className="fz-13 fw-400 text-link">
+                                        {attr.label}
+                                      </span>
+                                      <span className="fz-13 fw-500">
+                                        {attr.value || "Không có"}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                               <div className="card-gray py-8 px-12 mb-16">
                                 <div className="d-flex justify-content-between align-items-center mb-16">
                                   <span className="fz-13 fw-400 text-link">
@@ -428,32 +441,75 @@ const ChitietAccount = () => {
                                   </div>
                                   <div>
                                     <div className="d-flex justify-content-between align-items-center w-100">
-                                      <input type="text" />
-                                      <button
-                                        className="btn primary fz-13 fw-400"
+                                      <input
+                                        type="text"
+                                        value={discountInput}
+                                        onChange={(e) => {
+                                          setDiscountInput(e.target.value);
+                                          if (discountError) setDiscountError("");
+                                        }}
+                                        disabled={!!discountData}
+                                        placeholder="Nhập mã giảm giá"
+                                      />
+                                      {!discountData ? (
+                                        <button
+                                          className="btn primary fz-13 fw-400"
+                                          type="button"
+                                          style={{
+                                            display: "inline-block",
+                                            padding: "0 12px",
+                                            marginLeft: "8px",
+                                            width: "90px",
+                                          }}
+                                          onClick={handleApplyDiscount}
+                                        >
+                                          Áp dụng
+                                        </button>
+                                      ) : (
+                                        <button
+                                          className="btn red fz-13 fw-400"
+                                          type="button"
+                                          style={{
+                                            display: "inline-block",
+                                            padding: "0 12px",
+                                            marginLeft: "8px",
+                                            width: "90px",
+                                            color: "white",
+                                          }}
+                                          onClick={handleRemoveDiscount}
+                                        >
+                                          Huỷ
+                                        </button>
+                                      )}
+                                    </div>
+                                    {discountError && (
+                                      <p
+                                        className="form-message-error fz-13"
                                         style={{
-                                          display: "inline-block",
-                                          padding: "0 12px",
-                                          marginLeft: "8px",
-                                          width: "90px",
-                                          // whiteSpace: "nowrap",
+                                          marginTop: "4px",
+                                          textAlign: "left",
+                                          display: "flex",
+                                          alignItems: "center",
                                         }}
                                       >
-                                        Áp dụng
-                                      </button>
-                                    </div>
-                                    <p
-                                      className="form-message-error fz-13"
-                                      style={{
-                                        marginTop: "4px",
-                                        textAlign: "left",
-                                        display: "flex",
-                                        alignItems: "center",
-                                      }}
-                                    >
-                                      <FaRegTimesCircle className="mr-2" />
-                                      Mã không hợp lệ. Vui lòng kiểm tra lại mã
-                                    </p>
+                                        <FaRegTimesCircle className="mr-2" />
+                                        {discountError}
+                                      </p>
+                                    )}
+                                    {discountSuccess && (
+                                      <p
+                                        className="form-message-success fz-13"
+                                        style={{
+                                          marginTop: "4px",
+                                          textAlign: "left",
+                                          display: "flex",
+                                          alignItems: "center",
+                                        }}
+                                      >
+                                        <FaRegCheckCircle className="mr-2" />
+                                        {discountSuccess}
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
                               )}
@@ -464,9 +520,7 @@ const ChitietAccount = () => {
                                   </span>
                                   <span className="fz-13 fw-500 text-primary">
                                     {new Intl.NumberFormat("vi-VN").format(
-                                      account?.price_sale > 0
-                                        ? account.price_sale
-                                        : account.price,
+                                      finalPrice,
                                     )}
                                     đ
                                   </span>
@@ -475,14 +529,14 @@ const ChitietAccount = () => {
                                   <span className="fz-13 fw-400 text-link">
                                     Giảm giá
                                   </span>
-                                  <span className="fz-13 fw-500">0đ</span>
+                                  <span className={`fz-13 fw-500 ${discountAmount > 0 ? "text-primary" : ""}`}>
+                                    {discountAmount > 0 ? "-" : ""}
+                                    {new Intl.NumberFormat("vi-VN").format(discountAmount)}đ
+                                  </span>
                                 </div>
                               </div>
                               {user &&
-                                user.balance <
-                                  (account?.price_sale > 0
-                                    ? account.price_sale
-                                    : account.price) && (
+                                user.balance < finalPrice && (
                                   <div className="not-enough-money">
                                     <div className="card-gray py-8 px-12 mt-16">
                                       <span className="fz-13 fw-400 text-red">
@@ -515,6 +569,7 @@ const ChitietAccount = () => {
                                 {isEnoughMoney ? (
                                   // ✅ ĐỦ TIỀN
                                   <button
+                                    type="button"
                                     className="btn primary w-100"
                                     onClick={handleBuyAccount}
                                   >
@@ -526,9 +581,9 @@ const ChitietAccount = () => {
                                     <button className="btn ghost" disabled>
                                       Thanh toán
                                     </button>
-                                    <button className="btn primary">
+                                    <Link to="/nap-tien" className="btn primary">
                                       Nạp tiền
-                                    </button>
+                                    </Link>
                                   </>
                                 )}
                               </div>
@@ -577,7 +632,7 @@ const ChitietAccount = () => {
                               </label>
                               <input
                                 type="text"
-                                value={account?._id || ""}
+                                value={`#${account.accountsId}`}
                                 disabled
                                 readOnly
                               />
@@ -599,13 +654,13 @@ const ChitietAccount = () => {
                               Trang chủ
                             </Link>
                             <Link
-                              to="/"
+                              to="/profile/tai-khoan-da-mua"
                               className="btn primary"
                               style={{
                                 width: "calc(60% - 6px)",
                               }}
                             >
-                              Lịch sử mua hàng
+                              Tài khoản đã mua
                             </Link>
                           </div>
                         </div>
@@ -632,28 +687,28 @@ const ChitietAccount = () => {
           spaceBetween={16}
         >
           {related.map((item) => (
-            <SwiperSlide key={item._id}>
+            <SwiperSlide key={item.accountsId}>
               <div className="item-category">
                 <div className="card card-hover">
                   <Link
-                    to={`/mua-acc/${categories?.slug}/${item._id}`}
+                    to={`/mua-acc/${categories?.slug}/${item.accountsId}`}
                     className="card-body scale-thumb py-16 px-16"
                   >
                     <div className="account-thumb mb-8">
                       <img
                         src={item.avatar}
-                        alt={item._id}
+                        alt={item.accountsId}
                         className="account-thumb-image"
                       />
                     </div>
                     <div className="account-title mb-8">
                       <div className="text-title fz-15 fw-700 lh-24 text-limit limit-1">
-                        #{item._id}
+                        #{item.accountsId}
                       </div>
                     </div>
-                    {selectAttributes.map(([key, attr]) => (
-                      <div className="info-attr" key={key}>
-                        {attr.label}: {item?.attributes?.[key]}
+                    {item.attributes?.map((attr, index) => (
+                      <div className="info-attr" key={index}>
+                        {attr.label}: {attr.value}
                       </div>
                     ))}
                     <div className={`price ${!hasAttributes ? "mt-40" : ""}`}>

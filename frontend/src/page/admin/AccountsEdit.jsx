@@ -1,14 +1,13 @@
 import axios from "axios";
+import { accountsService } from "../../service/accountsService";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useAuthStore } from "../../store/useAuthStore";
 import uploadImage from "../../assets/svg/upload.svg";
 import selectedPhotos from "../../assets/img/selectedPhotos.png";
 
 const AccountsEdit = () => {
   const { id, slugCategories } = useParams();
-  const accessToken = useAuthStore((s) => s.accessToken);
   const [accountslUpdate, setAccountslUpdate] = useState({
     username: "",
     password: "",
@@ -50,17 +49,10 @@ const AccountsEdit = () => {
   useEffect(() => {
     const fetchAccount = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:5001/api/accounts/admin/detail/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          },
-        );
+        const res = await accountsService.readAccountById(id);
 
-        const account = res.data.accounts;
-        const category = res.data.categories;
+        const account = res.accounts;
+        const category = res.categories;
 
         // schema attributes
         setAttributes(category.attributes);
@@ -129,20 +121,12 @@ const AccountsEdit = () => {
         imageUrls = results.map((res) => res.data.data.url);
       }
 
-      await axios.put(
-        `http://localhost:5001/api/accounts/admin/${id}`,
-        {
-          ...accountslUpdate,
-          avatar: avatarUrl,
-          image: imageUrls,
-          attributes: attributeValues,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
+      await accountsService.updateAccount(id, {
+        ...accountslUpdate,
+        avatar: avatarUrl,
+        image: imageUrls,
+        attributes: attributeValues,
+      });
 
       toast.success("Cập nhật thành công");
     } catch (error) {

@@ -1,7 +1,14 @@
 import mongoose from "mongoose";
+import AutoIncrementFactory from "mongoose-sequence";
+
+const AutoIncrement = AutoIncrementFactory(mongoose);
 
 const cardTopUpHistorySchema = new mongoose.Schema(
   {
+    cardTopUpHistoryId: {
+      type: Number,
+      unique: true,
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -39,6 +46,8 @@ const cardTopUpHistorySchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+cardTopUpHistorySchema.plugin(AutoIncrement, { inc_field: "cardTopUpHistoryId" });
 
 const CardTopUpHistory = mongoose.model(
   "CardTopUpHistory",

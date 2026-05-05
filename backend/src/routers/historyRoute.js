@@ -2,6 +2,10 @@ import express from "express";
 import {
   readBankAccountsHistory,
   readCardTopUpHistory,
+  readDiscountCodeHistory,
+  readUserTransactionHistory,
+  readUserTransactionHistoryById,
+  readAccountsBoughtHistory,
 } from "../controllers/historyController.js";
 import { protectedRoute } from "../middlewares/authMiddleware.js";
 import { authorize, ROLES } from "../middlewares/authorizeMiddleware.js";
@@ -21,7 +25,31 @@ router.get(
   authorize(ROLES.ADMIN),
   readCardTopUpHistory,
 );
+router.get(
+  "/admin/discount-code",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  readDiscountCodeHistory,
+);
 
 // Client
+router.get(
+  "/transaction-history",
+  protectedRoute,
+  authorize(ROLES.MEMBER, ROLES.ADMIN),
+  readUserTransactionHistory,
+);
+router.get(
+  "/transaction-history/:userHistoryId",
+  protectedRoute,
+  authorize(ROLES.MEMBER, ROLES.ADMIN),
+  readUserTransactionHistoryById,
+);
+router.get(
+  "/accounts-bought-history",
+  protectedRoute,
+  authorize(ROLES.MEMBER, ROLES.ADMIN),
+  readAccountsBoughtHistory,
+);
 
 export default router;

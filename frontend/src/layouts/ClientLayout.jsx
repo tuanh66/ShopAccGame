@@ -21,7 +21,7 @@ import { HiOutlineChevronRight } from "react-icons/hi";
 import { GoBell, GoHistory } from "react-icons/go";
 import { LuUserRound } from "react-icons/lu";
 import { IoClose } from "react-icons/io5";
-import { PiUserCircleLight } from "react-icons/pi";
+import { PiUserCircleLight, PiUserCircleCheck } from "react-icons/pi";
 import { CiLock } from "react-icons/ci";
 import { TbLogout2 } from "react-icons/tb";
 import logo from "../assets/img/logo.png";
@@ -583,12 +583,15 @@ const ClientLayout = () => {
                         </div>
                         <div className="sidebar-item-partition"></div>
                         <div className="sidebar-item">
-                          <Link to="#" className="d-flex align-items-center">
+                          <Link
+                            to="/profile/tai-khoan-da-mua"
+                            className="d-flex align-items-center"
+                          >
                             <div className="sidebar-item-icon">
-                              <GoHistory className="fz-24 title-color" />
+                              <PiUserCircleCheck className="fz-24 title-color" />
                             </div>
                             <p className="sidebar-item-text fz-12 fw-400">
-                              Dịch vụ đã mua
+                              Tài khoản đã mua
                             </p>
                             <HiOutlineChevronRight className="fz-20 text-link" />
                           </Link>

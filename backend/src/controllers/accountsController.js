@@ -1,8 +1,11 @@
+import AccountsHistory from "../models/AccountsHistory.js";
 import mongoose from "mongoose";
 import Categories from "../models/Categories.js";
 import Accounts from "../models/Accounts.js";
 import Users from "../models/User.js";
 import UserHistory from "../models/UserHistory.js";
+import DiscountCode from "../models/DiscountCode.js";
+import DiscountCodeHistory from "../models/DiscountCodeHistory.js";
 
 // Admin
 export const createAccounts = async (req, res) => {
@@ -152,6 +155,7 @@ export const readAccounts = async (req, res) => {
     const total = await Accounts.countDocuments(filter);
 
     const accounts = await Accounts.find(filter)
+      .select("-__v -_id -password -categories_id -image ")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
@@ -171,7 +175,7 @@ export const readAccountsById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const account = await Accounts.findById(id);
+    const account = await Accounts.findOne({ accountsId: id });
 
     if (!account) {
       return res.status(404).json({
@@ -213,7 +217,7 @@ export const updateAccounts = async (req, res) => {
     } = req.body;
 
     // tìm account
-    const account = await Accounts.findById(id);
+    const account = await Accounts.findOne({ accountsId: id });
 
     if (!account) {
       return res.status(404).json({
@@ -313,7 +317,7 @@ export const deleteAccounts = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const account = await Accounts.findByIdAndDelete(id);
+    const account = await Accounts.findOneAndDelete({ accountsId: id });
 
     if (!account) {
       return res.status(404).json({
@@ -469,10 +473,14 @@ export const readCategoriesAccountStatus = async (req, res) => {
 
         {
           $project: {
+            _id: 0,
             username: 0,
             password: 0,
             image: 0,
             status: 0,
+            buyer: 0,
+            categories_id: 0,
+            createdAt: 0,
             updatedAt: 0,
             __v: 0,
           },
@@ -556,19 +564,12 @@ export const readCategoriesAccountId = async (req, res) => {
       });
     }
 
-    // 2. Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        message: "ID không hợp lệ",
-      });
-    }
-
-    // 3. Tìm account theo ID + category
+    // 3. Tìm account theo accountsId + category
     const account = await Accounts.findOne({
-      _id: id,
+      accountsId: id,
       categories_id: category._id,
       status: false,
-    }).select("-username -password -__v");
+    }).select("-username -password -__v -_id -avatar -buyer -categories_id -createdAt -updatedAt -status");
 
     if (!account) {
       return res.status(404).json({
@@ -576,118 +577,84 @@ export const readCategoriesAccountId = async (req, res) => {
       });
     }
 
-    // 4. Trả về
-    return res.status(200).json({
-      message: "Lấy dữ liệu thành công",
-      category: {
-        name: category.name,
-        slug: category.slug,
-        attributes: category.attributes,
+    // 4. Tìm tài khoản liên quan (Gộp logic từ readCategoriesAccountRelate)
+    const basePrice = account.price_sale > 0 ? account.price_sale : account.price;
+
+    let relatedAccounts = await Accounts.aggregate([
+      {
+        $match: {
+          categories_id: category._id,
+          status: false,
+          accountsId: { $ne: account.accountsId },
+        },
       },
-      account,
-    });
-  } catch (error) {
-    console.error("Lỗi khi gọi readCategoriesAccountId", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
-  }
-};
-
-export const readCategoriesAccountRelate = async (req, res) => {
-  try {
-    const { slug, id } = req.params;
-
-    // 1. Tìm category
-    const category = await Categories.findOne({
-      slug,
-      status: true,
-    }).select("_id");
-
-    if (!category) {
-      return res.status(404).json({
-        message: "Danh mục không tồn tại",
-      });
-    }
-
-    // 2. Validate ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        message: "ID không hợp lệ",
-      });
-    }
-
-    // 3. account hiện tại
-    const currentAccount =
-      await Accounts.findById(id).select("price price_sale");
-
-    const basePrice =
-      currentAccount?.price_sale > 0
-        ? currentAccount.price_sale
-        : currentAccount?.price || 0;
-
-    let relatedAccounts = [];
-
-    // ===== 4. LẤY ACC GẦN GIÁ =====
-    if (basePrice > 0) {
-      relatedAccounts = await Accounts.aggregate([
-        {
-          $match: {
-            categories_id: category._id,
-            status: false,
-            _id: { $ne: new mongoose.Types.ObjectId(id) },
+      {
+        $addFields: {
+          final_price: {
+            $cond: [{ $gt: ["$price_sale", 0] }, "$price_sale", "$price"],
           },
         },
-        {
-          $addFields: {
-            final_price: {
-              $cond: [{ $gt: ["$price_sale", 0] }, "$price_sale", "$price"],
-            },
+      },
+      {
+        $match: {
+          final_price: {
+            $gte: basePrice * 0.5,
+            $lte: basePrice * 1.5,
           },
         },
-        {
-          $match: {
-            final_price: {
-              $gte: basePrice * 0.5,
-              $lte: basePrice * 1.5,
-            },
-          },
-        },
-        { $sample: { size: 10 } },
-      ]);
-    }
+      },
+      { $sample: { size: 10 } },
+    ]);
 
-    // ===== 5. NẾU CHƯA ĐỦ → BÙ RANDOM =====
+    // Nếu không đủ 10 acc liên quan, lấy thêm random cùng danh mục
     if (relatedAccounts.length < 10) {
       const remain = 10 - relatedAccounts.length;
-
-      const excludeIds = relatedAccounts.map((acc) => acc._id);
-      excludeIds.push(new mongoose.Types.ObjectId(id));
+      const excludeIds = relatedAccounts.map((acc) => acc.accountsId);
+      excludeIds.push(account.accountsId);
 
       const moreAccounts = await Accounts.aggregate([
         {
           $match: {
             categories_id: category._id,
             status: false,
-            _id: { $nin: excludeIds }, // ❌ tránh trùng
+            accountsId: { $nin: excludeIds },
           },
         },
         { $sample: { size: remain } },
       ]);
-
       relatedAccounts = [...relatedAccounts, ...moreAccounts];
     }
 
-    // ===== 6. ẨN FIELD =====
-    const finalAccounts = relatedAccounts.map((acc) => {
-      const { username, password, __v, ...rest } = acc;
-      return rest;
-    });
+    // Làm đẹp dữ liệu cho cả account chính và account liên quan
+    const enrichAttributes = (attrs) =>
+      Object.entries(attrs || {}).map(([key, value]) => {
+        const config = category.attributes?.[key];
+        return { label: config?.label || key, value };
+      });
 
+    const enrichedRelated = relatedAccounts.map((acc) => ({
+      accountsId: acc.accountsId,
+      price: acc.price,
+      price_sale: acc.price_sale,
+      avatar: acc.avatar,
+      attributes: enrichAttributes(acc.attributes),
+    }));
+
+    // 5. Trả về toàn bộ dữ liệu
     return res.status(200).json({
-      message: "Lấy acc liên quan thành công",
-      accounts: finalAccounts,
+      message: "Lấy dữ liệu thành công",
+      category: {
+        name: category.name,
+        slug: category.slug,
+      },
+      account: {
+        ...account.toObject(),
+        attributes: enrichAttributes(account.attributes),
+      },
+      related: enrichedRelated, // Trả thêm mảng liên quan
     });
   } catch (error) {
-    console.error("Lỗi khi gọi readCategoriesAccountRelate", error);
+    console.error("Lỗi khi gọi readCategoriesAccountId", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
@@ -699,16 +666,13 @@ export const buyAccount = async (req, res) => {
   try {
     const accountId = req.params.id;
     const userId = req.user._id;
-
-    if (!mongoose.Types.ObjectId.isValid(accountId)) {
-      throw new Error("accountId không hợp lệ");
-    }
+    const { discountCode: discountCodeInput } = req.body;
 
     const user = await Users.findById(userId).session(session);
     if (!user) throw new Error("Không tìm thấy user");
 
     const account = await Accounts.findOne({
-      _id: accountId,
+      accountsId: accountId,
       status: false,
     }).session(session);
 
@@ -716,8 +680,89 @@ export const buyAccount = async (req, res) => {
       throw new Error("Account đã được mua hoặc không tồn tại");
     }
 
-    const finalPrice =
+    const originalPrice =
       account.price_sale > 0 ? account.price_sale : account.price;
+
+    // Xử lý mã giảm giá nếu có
+    let discountAmount = 0;
+    let appliedDiscount = null;
+
+    if (discountCodeInput) {
+
+      const discount = await DiscountCode.findOne({
+        code: discountCodeInput.trim().toUpperCase(),
+        status: true,
+      }).session(session);
+
+      if (!discount) throw new Error("Mã giảm giá không hợp lệ");
+
+      // Check hết hạn
+      if (discount.expirationDate && new Date() > new Date(discount.expirationDate)) {
+        throw new Error("Mã giảm giá đã hết hạn");
+      }
+
+      // Check lượt dùng toàn hệ thống
+      if (discount.maxUses > 0 && discount.usedCount >= discount.maxUses) {
+        throw new Error("Mã giảm giá đã hết lượt sử dụng");
+      }
+
+      // Check lượt dùng của user
+      const userUsageCount = await DiscountCodeHistory.countDocuments({
+        user: userId,
+        code: discount.code,
+      }).session(session);
+      if (
+        discount.maxUsesPerUser > 0 &&
+        userUsageCount >= discount.maxUsesPerUser
+      ) {
+        throw new Error("Bạn đã sử dụng hết lượt dùng mã này");
+      }
+
+      // Check đơn tối thiểu
+      if (discount.minOrderValue > 0 && originalPrice < discount.minOrderValue) {
+        throw new Error("Đơn hàng chưa đạt giá trị tối thiểu");
+      }
+
+      // Check applyTo
+      if (discount.applyTo !== "all" && discount.applyTo !== "account") {
+        throw new Error("Mã giảm giá không áp dụng cho sản phẩm này");
+      }
+
+      // Tính giảm
+      if (discount.type === "percent") {
+        discountAmount = Math.floor((originalPrice * discount.value) / 100);
+        if (discount.maxDiscount > 0 && discountAmount > discount.maxDiscount) {
+          discountAmount = discount.maxDiscount;
+        }
+      } else {
+        discountAmount = discount.value;
+      }
+      if (discountAmount > originalPrice) discountAmount = originalPrice;
+
+      appliedDiscount = discount;
+
+      // Tăng usedCount
+      discount.usedCount += 1;
+      await discount.save({ session });
+
+      // Ghi lịch sử mã giảm giá
+      await DiscountCodeHistory.create(
+        [
+          {
+            user: userId,
+            code: discount.code,
+            type: discount.type,
+            applyFor: discount.applyTo,
+            originalPrice,
+            discountAmount,
+            finalPrice: originalPrice - discountAmount,
+          },
+        ],
+        { session },
+      );
+    }
+
+    const finalPrice = originalPrice - discountAmount;
 
     if (user.balance < finalPrice) {
       throw new Error("Không đủ tiền");
@@ -732,6 +777,7 @@ export const buyAccount = async (req, res) => {
     account.buyer = userId;
     await account.save({ session });
 
+    // Ghi lịch sử mua account vào UserHistory (Lịch sử biến động số dư)
     await UserHistory.create(
       [
         {
@@ -740,20 +786,103 @@ export const buyAccount = async (req, res) => {
           amount: finalPrice,
           balance_before,
           balance_after: user.balance,
-          description: `Mua account ${account._id}`,
+          description: appliedDiscount
+            ? `Trừ tiền mua acc #${account.accountsId} (giảm ${discountAmount.toLocaleString()}đ với mã ${appliedDiscount.code})`
+            : `Trừ tiền mua acc #${account.accountsId}`,
         },
       ],
       { session },
     );
 
+    // Ghi lịch sử mua account vào AccountsHistory (Lịch sử sở hữu nick)
+    await AccountsHistory.create(
+      [
+        {
+          userId,
+          accountId: account._id,
+          categoriesId: account.categories_id,
+          price: finalPrice,
+          status: "success",
+        },
+      ],
+      { session },
+    );
+
+    // Ghi lịch sử sử dụng mã giảm giá vào UserHistory
+    if (appliedDiscount) {
+      await UserHistory.create(
+        [
+          {
+            userId,
+            transaction: "discountCode",
+            amount: discountAmount,
+            balance_before,
+            balance_after: user.balance,
+            description: `Sử dụng mã giảm giá ${appliedDiscount.code} - Giảm ${discountAmount.toLocaleString()}đ cho account ${account._id}`,
+          },
+        ],
+        { session },
+      );
+    }
+
     await session.commitTransaction();
     session.endSession();
 
-    return res.json({ message: "Mua thành công" });
+    return res.json({
+      message: "Mua thành công",
+      data: {
+        discountAmount,
+        finalPrice,
+        originalPrice,
+      },
+    });
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
 
     return res.status(400).json({ message: error.message });
+  }
+};
+export const readAccountBoughtDetail = async (req, res) => {
+  try {
+    const { id } = req.params; // accountsId (số)
+    const userId = req.user._id;
+
+    // 1. Tìm account theo accountsId và phải đúng người mua mới cho xem
+    const account = await Accounts.findOne({
+      accountsId: id,
+      buyer: userId,
+      status: true,
+    }).populate("categories_id", "name slug attributes");
+
+    if (!account) {
+      return res.status(404).json({
+        message: "Không tìm thấy thông tin tài khoản hoặc bạn không có quyền xem",
+      });
+    }
+
+    // 2. Làm đẹp attributes
+    const enrichedAttributes = Object.entries(account.attributes || {}).map(
+      ([key, value]) => {
+        const config = account.categories_id.attributes?.[key];
+        return {
+          label: config?.label || key,
+          value: value,
+        };
+      },
+    );
+
+    // 3. Trả về toàn bộ dữ liệu (bao gồm username và password)
+    return res.status(200).json({
+      message: "Lấy chi tiết tài khoản đã mua thành công",
+      data: {
+        ...account.toObject(),
+        attributes: enrichedAttributes,
+        categoryName: account.categories_id.name,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi readAccountBoughtDetail", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };

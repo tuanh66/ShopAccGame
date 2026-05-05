@@ -15,6 +15,14 @@ const UsersEdit = () => {
     status: "",
   });
   const [transactions, setTransactions] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [pagination, setPagination] = useState({
+    totalItems: 0,
+    totalPages: 1,
+    currentPage: 1,
+    limit: 10,
+  });
   const transactionType = {
     bankAccount: {
       label: "Chuyển khoản",
@@ -32,18 +40,23 @@ const UsersEdit = () => {
       label: "Admin sửa",
       className: "bg-danger",
     },
+    discountCode: {
+      label: "Mã giảm giá",
+      className: "bg-secondary",
+    },
   };
 
   const fetchUser = useCallback(async () => {
     if (!userId) return;
     try {
-      const res = await userService.readUser(userId);
+      const res = await userService.readUser(userId, currentPage, itemsPerPage);
       setUserUpdate(res.user);
       setTransactions(res.transactions);
+      setPagination(res.pagination);
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu", error);
     }
-  }, [userId]);
+  }, [userId, currentPage, itemsPerPage]);
 
   useEffect(() => {
     const load = async () => {
@@ -104,6 +117,15 @@ const UsersEdit = () => {
       console.error("Lỗi update user", error);
       toast.error("Cập nhật thất bại");
     }
+  };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handleLimitChange = (e) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page when limit changes
   };
 
   return (
@@ -261,9 +283,9 @@ const UsersEdit = () => {
               </thead>
               <tbody>
                 {transactions.length > 0 ? (
-                  transactions.map((item, index) => (
-                    <tr key={item._id || index}>
-                      <td>{transactions.length - index}</td>
+                  transactions.map((item) => (
+                    <tr key={item.userHistoryId}>
+                      <td>{item.userHistoryId}</td>
                       <td>
                         <span
                           className={`badges ${transactionType[item.transaction]?.className || "bg-secondary"}`}
@@ -309,28 +331,45 @@ const UsersEdit = () => {
             </table>
             <div className="table-pagination-control">
               <span className="me-1">Show per page :</span>
-              <select className="custom-select">
+              <select
+                className="custom-select"
+                value={itemsPerPage}
+                onChange={handleLimitChange}
+              >
                 <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
               </select>
             </div>
-            <div className="table-pagination-nav">
-              <ul className="pagination-list">
-                <li className="pagination-item active">
-                  <Link to="#" className="pagination-link">
-                    <span>1</span>
-                  </Link>
-                </li>
-                <li className="pagination-item">
-                  <Link to="#" className="pagination-link">
-                    <span>2</span>
-                  </Link>
-                </li>
-              </ul>
+            {pagination.totalPages > 1 && (
+              <div className="table-pagination-nav">
+                <ul className="pagination-list">
+                  {[...Array(pagination.totalPages)].map((_, i) => (
+                    <li
+                      key={i}
+                      className={`pagination-item ${currentPage === i + 1 ? "active" : ""}`}
+                    >
+                      <Link
+                        to="#"
+                        className="pagination-link"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(i + 1);
+                        }}
+                      >
+                        <span>{i + 1}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className="table-pagination-info">
+              {pagination.totalItems > 0
+                ? `${pagination.totalItems - Math.min(pagination.currentPage * pagination.limit, pagination.totalItems) + 1} - ${pagination.totalItems - (pagination.currentPage - 1) * pagination.limit} of ${pagination.totalItems} items`
+                : "0 - 0 of 0 items"}
             </div>
-            <div className="table-pagination-info">1 - 5 of 5 items</div>
           </div>
         </div>
       </div>

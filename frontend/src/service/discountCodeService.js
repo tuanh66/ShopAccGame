@@ -1,20 +1,28 @@
-import api from "../lib/api";
+import api from "../lib/axios";
 
 export const discountCodeService = {
   createDiscountCode: async (data) => {
-    const res = await api.post(`/admin/discount-code`, data);
+    const res = await api.post(`/discount-code/admin`, data);
     return res.data;
   },
   readDiscountCode: async () => {
-    const res = await api.get(`/admin/discount-code`);
+    const res = await api.get(`/discount-code/admin`);
     return res.data;
   },
-  updateDiscountCode: async (data) => {
-    const res = await api.put(`/admin/discount-code`, data);
+  readDiscountCodeById: async (id) => {
+    const res = await api.get(`/discount-code/admin/${id}`);
     return res.data;
   },
-  deleteDiscountCode: async (data) => {
-    const res = await api.delete(`/admin/discount-code`, data);
+  updateDiscountCode: async (id, data) => {
+    const res = await api.put(`/discount-code/admin/${id}`, data);
+    return res.data;
+  },
+  deleteDiscountCode: async (id) => {
+    const res = await api.delete(`/discount-code/admin/${id}`);
+    return res.data;
+  },
+  applyDiscountCode: async (data) => {
+    const res = await api.post(`/discount-code/apply`, data);
     return res.data;
   },
 };

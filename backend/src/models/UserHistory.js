@@ -1,7 +1,14 @@
 import mongoose from "mongoose";
+import AutoIncrementFactory from "mongoose-sequence";
 
-const transactionHistorySchema = new mongoose.Schema(
+const AutoIncrement = AutoIncrementFactory(mongoose);
+
+const userHistorySchema = new mongoose.Schema(
   {
+    userHistoryId: {
+      type: Number,
+      unique: true,
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -10,7 +17,7 @@ const transactionHistorySchema = new mongoose.Schema(
     },
     transaction: {
       type: String,
-      enum: ["bankAccount", "cardTopUp", "buyAccount", "adminTopUp"],
+      enum: ["bankAccount", "cardTopUp", "buyAccount", "adminTopUp", "discountCode"],
     },
     amount: {
       type: Number,
@@ -37,8 +44,10 @@ const transactionHistorySchema = new mongoose.Schema(
   },
 );
 
+userHistorySchema.plugin(AutoIncrement, { inc_field: "userHistoryId" });
+
 const UserHistory = mongoose.model(
   "UserHistory",
-  transactionHistorySchema,
+  userHistorySchema,
 );
 export default UserHistory;

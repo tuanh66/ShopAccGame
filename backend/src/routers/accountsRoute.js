@@ -10,8 +10,8 @@ import {
   deleteAccounts,
   readCategoriesAccountStatus,
   readCategoriesAccountId,
-  readCategoriesAccountRelate,
   buyAccount,
+  readAccountBoughtDetail,
 } from "../controllers/accountsController.js";
 
 const router = express.Router();
@@ -56,12 +56,12 @@ router.delete(
 // Client
 router.get("/:slug", readCategoriesAccountStatus);
 router.get("/:slug/:id", readCategoriesAccountId);
-router.get("/:slug/:id/relate", readCategoriesAccountRelate);
 router.post(
   "/:id/buy-account",
   protectedRoute,
   authorize(ROLES.MEMBER, ROLES.ADMIN),
   buyAccount,
 );
+router.get("/bought-detail/:id", protectedRoute, readAccountBoughtDetail);
 
 export default router;

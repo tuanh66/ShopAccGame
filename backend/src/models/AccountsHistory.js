@@ -21,6 +21,11 @@ const accountsHistorySchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["success", "pending", "failed"],
+      default: "success",
+    },
   },
   { timestamps: true },
 );

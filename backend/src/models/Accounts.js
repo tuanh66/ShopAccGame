@@ -1,4 +1,7 @@
 import mongoose from "mongoose";
+import AutoIncrementFactory from "mongoose-sequence";
+
+const AutoIncrement = AutoIncrementFactory(mongoose);
 
 const accountsSchema = new mongoose.Schema(
   {
@@ -7,6 +10,10 @@ const accountsSchema = new mongoose.Schema(
       ref: "Categories",
       required: true,
       index: true,
+    },
+    accountsId: {
+      type: Number,
+      unique: true,
     },
     username: {
       type: String,
@@ -60,6 +67,9 @@ const accountsSchema = new mongoose.Schema(
 );
 
 accountsSchema.index({ categories_id: 1, username: 1 }, { unique: true });
+accountsSchema.plugin(AutoIncrement, {
+  inc_field: "accountsId",
+});
 
 const Accounts = mongoose.model("Accounts", accountsSchema);
 export default Accounts;

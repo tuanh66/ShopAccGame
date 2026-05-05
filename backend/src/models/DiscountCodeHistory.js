@@ -5,45 +5,45 @@ const AutoIncrement = AutoIncrementFactory(mongoose);
 
 const discountCodeHistorySchema = new mongoose.Schema(
   {
-    historyId: {
+    discountCodeHistoryId: {
       type: Number,
       unique: true,
     },
-    user: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "User", 
-        required: true 
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     }, // người dùng
-    code: { 
-        type: String, 
-        required: true 
+    code: {
+      type: String,
+      required: true,
     }, // mã giảm giá
-    type: { 
-        type: String, 
-        enum: ["percent", "fixed"], 
-        required: true 
+    type: {
+      type: String,
+      enum: ["percent", "fixed"],
+      required: true,
     }, // loại (phần trăm / số tiền cố định)
-    applyFor: { 
-        type: String, 
-        required: true 
+    applyFor: {
+      type: String,
+      required: true,
     }, // áp dụng cho (vd: "Tất cả", "Danh mục Liên Quân", hoặc ID Acc)
-    originalPrice: { 
-        type: Number, 
-        required: true 
+    originalPrice: {
+      type: Number,
+      required: true,
     }, // giá gốc
-    discountAmount: { 
-        type: Number, 
-        required: true 
+    discountAmount: {
+      type: Number,
+      required: true,
     }, // số tiền được giảm
-    finalPrice: { 
-        type: Number, 
-        required: true 
+    finalPrice: {
+      type: Number,
+      required: true,
     }, // giá sau khi giảm (giá cuối)
   },
-  { timestamps: true } // Thời gian t~ự động có (createdAt, updatedAt)
+  { timestamps: true }, // Thời gian tự động có (createdAt, updatedAt)
 );
 
-discountCodeHistorySchema.plugin(AutoIncrement, { inc_field: "historyId" });
+discountCodeHistorySchema.plugin(AutoIncrement, { inc_field: "discountCodeHistoryId" });
 
 const DiscountCodeHistory = mongoose.model(
   "DiscountCodeHistory",

@@ -42,7 +42,12 @@ const BankAccountsHistory = () => {
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${day}/${month}/${year} - ${hours}:${minutes}`;
   };
   return (
     <>
@@ -92,9 +97,9 @@ const BankAccountsHistory = () => {
                     </td>
                   </tr>
                 ) : (
-                  histories.map((item, index) => (
-                    <tr key={item._id}>
-                      <td>{histories.length - index}</td>
+                  histories.map((item) => (
+                    <tr key={item.bankAccountsHistoryId}>
+                      <td>{item.bankAccountsHistoryId}</td>
                       <td>{item.transaction_id}</td>
                       <td>{item.depositor?.username}</td>
                       <td>{formatCurrency(item.amount)}</td>

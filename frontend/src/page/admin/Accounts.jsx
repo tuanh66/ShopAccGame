@@ -115,20 +115,23 @@ const Accounts = () => {
                 </tr>
               </thead>
               <tbody>
-                {accounts.map((item, index) => (
-                  <tr key={item._id}>
-                    <td>{index + 1}</td>
+                {accounts.map((item) => (
+                  <tr key={item.accountsId}>
+                    <td>{item.accountsId}</td>
                     <td>{item.username}</td>
                     <td>
-                      {item.price
-                        ? Number(item.price).toLocaleString("en-US") + " VNĐ"
-                        : "0 VNĐ"}
+                      {item.price_sale > 0
+                        ? Number(item.price_sale).toLocaleString("en-US") +
+                          " VNĐ"
+                        : item.price
+                          ? Number(item.price).toLocaleString("en-US") + " VNĐ"
+                          : "0 VNĐ"}
                     </td>
                     <td>
                       <span
                         className={`badges ${item.status ? "status-error" : "status-success"}`}
                       >
-                        {item.sold_detail ? "Đã bán" : "Chưa bán"}
+                        {item.status ? "Đã bán" : "Chưa bán"}
                       </span>
                     </td>
                     <td>
@@ -148,7 +151,7 @@ const Accounts = () => {
                     </td>
                     <td className="align-middle text-center">
                       <div className="d-flex justify-content-center align-items-center">
-                        <Link to={`edit/${item._id}`}>
+                        <Link to={`edit/${item.accountsId}`}>
                           <img src={icon_edit} alt="edit" className="me-3" />
                         </Link>
                         <Link to="#">

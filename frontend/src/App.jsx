@@ -22,7 +22,9 @@ import ProfileLayout from "./layouts/ProfileLayout";
 import ThongTin from "./page/profile/ThongTin";
 import DoiMatKhau from "./page/profile/Doimatkhau";
 import LichSuGiaoDich from "./page/profile/LichSuGiaoDich";
+import ChiTietLichSuGiaoDich from "./page/profile/ChiTietLichSuGiaoDich";
 import TaiKhoanDaMua from "./page/profile/TaiKhoanDaMua";
+import ChiTietTaiKhoanDaMua from "./page/profile/ChiTietTaiKhoanDaMua";
 // import Admin
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./page/admin/Dashboard";
@@ -61,11 +63,21 @@ function App() {
               <Route path=":slug" element={<DanhSachAccount />} />
               <Route path=":slug/:id" element={<ChitietAccount />} />
             </Route>
-            <Route path="profile" element={<ProfileLayout />}>
-              <Route path="thong-tin" element={<ThongTin />} />
-              <Route path="doi-mat-khau" element={<DoiMatKhau />} />
-              <Route path="lich-su-giao-dich" element={<LichSuGiaoDich />} />
-              <Route path="tai-khoan-da-mua" element={<TaiKhoanDaMua />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="profile" element={<ProfileLayout />}>
+                <Route path="thong-tin" element={<ThongTin />} />
+                <Route path="doi-mat-khau" element={<DoiMatKhau />} />
+                <Route path="lich-su-giao-dich" element={<LichSuGiaoDich />} />
+                <Route
+                  path="lich-su-giao-dich/:id"
+                  element={<ChiTietLichSuGiaoDich />}
+                />
+                <Route path="tai-khoan-da-mua" element={<TaiKhoanDaMua />} />
+                <Route
+                  path="tai-khoan-da-mua/:id"
+                  element={<ChiTietTaiKhoanDaMua />}
+                />
+              </Route>
             </Route>
             <Route path="nap-tien" element={<NapTien />} />
             <Route path="da-xem" element={<DaXem />} />
@@ -104,6 +116,7 @@ function App() {
                 <Route path="edit/:id" element={<DiscountCodeEdit />} />
                 <Route path="history" element={<DiscountCodeHistory />} />
               </Route>
+              {/* Users */}
               <Route path="users">
                 <Route index element={<User />} />
                 <Route path="edit/:userId" element={<UserEdit />} />

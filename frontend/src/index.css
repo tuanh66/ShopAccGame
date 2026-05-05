@@ -327,7 +327,9 @@ input[type="text"],
 input[type="number"],
 input[type="password"],
 input[type="email"],
-select {
+input[type="date"],
+select,
+textarea {
     display: block;
     width: 100%;
     font-weight: 400;

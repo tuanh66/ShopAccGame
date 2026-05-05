@@ -5,7 +5,7 @@ const AutoIncrement = AutoIncrementFactory(mongoose);
 
 const discountCodeSchema = new mongoose.Schema(
   {
-    codeId: {
+    discountCodeId: {
       type: Number,
       unique: true,
     },
@@ -30,7 +30,7 @@ const discountCodeSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     }, // giảm tối đa (Áp dụng khi dùng mã phần trăm, 0 = không giới hạn)
-    minPurchaseAmount: {
+    minOrderValue: {
       type: Number,
       default: 0,
     }, // số tiền mua tối thiểu để được giảm (0 = đơn nào cũng giảm)
@@ -42,13 +42,22 @@ const discountCodeSchema = new mongoose.Schema(
       type: Number,
       default: 1,
     }, // giới hạn lượt dùng cho mỗi cá nhân người dùng (mỗi ông đc xài bao nhiêu lần)
-    applyFor: {
+    applyTo: {
       type: String,
+      enum: ["all", "account", "random"],
       default: "all",
-    }, // áp dụng cho (vd: "all", "lien-quan-mobile", hoặc ID sản phẩm cụ thể)
+    }, // áp dụng cho (all = tất cả, account = tài khoản, random = random tài khoản)
     expirationDate: {
       type: Date,
     }, // ngày hết hạn (áp dụng nếu có)
+    usedCount: {
+      type: Number,
+      default: 0,
+    }, // số lần đã sử dụng (dùng để tính lượt còn lại = maxUses - usedCount)
+    description: {
+      type: String,
+      default: "",
+    }, // mô tả mã giảm giá
     status: {
       type: Boolean,
       default: true,
@@ -57,7 +66,7 @@ const discountCodeSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-discountCodeSchema.plugin(AutoIncrement, { inc_field: "codeId" });
+discountCodeSchema.plugin(AutoIncrement, { inc_field: "discountCodeId" });
 
 const DiscountCode = mongoose.model("DiscountCode", discountCodeSchema);
 export default DiscountCode;

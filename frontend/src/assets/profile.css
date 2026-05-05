@@ -1,6 +1,11 @@
 .container:has(.container-profile) {
   max-width: 1024px;
+  background: #f5f5f5;
+  /* Thủ thuật: Tạo bóng đổ không nhòe cực lớn để phủ đầy 2 bên màn hình */
+  box-shadow: 0 0 0 100vmax #f5f5f5;
+  clip-path: inset(0 -100vmax); /* Để bóng đổ không đè lên header/footer */
 }
+
 
 /* Profile Layout */
 .container-profile .row {
@@ -42,6 +47,24 @@
 .history-detail-content {
   background-color: #ffffff;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.history-detail-subtitle {
+  border-bottom: 2px solid var(--border-default-color);
+  color: var(--text-color);
+}
+
+.history-detail-label {
+  color: var(--text-color);
+}
+
+.history-detail-info-block {
+  background: #ffffff;
+  border: 1px solid var(--border-default-color);
+}
+
+.history-detail-attr p {
+  color: var(--text-link-default-color);
 }
 
 .history-right .card-header:first-child {

@@ -1,23 +1,58 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { historyService } from "../../service/historyService";
 import { useUIStore } from "../../store/useUIStore";
 import NotFound from "../../components/common/NotFound";
 import { CgRedo } from "react-icons/cg";
 import search from "../../assets/svg/search.svg";
 
 const TaiKhoanDaMua = () => {
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState([]);
   const setNotFoundText = useUIStore((s) => s.setNotFoundText);
-  setNotFoundText("Không có giao dịch nào");
+
+  const fetchHistory = async () => {
+    setLoading(true);
+    try {
+      const res = await historyService.readAccountsBoughtHistory();
+      setData(res.data);
+    } catch (error) {
+      console.error("Lỗi khi lấy lịch sử mua acc:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setNotFoundText("Bạn chưa mua tài khoản nào");
+    fetchHistory();
+  }, []);
+
+  // Nhóm theo tháng
+  const groupByMonth = (items) => {
+    const groups = {};
+    items.forEach((item) => {
+      const date = new Date(item.updatedAt);
+      const key = `Tháng ${date.getMonth() + 1} / ${date.getFullYear()}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(item);
+    });
+    return groups;
+  };
+
+  const groupedData = groupByMonth(data);
+
   return (
     <div className="card">
       <div className="card-header d-flex justify-content-between align-items-center">
         <h1 className="fz-20 fw-700 lh-28 text-title">Tài khoản đã mua</h1>
-        <span className="reload-page">
+        <span className="reload-page" onClick={fetchHistory} style={{ cursor: "pointer" }}>
           <CgRedo />
           Làm mới
         </span>
       </div>
       <div className="card-body px-16 py-16 d-flex flex-column">
-        <div className="d-none d-lg-flex justify-content-between align-items-center ">
+        <div className="d-none d-lg-flex justify-content-between align-items-center mb-16">
           <form className="mobi-search w-40">
             <img src={search} alt="search" />
             <input
@@ -30,133 +65,50 @@ const TaiKhoanDaMua = () => {
             <div className="show-modal-filter">Bộ lọc</div>
           </div>
         </div>
-        {/* <NotFound className="flex-grow-1" /> */}
-        <div className="history-content">
-          <div className="fz-15 fw-500 lh-24 mb-12">Tháng 3</div>
-          <ul className="trans-list">
-            <li className="trans-item">
-              <Link to="#">
-                <div className="text-left">
-                  <span className="fw-500 title-color text-limit limit-1 bread-word">
-                    Mua tài khoản (#6307660)
-                  </span>
-                  <span className="text-link">25/03/2026 - 09:58</span>
-                </div>
-                <div className="text-right">
-                  <span className="fw-500 text-red d-block">-30.000đ</span>
-                  <span className="text-green">Thành công</span>
-                </div>
-              </Link>
-            </li>
-            <li className="trans-item">
-              <Link to="#">
-                <div className="text-left">
-                  <span className="fw-500 title-color text-limit limit-1 bread-word">
-                    Nạp Ví - ATM tự động (#6307650)
-                  </span>
-                  <span className="text-link">25/03/2026 - 09:58</span>
-                </div>
-                <div className="text-right">
-                  <span className="fw-500 text-primary d-block">+30.000đ</span>
-                  <span className="text-green">Thành công</span>
-                </div>
-              </Link>
-            </li>
-          </ul>
-          <div className="fz-15 fw-500 lh-24 mb-12">Tháng 3</div>
-          <ul className="trans-list">
-            <li className="trans-item">
-              <Link to="#">
-                <div className="text-left">
-                  <span className="fw-500 title-color text-limit limit-1 bread-word">
-                    Mua tài khoản (#6307660)
-                  </span>
-                  <span className="text-link">25/03/2026 - 09:58</span>
-                </div>
-                <div className="text-right">
-                  <span className="fw-500 text-red d-block">-30.000đ</span>
-                  <span className="text-green">Thành công</span>
-                </div>
-              </Link>
-            </li>
-            <li className="trans-item">
-              <Link to="#">
-                <div className="text-left">
-                  <span className="fw-500 title-color text-limit limit-1 bread-word">
-                    Nạp Ví - ATM tự động (#6307650)
-                  </span>
-                  <span className="text-link">25/03/2026 - 09:58</span>
-                </div>
-                <div className="text-right">
-                  <span className="fw-500 text-primary d-block">+30.000đ</span>
-                  <span className="text-green">Thành công</span>
-                </div>
-              </Link>
-            </li>
-          </ul>
-          <div className="fz-15 fw-500 lh-24 mb-12">Tháng 3</div>
-          <ul className="trans-list">
-            <li className="trans-item">
-              <Link to="#">
-                <div className="text-left">
-                  <span className="fw-500 title-color text-limit limit-1 bread-word">
-                    Mua tài khoản (#6307660)
-                  </span>
-                  <span className="text-link">25/03/2026 - 09:58</span>
-                </div>
-                <div className="text-right">
-                  <span className="fw-500 text-red d-block">-30.000đ</span>
-                  <span className="text-green">Thành công</span>
-                </div>
-              </Link>
-            </li>
-            <li className="trans-item">
-              <Link to="#">
-                <div className="text-left">
-                  <span className="fw-500 title-color text-limit limit-1 bread-word">
-                    Nạp Ví - ATM tự động (#6307650)
-                  </span>
-                  <span className="text-link">25/03/2026 - 09:58</span>
-                </div>
-                <div className="text-right">
-                  <span className="fw-500 text-primary d-block">+30.000đ</span>
-                  <span className="text-green">Thành công</span>
-                </div>
-              </Link>
-            </li>
-          </ul>
-          <div className="fz-15 fw-500 lh-24 mb-12">Tháng 3</div>
-          <ul className="trans-list">
-            <li className="trans-item">
-              <Link to="#">
-                <div className="text-left">
-                  <span className="fw-500 title-color text-limit limit-1 bread-word">
-                    Mua tài khoản (#6307660)
-                  </span>
-                  <span className="text-link">25/03/2026 - 09:58</span>
-                </div>
-                <div className="text-right">
-                  <span className="fw-500 text-red d-block">-30.000đ</span>
-                  <span className="text-green">Thành công</span>
-                </div>
-              </Link>
-            </li>
-            <li className="trans-item">
-              <Link to="#">
-                <div className="text-left">
-                  <span className="fw-500 title-color text-limit limit-1 bread-word">
-                    Nạp Ví - ATM tự động (#6307650)
-                  </span>
-                  <span className="text-link">25/03/2026 - 09:58</span>
-                </div>
-                <div className="text-right">
-                  <span className="fw-500 text-primary d-block">+30.000đ</span>
-                  <span className="text-green">Thành công</span>
-                </div>
-              </Link>
-            </li>
-          </ul>
-        </div>
+
+        {loading ? (
+          <div className="text-center py-40">Đang tải...</div>
+        ) : data.length === 0 ? (
+          <NotFound className="flex-grow-1" />
+        ) : (
+          <div className="history-content">
+            {Object.entries(groupedData).map(([month, items]) => (
+              <div key={month} className="mb-24">
+                <div className="fz-15 fw-500 lh-24 mb-12">{month}</div>
+                <ul className="trans-list">
+                  {items.map((item) => (
+                    <li className="trans-item" key={item._id}>
+                      <Link to={`/profile/tai-khoan-da-mua/${item.accountId?.accountsId}`}>
+                        <div className="text-left">
+                          <span className="fw-500 title-color text-limit limit-1 bread-word">
+                            {item.categoriesId?.name} (#{item.accountId?.accountsId})
+                          </span>
+                          <span className="text-link">
+                            {new Date(item.createdAt).toLocaleString("vi-VN", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="fz-13 fw-500 text-color d-block">
+                            {new Intl.NumberFormat("vi-VN").format(item.price)}đ
+                          </span>
+                          <span className="text-green">
+                            {item.status === "success" ? "Thành công" : item.status}
+                          </span>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

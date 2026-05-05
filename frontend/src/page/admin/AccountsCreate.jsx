@@ -1,13 +1,12 @@
+import { accountsService } from "../../service/accountsService";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useAuthStore } from "../../store/useAuthStore";
 import uploadImage from "../../assets/svg/upload.svg";
 import selectedPhotos from "../../assets/img/selectedPhotos.png";
 
 const AccountsCreate = () => {
-  const accessToken = useAuthStore((s) => s.accessToken);
   const [categoryId, setCategoryId] = useState(null);
   const [accountsCreate, setAccountsCreate] = useState({
     username: "",
@@ -45,18 +44,13 @@ const AccountsCreate = () => {
   useEffect(() => {
     const fetchCategory = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:5001/api/accounts/admin/attributes/${slugCategories}`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          },
+        const res = await accountsService.readAccountsAttributeBySlugCategories(
+          slugCategories,
         );
 
-        const attrs = res.data.attributes;
+        const attrs = res.attributes;
 
-        setCategoryId(res.data.category.id);
+        setCategoryId(res.category.id);
         setAttributes(attrs);
 
         const defaultValues = {};
@@ -147,26 +141,18 @@ const AccountsCreate = () => {
         );
       }
 
-      const res = await axios.post(
-        "http://localhost:5001/api/accounts/admin",
-        {
-          categories_id: categoryId,
-          username: accountsCreate.username,
-          password: accountsCreate.password,
-          price: Number(accountsCreate.price),
-          avatar: avatarUrl,
-          image: detailUrls,
-          attributes: attributeValues,
-          status: accountsCreate.status,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
+      const res = await accountsService.createAccounts({
+        categories_id: categoryId,
+        username: accountsCreate.username,
+        password: accountsCreate.password,
+        price: Number(accountsCreate.price),
+        avatar: avatarUrl,
+        image: detailUrls,
+        attributes: attributeValues,
+        status: accountsCreate.status,
+      });
 
-      toast.success(res.data.message);
+      toast.success(res.message);
 
       setAccountsCreate({
         username: "",

@@ -7,6 +7,7 @@ export const useAuthStore = create((set, get) => ({
   user: null,
   loading: false,
   showLoginModal: false,
+  refreshPromise: null,
   setShowLoginModal: (value) => set({ showLoginModal: value }),
 
   setAccessToken: (accessToken) => {
@@ -74,20 +75,31 @@ export const useAuthStore = create((set, get) => ({
     }
   },
   refresh: async () => {
-    try {
-      const accessToken = await authService.refresh();
-
-      set({ accessToken });
-
-      const { user, fetchMe } = get();
-
-      if (!user) {
-        await fetchMe();
-      }
-    } catch (error) {
-      console.error(error);
-      // toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!");
-      get().clearState();
+    // Nếu đang có một yêu cầu refresh chạy rồi thì trả về promise đó luôn, không gọi thêm
+    if (get().refreshPromise) {
+      return get().refreshPromise;
     }
+
+    const promise = (async () => {
+      try {
+        const accessToken = await authService.refresh();
+        set({ accessToken });
+
+        const { user, fetchMe } = get();
+        if (!user) {
+          await fetchMe();
+        }
+        return accessToken;
+      } catch (error) {
+        console.error(error);
+        get().clearState();
+        throw error;
+      } finally {
+        set({ refreshPromise: null });
+      }
+    })();
+
+    set({ refreshPromise: promise });
+    return promise;
   },
 }));
