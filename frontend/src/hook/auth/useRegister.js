@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { authService } from "../../service/authService";
+import toast from "react-hot-toast";
 
 export default function useRegister() {
   const [regUsername, setRegUsername] = useState("");
@@ -68,33 +70,26 @@ export default function useRegister() {
 
   const handleRegister = async () => {
     const ok = validateRegisterAll();
-    if (!ok) return false;
+    if (!ok) {
+      toast.error("Vui lòng kiểm tra lại thông tin!");
+      return false;
+    }
 
     setServerRegisterError("");
 
     try {
-      await registerApi({
-        username: regUsername,
-        email: regEmail,
-        password: regPassword,
-        password_confirmation: regPasswordConfirm,
-      });
-
+      const res = await authService.signUp(
+        regUsername,
+        regPassword,
+        regEmail,
+        regPasswordConfirm,
+      );
+      toast.success(res.message || "Đăng ký tài khoản thành công!");
       return true; // đăng ký thành công
     } catch (error) {
-      if (error.response?.data) {
-        const data = error.response.data;
-
-        if (data.errors) {
-          const firstError = Object.values(data.errors)[0][0];
-          setServerRegisterError(firstError);
-        } else {
-          setServerRegisterError(data.message || "Đăng ký thất bại");
-        }
-      } else {
-        setServerRegisterError("Không thể kết nối tới server!");
-      }
-
+      const errMsg = error.response?.data?.message || "Đăng ký thất bại";
+      setServerRegisterError(errMsg);
+      toast.error(errMsg);
       return false;
     }
   };

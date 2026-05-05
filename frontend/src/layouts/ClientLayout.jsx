@@ -227,30 +227,76 @@ const ClientLayout = () => {
                         >
                           <div className="modal-login-form-container sign-up-container">
                             <IoClose onClick={close} />
-                            <form className="modal-login-form formRegister">
+                            <form
+                              className="modal-login-form formRegister"
+                              onSubmit={async (e) => {
+                                e.preventDefault();
+                                const ok = await handleRegister();
+                                if (ok) {
+                                  setRegisterActive(false);
+                                }
+                              }}
+                            >
                               <p className="modal-title">Đăng ký</p>
                               <small className="modal-subtitle">
-                                Vui lòng đăng nhập để sử dụng dịch vụ của chúng
+                                Vui lòng đăng ký để sử dụng dịch vụ của chúng
                                 tôi
                               </small>
-                              <p className="form-message-error"></p>
+                              <p
+                                className={`form-message-error ${serverRegisterError ? "" : "hidden"}`}
+                              >
+                                {serverRegisterError}
+                              </p>
                               <div className="input-group mt-12">
                                 <input
                                   type="text"
                                   name="username"
                                   placeholder="Nhập tên tài khoản"
-                                  className="modal-input-username"
+                                  className={`modal-input-username ${registerErrors.username ? "input-error" : ""}`}
+                                  value={regUsername}
+                                  onChange={(e) => {
+                                    setRegUsername(e.target.value);
+                                    if (registerErrors.username) {
+                                      setRegisterErrors((prev) => ({
+                                        ...prev,
+                                        username: "",
+                                      }));
+                                    }
+                                  }}
+                                  onBlur={() =>
+                                    validateRegisterField(
+                                      "username",
+                                      regUsername,
+                                    )
+                                  }
                                 />
-                                <p className="form-message-error"></p>
+                                <p className="form-message-error">
+                                  {registerErrors.username}
+                                </p>
                               </div>
                               <div className="input-group mt-12">
                                 <input
                                   type="email"
-                                  name="username"
+                                  name="email"
                                   placeholder="Nhập email"
-                                  className="modal-input-username"
+                                  className={`modal-input-username ${registerErrors.email ? "input-error" : ""}`}
+                                  value={regEmail}
+                                  onChange={(e) => {
+                                    setRegEmail(e.target.value);
+                                    if (registerErrors.email) {
+                                      setRegisterErrors((prev) => ({
+                                        ...prev,
+                                        email: "",
+                                      }));
+                                    }
+                                  }}
+                                  onBlur={() =>
+                                    validateRegisterField("email", regEmail)
+                                  }
                                 />
-                                <p className="form-message-error"></p>
+                                <p className="form-message-error">
+                                  {registerErrors.email}
+                                </p>
                               </div>
                               <div className="input-group mt-12">
                                 <input
@@ -258,23 +304,41 @@ const ClientLayout = () => {
                                     showPasswordRegister ? "text" : "password"
                                   }
                                   name="password"
-                                  className="modal-input-password pr-32"
+                                  className={`modal-input-password pr-32 ${registerErrors.password ? "input-error" : ""}`}
                                   placeholder="Nhập mật khẩu"
+                                  value={regPassword}
+                                  onChange={(e) => {
+                                    setRegPassword(e.target.value);
+                                    if (registerErrors.password) {
+                                      setRegisterErrors((prev) => ({
+                                        ...prev,
+                                        password: "",
+                                      }));
+                                    }
+                                  }}
+                                  onBlur={() =>
+                                    validateRegisterField(
+                                      "password",
+                                      regPassword,
+                                    )
+                                  }
                                 />
                                 {showPasswordRegister ? (
-                                  <FaRegEyeSlash
+                                  <FaRegEye
                                     onClick={() =>
                                       setShowPasswordRegister(false)
                                     }
                                   />
                                 ) : (
-                                  <FaRegEye
+                                  <FaRegEyeSlash
                                     onClick={() =>
                                       setShowPasswordRegister(true)
                                     }
                                   />
                                 )}
-                                <p className="form-message-error"></p>
+                                <p className="form-message-error">
+                                  {registerErrors.password}
+                                </p>
                               </div>
                               <div className="input-group mt-12">
                                 <input
@@ -283,24 +347,42 @@ const ClientLayout = () => {
                                       ? "text"
                                       : "password"
                                   }
-                                  name="password"
-                                  className="modal-input-password pr-32"
+                                  name="password_confirm"
+                                  className={`modal-input-password pr-32 ${registerErrors.password_confirm ? "input-error" : ""}`}
                                   placeholder="Nhập lại mật khẩu"
+                                  value={regPasswordConfirm}
+                                  onChange={(e) => {
+                                    setRegPasswordConfirm(e.target.value);
+                                    if (registerErrors.password_confirm) {
+                                      setRegisterErrors((prev) => ({
+                                        ...prev,
+                                        password_confirm: "",
+                                      }));
+                                    }
+                                  }}
+                                  onBlur={() =>
+                                    validateRegisterField(
+                                      "password_confirm",
+                                      regPasswordConfirm,
+                                    )
+                                  }
                                 />
                                 {showPasswordRegisterConfirm ? (
-                                  <FaRegEyeSlash
+                                  <FaRegEye
                                     onClick={() =>
                                       setShowPasswordRegisterConfirm(false)
                                     }
                                   />
                                 ) : (
-                                  <FaRegEye
+                                  <FaRegEyeSlash
                                     onClick={() =>
                                       setShowPasswordRegisterConfirm(true)
                                     }
                                   />
                                 )}
-                                <p className="form-message-error"></p>
+                                <p className="form-message-error">
+                                  {registerErrors.password_confirm}
+                                </p>
                               </div>
                               <button
                                 type="submit"
@@ -382,11 +464,11 @@ const ClientLayout = () => {
                                   }
                                 />
                                 {showPassword ? (
-                                  <FaRegEyeSlash
+                                  <FaRegEye
                                     onClick={() => setShowPassword(false)}
                                   />
                                 ) : (
-                                  <FaRegEye
+                                  <FaRegEyeSlash
                                     onClick={() => setShowPassword(true)}
                                   />
                                 )}
