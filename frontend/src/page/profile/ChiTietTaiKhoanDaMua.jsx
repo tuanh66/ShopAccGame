@@ -1,114 +1,252 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { accountsService } from "../../service/accountsService";
-import { FaRegCopy, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useParams } from "react-router-dom";
+import { historyService } from "../../service/historyService";
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 import toast from "react-hot-toast";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination, Navigation } from "swiper/modules";
+import Lightbox from "yet-another-react-lightbox";
+import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import Counter from "yet-another-react-lightbox/plugins/counter";
+import { formatDate, formatCurrency } from "../../utils/format";
 
 const ChiTietTaiKhoanDaMua = () => {
   const { id } = useParams();
   const [account, setAccount] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
+  const [openLightbox, setOpenLightbox] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
+
+  const fetchDetail = async () => {
+    try {
+      const res = await historyService.readAccountsBoughtHistoryById(id);
+      setAccount(res.data);
+    } catch (error) {
+      console.error("Lỗi khi lấy chi tiết:", error);
+      toast.error("Không thể lấy thông tin tài khoản");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDetail = async () => {
-      try {
-        const res = await accountsService.readAccountBoughtDetail(id);
-        setAccount(res.data);
-      } catch (error) {
-        console.error("Lỗi khi lấy chi tiết:", error);
-        toast.error("Không thể lấy thông tin tài khoản");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchDetail();
   }, [id]);
 
   const handleCopy = (text) => {
+    if (!text || text === "********") {
+      toast.error("Vui lòng nhấn 'Lấy mật khẩu' trước!");
+      return;
+    }
     navigator.clipboard.writeText(text);
     toast.success("Đã sao chép!");
   };
 
+  const handleGetPassword = async () => {
+    if (unlocking) return;
+    setUnlocking(true);
+    try {
+      const res = await historyService.updatePasswordStatus(id);
+      setAccount(res.data);
+      toast.success("Đã lấy thông tin tài khoản!");
+    } catch (error) {
+      console.error("Lỗi khi lấy mật khẩu:", error);
+      toast.error(error.response?.data?.message || "Lấy mật khẩu thất bại");
+    } finally {
+      setUnlocking(false);
+    }
+  };
+
   if (loading) return <div className="text-center py-40">Đang tải...</div>;
-  if (!account) return <div className="text-center py-40">Không tìm thấy dữ liệu</div>;
+  if (!account)
+    return <div className="text-center py-40">Không tìm thấy dữ liệu</div>;
+
+  const slides = account.image?.map((src) => ({ src })) || [];
 
   return (
-    <div className="card">
-      <div className="card-header">
-        <h1 className="fz-20 fw-700 lh-28 text-title">Thông tin giao dịch</h1>
+    <div>
+      <div className="history-detail-title brs-12 p-16 mb-16">
+        <h1 className="fz-20 fw-700 lh-28 title-color">
+          Chi tiết tài khoản đã mua
+        </h1>
       </div>
-      <div className="card-body px-16 py-16">
-        <div className="card-gray py-12 px-16 mb-24">
-          <div className="d-flex justify-content-between mb-12">
-            <span className="text-link fz-13">ID</span>
-            <span className="fw-700 fz-13 text-title">#UEU{account.accountsId}</span>
-          </div>
-          <div className="d-flex justify-content-between">
-            <span className="text-link fz-13">Game</span>
-            <span className="fw-700 fz-13 text-title">{account.categoryName}</span>
-          </div>
+      <div className="history-detail-content brs-12">
+        <div className="history-detail-subtitle py-12 px-16 fz-15 fw-500 lh-24">
+          {account.categoryName}
         </div>
-
-        <div className="mb-24">
-          <label className="fz-13 fw-500 mb-8 d-block text-title">Tài khoản</label>
-          <div className="input-group-custom d-flex align-items-center justify-content-between">
-            <span className="fz-15 fw-600">{account.username}</span>
-            <FaRegCopy className="cursor-pointer text-link" onClick={() => handleCopy(account.username)} />
+        <div className="px-16 pb-24">
+          <div className="history-detail-label fz-13 fw-500 py-12">
+            Thông tin giao dịch
           </div>
-        </div>
-
-        <div className="mb-24">
-          <label className="fz-13 fw-500 mb-8 d-block text-title">Mật khẩu</label>
-          <div className="input-group-custom d-flex align-items-center justify-content-between">
-            <span className="fz-15 fw-600">{showPassword ? account.password : "********"}</span>
-            <div className="d-flex gap-16 align-items-center">
-              {showPassword ? (
-                <FaEyeSlash className="cursor-pointer text-link" onClick={() => setShowPassword(false)} />
-              ) : (
-                <FaEye className="cursor-pointer text-link" onClick={() => setShowPassword(true)} />
-              )}
-              <FaRegCopy className="cursor-pointer text-link" onClick={() => handleCopy(account.password)} />
+          <div className="history-detail-info-block brs-12 p-16 mb-16">
+            <div className="history-detail-attr mb-8 d-flex justify-content-between align-items-center">
+              <p className="fz-13 fw-400">ID</p>
+              <div className="fz-13 fw-500">{account.accountsId}</div>
+            </div>
+            <div className="history-detail-attr d-flex justify-content-between align-items-center">
+              <p className="fz-13 fw-400">Game</p>
+              <div className="fz-13 fw-500">{account.categoryName}</div>
             </div>
           </div>
-        </div>
-
-        <div className="card-gray py-12 px-16 mb-24">
-          <div className="d-flex justify-content-between mb-12">
-            <span className="text-link fz-13">Trị giá</span>
-            <span className="fw-700 fz-13 text-title">{new Intl.NumberFormat("vi-VN").format(account.price_sale > 0 ? account.price_sale : account.price)}đ</span>
-          </div>
-          <div className="d-flex justify-content-between mb-12">
-            <span className="text-link fz-13">Ngày giao dịch</span>
-            <span className="fw-700 fz-13 text-title">{new Date(account.updatedAt).toLocaleString("vi-VN")}</span>
-          </div>
-          <div className="d-flex justify-content-between">
-            <span className="text-link fz-13">Trạng thái</span>
-            <span className="text-green fw-700 fz-13">Thành công</span>
-          </div>
-        </div>
-
-        <div className="row mb-24">
-          {account.image?.map((img, index) => (
-            <div key={index} className="col-4 mb-12">
-              <img src={img} alt="nick" className="w-100 rounded border" />
-            </div>
-          ))}
-        </div>
-
-        <div className="attributes-list border-top pt-16">
-          <div className="row">
-            {account.attributes?.map((attr, index) => (
-              <div key={index} className="col-6 mb-12 d-flex justify-content-between">
-                <span className="text-link fz-13">{attr.label}</span>
-                <span className="fw-600 fz-13 text-title">{attr.value}</span>
+          <div className="history-detail-info-block brs-12 p-16 mb-16">
+            <div className="mb-12">
+              <label
+                className="text-border fz-13 fw-500 lh-20 mb-4 "
+                htmlFor=""
+              >
+                Tài khoản
+              </label>
+              <div className="copy-input">
+                <input
+                  type="text"
+                  value={account.username}
+                  readOnly
+                  onClick={() => handleCopy(account.username)}
+                  style={{ cursor: "pointer" }}
+                />
               </div>
-            ))}
+            </div>
+            <div className="">
+              <label
+                className="text-border fz-13 fw-500 lh-20 mb-4 "
+                htmlFor=""
+              >
+                Mật khẩu
+              </label>
+              <div className="copy-input position-relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={account.password}
+                  readOnly
+                  onClick={() => handleCopy(account.password)}
+                />
+                <div
+                  className="position-absolute"
+                  style={{
+                    right: "40px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    cursor: "pointer",
+                    color: "#82869E",
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowPassword(!showPassword);
+                  }}
+                >
+                  {showPassword ? (
+                    <FaRegEye className="fz-20" />
+                  ) : (
+                    <FaRegEyeSlash className="fz-20" />
+                  )}
+                </div>
+              </div>
+            </div>
+            {account.passwordStatus && (
+              <>
+                <div className="w-100 text-left text-focus fz-13 fw-400 lh-20 mt-12">
+                  Đã lấy mật khẩu lúc: {formatDate(account.updatedAt)}
+                </div>
+                <div className="mt-12">
+                  <div
+                    className="brs-8 px-12 py-16"
+                    style={{ background: "#F3F3F7" }}
+                  >
+                    <span className="text-color fz-13 fw-400 lh-20 text-center">
+                      Để bảo mật bạn vui lòng thay đổi mật khẩu và tên đăng nhập
+                      của tải khoản đã mua!
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
-        </div>
-
-        <div className="mt-24 p-12 bg-light-blue rounded fz-13 text-center text-link">
-          Để bảo mật bạn vui lòng thay đổi mật khẩu và tên đăng nhập của tài khoản đã mua!
+          <div className="history-detail-info-block brs-12 p-16">
+            <div className="history-detail-attr mb-8 d-flex justify-content-between align-items-center">
+              <p className="fz-13 fw-400">Trị giá</p>
+              <div className="fz-13 fw-500">
+                {formatCurrency(
+                  account.price_sale > 0 ? account.price_sale : account.price,
+                )}
+              </div>
+            </div>
+            <div className="history-detail-attr mb-8 d-flex justify-content-between align-items-center">
+              <p className="fz-13 fw-400">Ngày giao dịch</p>
+              <div className="fz-13 fw-500">
+                {formatDate(account.purchaseDate)}
+              </div>
+            </div>
+            <div className="history-detail-attr d-flex justify-content-between align-items-center">
+              <p className="fz-13 fw-400">Trạng thái</p>
+              <div className="fz-13 fw-500 text-green">{account.status}</div>
+            </div>
+          </div>
+          {!account.passwordStatus && (
+            <div className="mt-16 d-flex align-items-center justify-content-end">
+              <button
+                className="btn primary"
+                onClick={handleGetPassword}
+                disabled={unlocking}
+              >
+                {unlocking ? "Đang xử lý..." : "Lấy mật khẩu"}
+              </button>
+            </div>
+          )}
+          {account.passwordStatus && (
+            <>
+              <div className="my-16">
+                <Swiper
+                  modules={[Navigation, Pagination]}
+                  pagination={{ clickable: true }}
+                  spaceBetween={16}
+                  slidesPerView={1.2}
+                  breakpoints={{
+                    768: {
+                      slidesPerView: 3,
+                    },
+                  }}
+                  grabCursor={true}
+                  className="bought-account-swiper"
+                >
+                  {account.image?.map((img, index) => (
+                    <SwiperSlide key={index}>
+                      <div
+                        className="gallery-photo"
+                        onClick={() => {
+                          setPhotoIndex(index);
+                          setOpenLightbox(true);
+                        }}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <img src={img} alt={`nick-img-${index}`} />
+                      </div>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+                <Lightbox
+                  open={openLightbox}
+                  close={() => setOpenLightbox(false)}
+                  slides={slides}
+                  index={photoIndex}
+                  plugins={[Thumbnails, Zoom, Counter]}
+                />
+              </div>
+              <div className="history-detail-info-block brs-12 p-16">
+                {account.attributes?.map((attr, index) => (
+                  <div
+                    key={index}
+                    className="history-detail-attr mb-8 d-flex justify-content-between align-items-center"
+                  >
+                    <p className="fz-13 fw-400">{attr.label}</p>
+                    <div className="fz-13 fw-500">{attr.value}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

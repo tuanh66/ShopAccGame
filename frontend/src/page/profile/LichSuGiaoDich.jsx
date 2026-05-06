@@ -49,7 +49,7 @@ const LichSuGiaoDich = () => {
       case "cardTopUp":
         return `Nạp Ví - Thẻ tự động (#${id})`;
       default:
-        return "Giao dịch";
+        return "";
     }
   };
 

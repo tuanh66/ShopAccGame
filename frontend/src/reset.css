@@ -827,6 +827,10 @@ video {
   color: var(--text-link-default-color) !important;
 }
 
+.text-border {
+  color: var(--ghost-border-hover-color);
+}
+
 .text-primary {
   color: var(--primary-color) !important;
 }
@@ -841,6 +845,10 @@ video {
 
 .text-green {
   color: var(--status-success-color);
+}
+
+.text-focus {
+  color: var(--focus-color) !important;
 }
 
 .text-left {

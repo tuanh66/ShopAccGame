@@ -569,7 +569,9 @@ export const readCategoriesAccountId = async (req, res) => {
       accountsId: id,
       categories_id: category._id,
       status: false,
-    }).select("-username -password -__v -_id -avatar -buyer -categories_id -createdAt -updatedAt -status");
+    }).select(
+      "-username -password -__v -_id -avatar -buyer -categories_id -createdAt -updatedAt -status",
+    );
 
     if (!account) {
       return res.status(404).json({
@@ -578,7 +580,8 @@ export const readCategoriesAccountId = async (req, res) => {
     }
 
     // 4. Tìm tài khoản liên quan (Gộp logic từ readCategoriesAccountRelate)
-    const basePrice = account.price_sale > 0 ? account.price_sale : account.price;
+    const basePrice =
+      account.price_sale > 0 ? account.price_sale : account.price;
 
     let relatedAccounts = await Accounts.aggregate([
       {
@@ -688,7 +691,6 @@ export const buyAccount = async (req, res) => {
     let appliedDiscount = null;
 
     if (discountCodeInput) {
-
       const discount = await DiscountCode.findOne({
         code: discountCodeInput.trim().toUpperCase(),
         status: true,
@@ -697,7 +699,10 @@ export const buyAccount = async (req, res) => {
       if (!discount) throw new Error("Mã giảm giá không hợp lệ");
 
       // Check hết hạn
-      if (discount.expirationDate && new Date() > new Date(discount.expirationDate)) {
+      if (
+        discount.expirationDate &&
+        new Date() > new Date(discount.expirationDate)
+      ) {
         throw new Error("Mã giảm giá đã hết hạn");
       }
 
@@ -719,7 +724,10 @@ export const buyAccount = async (req, res) => {
       }
 
       // Check đơn tối thiểu
-      if (discount.minOrderValue > 0 && originalPrice < discount.minOrderValue) {
+      if (
+        discount.minOrderValue > 0 &&
+        originalPrice < discount.minOrderValue
+      ) {
         throw new Error("Đơn hàng chưa đạt giá trị tối thiểu");
       }
 
@@ -857,7 +865,8 @@ export const readAccountBoughtDetail = async (req, res) => {
 
     if (!account) {
       return res.status(404).json({
-        message: "Không tìm thấy thông tin tài khoản hoặc bạn không có quyền xem",
+        message:
+          "Không tìm thấy thông tin tài khoản hoặc bạn không có quyền xem",
       });
     }
 

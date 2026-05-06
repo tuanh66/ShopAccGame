@@ -6,7 +6,6 @@
   clip-path: inset(0 -100vmax); /* Để bóng đổ không đè lên header/footer */
 }
 
-
 /* Profile Layout */
 .container-profile .row {
   display: flex;
@@ -22,21 +21,7 @@
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
-}
-
-.history-right {
-  position: relative;
-}
-
-.history-right > * {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+  min-width: 0;
 }
 
 .history-right .card-body {
@@ -222,3 +207,57 @@
   display: flex;
   justify-content: space-between;
 }
+
+/* Tài khoản đã mua */
+.copy-input {
+  position: relative;
+  width: 100%;
+}
+
+.copy-input input {
+  padding-right: 66px !important;
+  cursor: pointer;
+}
+
+.copy-input::after {
+  content: "";
+  position: absolute;
+  display: block;
+  width: 20px;
+  height: 20px;
+  background-size: 20px 20px;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  filter: var(--filter-link-default-color);
+
+  background-image: url(../assets/svg/copy.svg);
+}
+
+/* End Tài khoản đã mua */
+
+/* Bought Account Swiper Styling (Shopt1 Style) */
+.bought-account-swiper {
+  opacity: 1 !important;
+}
+
+.bought-account-swiper .gallery-photo {
+  width: 100%;
+  position: relative;
+  padding-bottom: 56.25%;
+  background-color: #f3f3f7;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.bought-account-swiper .gallery-photo img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* End Bought Account Swiper Styling */

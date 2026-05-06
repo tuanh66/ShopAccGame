@@ -31,5 +31,13 @@ export const historyService = {
   readAccountsBoughtHistory: async () => {
     const res = await api.get("/history/accounts-bought-history");
     return res.data;
+  },
+  readAccountsBoughtHistoryById: async (id) => {
+    const res = await api.get(`/history/accounts-bought-history/${id}`);
+    return res.data;
+  },
+  updatePasswordStatus: async (id) => {
+    const res = await api.post(`/history/accounts-bought-history/${id}/get-password`);
+    return res.data;
   },  
 };

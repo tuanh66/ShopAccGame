@@ -6,6 +6,8 @@ import {
   readUserTransactionHistory,
   readUserTransactionHistoryById,
   readAccountsBoughtHistory,
+  readAccountsBoughtHistoryById,
+  updatePasswordStatus,
 } from "../controllers/historyController.js";
 import { protectedRoute } from "../middlewares/authMiddleware.js";
 import { authorize, ROLES } from "../middlewares/authorizeMiddleware.js";
@@ -50,6 +52,18 @@ router.get(
   protectedRoute,
   authorize(ROLES.MEMBER, ROLES.ADMIN),
   readAccountsBoughtHistory,
+);
+router.get(
+  "/accounts-bought-history/:id",
+  protectedRoute,
+  authorize(ROLES.MEMBER, ROLES.ADMIN),
+  readAccountsBoughtHistoryById,
+);
+router.post(
+  "/accounts-bought-history/:id/get-password",
+  protectedRoute,
+  authorize(ROLES.MEMBER, ROLES.ADMIN),
+  updatePasswordStatus,
 );
 
 export default router;
