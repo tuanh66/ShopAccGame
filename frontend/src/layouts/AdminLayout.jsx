@@ -275,7 +275,7 @@ const AdminLayout = () => {
                   </ul>
                 </li>
                 {/* Vòng quay may mắn */}
-                <li
+                {/* <li
                   className={`submenu ${openMenu === "Vòng quay may mắn" ? "submenu-open" : ""}`}
                 >
                   <Link
@@ -334,7 +334,7 @@ const AdminLayout = () => {
                       </Link>
                     </li>
                   </ul>
-                </li>
+                </li> */}
                 {/* Người dùng */}
                 <li
                   className={`submenu ${openMenu === "Người dùng" ? "submenu-open" : ""}`}
