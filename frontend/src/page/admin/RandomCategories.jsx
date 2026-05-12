@@ -1,76 +1,63 @@
-import axios from "axios";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { useAuthStore } from "../../store/useAuthStore";
-import { accountsService } from "../../service/accountsService";
+import { Link } from "react-router-dom";
+import { categoriesService } from "../../service/categoriesService";
 import { formatCurrency, formatDate } from "../../utils/format";
-import NotFound from "../../components/common/NotFound";
 import { useModal } from "../../hooks/useModal";
 import ConfirmDeleteModal from "../../components/admin/ConfirmDeleteModal";
+import NotFound from "../../components/common/NotFound";
 import search from "../../assets/svg/search.svg";
 import icon_plus from "../../assets/svg/plus.svg";
 import icon_edit from "../../assets/svg/edit.svg";
 import icon_delete from "../../assets/svg/delete.svg";
 
-const Accounts = () => {
-  const { slugCategories } = useParams();
-  const [loading, setLoading] = useState(true);
-  const [accounts, setAccounts] = useState([]);
+const RandomCategories = () => {
   const { showModal, showEffect, openModal, closeModal } = useModal();
-  // Xử lý lấy dữ liệu
-
-  // Xử lý lấy dữ liệu
-  const accessToken = useAuthStore((s) => s.accessToken);
+  // Lấy API service
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAccounts = async () => {
+    const fetchCategories = async () => {
       try {
-        const res = await accountsService.readAccounts(slugCategories);
-        setAccounts(res.data);
+        const res = await categoriesService.readRandomCategories();
+        setCategories(res.data);
       } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu", error);
-        toast.error("Không thể lấy dữ liệu ");
+        console.error("Lỗi khi lấy dữ liệu:", error);
+        toast.error("Không thể tải danh sách danh mục");
       } finally {
         setLoading(false);
       }
     };
+    fetchCategories();
+  }, []);
 
-    if (slugCategories) {
-      fetchAccounts();
-    }
-  }, [slugCategories]);
-
-  const [deleteAccount, setDeleteAccount] = useState(null);
+  const [deleteCategories, setDeleteCategories] = useState(null);
   const handleDelete = async () => {
     try {
-      await axios.delete(
-        `http://localhost:5001/api/accounts/admin/${deleteAccount._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
+      await categoriesService.deleteRandomCategory(deleteCategories._id);
+      setCategories(
+        categories.filter((item) => item._id !== deleteCategories._id),
       );
-      setAccounts(accounts.filter((item) => item._id !== deleteAccount._id));
-      closeModal(); // đóng modal
-      toast.success(`Đã xoá tài khoản ${deleteAccount.username} thành công`);
+      closeModal();
+      toast.success(`Đã xoá danh mục ${deleteCategories.name} thành công`);
     } catch (error) {
-      console.error("Lỗi xoá tài khoản", error);
+      toast.error(`Lỗi xoá danh mục ${deleteCategories.name}`);
+      console.error("Lỗi xoá danh mục", error);
     }
   };
-  // End Xử lý lấy dữ liệu
+  // End Lấy API service
   return (
     <>
       <div className="page-header-admin">
         <div className="page-title-admin">
-          <h4>DANH SÁCH TÀI KHOẢN GAME</h4>
-          <span>Quản lý tài khoản game của bạn</span>
+          <h4>DANH SÁCH DANH MỤC RANDOM ACCOUNTS</h4>
+          <span>Quản lý danh mục random accounts của bạn</span>
         </div>
         <div className="page-btn">
           <Link to="create" className="btn primary btn-added">
             <img src={icon_plus} alt="add" className=" me-1" />
-            Thêm tài khoản
+            Thêm danh mục
           </Link>
         </div>
       </div>
@@ -92,10 +79,10 @@ const Accounts = () => {
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Tên tài khoản</th>
+                  <th>Tên danh mục</th>
                   <th>Giá tiền</th>
-                  <th>Trạng thái</th>
                   <th>Ảnh đại diện</th>
+                  <th>Trạng thái</th>
                   <th>Ngày tạo</th>
                   <th>Thao tác</th>
                 </tr>
@@ -107,41 +94,37 @@ const Accounts = () => {
                       Đang tải dữ liệu...
                     </td>
                   </tr>
-                ) : accounts.length === 0 ? (
+                ) : categories.length === 0 ? (
                   <tr>
                     <td colSpan="7" className="text-center">
                       <NotFound message="Không có dữ liệu" />
                     </td>
                   </tr>
                 ) : (
-                  accounts.map((item) => (
-                    <tr key={item.accountsId}>
-                      <td>{item.accountsId}</td>
-                      <td>{item.username}</td>
-                      <td>
-                        {item.price_sale > 0
-                          ? formatCurrency(item.price_sale)
-                          : formatCurrency(item.price)}
-                      </td>
-                      <td>
-                        <span
-                          className={`badges ${item.status ? "status-error" : "status-success"}`}
-                        >
-                          {item.status ? "Đã bán" : "Chưa bán"}
-                        </span>
-                      </td>
+                  categories.map((item) => (
+                    <tr key={item.randomCategoriesId}>
+                      <td>{item.randomCategoriesId}</td>
+                      <td>{item.name}</td>
+                      <td>{formatCurrency(item.price)}</td>
                       <td>
                         <img
-                          src={item.avatar}
-                          alt={item.user}
+                          src={item.image}
+                          alt={item.name}
                           className="img-thumbnail"
                           style={{ width: "200px" }}
                         />
                       </td>
+                      <td>
+                        <span
+                          className={`badges ${item.status ? "status-success" : "status-error"}`}
+                        >
+                          {item.status ? "Hoạt động" : "Tạm khóa"}
+                        </span>
+                      </td>
                       <td>{formatDate(item.createdAt)}</td>
                       <td className="align-middle text-center">
                         <div className="d-flex justify-content-center align-items-center">
-                          <Link to={`edit/${item.accountsId}`}>
+                          <Link to={`edit/${item.randomCategoriesId}`}>
                             <img src={icon_edit} alt="edit" className="me-3" />
                           </Link>
                           <Link to="#">
@@ -149,7 +132,7 @@ const Accounts = () => {
                               src={icon_delete}
                               alt="delete"
                               onClick={() => {
-                                setDeleteAccount(item);
+                                setDeleteCategories(item);
                                 openModal();
                               }}
                             />
@@ -166,8 +149,8 @@ const Accounts = () => {
               showEffect={showEffect}
               onClose={closeModal}
               onConfirm={handleDelete}
-              message="Bạn có chắc chắn muốn xóa tài khoản"
-              itemName={deleteAccount?.username}
+              message="Bạn có chắc chắn muốn xóa danh mục"
+              itemName={deleteCategories?.name}
             />
             <div className="table-pagination-control">
               <span className="me-1">Show per page :</span>
@@ -200,4 +183,4 @@ const Accounts = () => {
   );
 };
 
-export default Accounts;
+export default RandomCategories;

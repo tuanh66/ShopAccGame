@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 const MuaAcc = () => {
   // Lấy dữ liệu
-  const [categories, setCategories] = useState();
+  const [categories, setCategories] = useState([]);
   useEffect(() => {
     const fetchUser = async () => {
       try {

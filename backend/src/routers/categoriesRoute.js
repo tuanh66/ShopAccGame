@@ -2,6 +2,7 @@ import express from "express";
 import { protectedRoute } from "../middlewares/authMiddleware.js";
 import { authorize, ROLES } from "../middlewares/authorizeMiddleware.js";
 import {
+  readAllSlug,
   createCategories,
   readCategories,
   readCategoriesById,
@@ -9,15 +10,60 @@ import {
   addCategoriesAttribute,
   removeCategoriesAttribute,
   deleteCategories,
+  createRandomCategories,
+  readRandomCategories,
+  readRandomCategoriesById,
+  updateRandomCategoriesById,
+  deleteRandomCategoriesById,
   readCategoriesStatus,
 } from "../controllers/categoriesController.js";
 
 const router = express.Router();
 
 // Admin
-router.post("/admin", protectedRoute, authorize(ROLES.ADMIN), createCategories);
+router.get(
+  "/admin/all-slug",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  readAllSlug,
+);
+// Random
+router.post(
+  "/admin/random-categories",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  createRandomCategories,
+);
 
-router.get("/admin", protectedRoute, authorize(ROLES.ADMIN), readCategories);
+router.get(
+  "/admin/random-categories",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  readRandomCategories,
+);
+
+router.get(
+  "/admin/random-categories/:id",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  readRandomCategoriesById,
+);
+
+router.put(
+  "/admin/random-categories/:id",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  updateRandomCategoriesById,
+);
+
+router.delete(
+  "/admin/random-categories/:id",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  deleteRandomCategoriesById,
+);
+
+router.post("/admin", protectedRoute, authorize(ROLES.ADMIN), createCategories);
 
 router.get("/admin", protectedRoute, authorize(ROLES.ADMIN), readCategories);
 
@@ -55,6 +101,7 @@ router.delete(
   authorize(ROLES.ADMIN),
   deleteCategories,
 );
+
 // Client
 router.get("/", readCategoriesStatus);
 

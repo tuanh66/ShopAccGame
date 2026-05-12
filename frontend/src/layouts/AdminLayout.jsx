@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { HiOutlineChevronRight } from "react-icons/hi";
 import axios from "axios";
+import { categoriesService } from "../service/categoriesService";
 import { useAuthStore } from "../store/useAuthStore";
 import logo from "../assets/img/logo.png";
 import dashboard from "../assets/svg/dashboard.svg";
@@ -9,6 +10,7 @@ import product from "../assets/svg/product.svg";
 import users from "../assets/svg/users1.svg";
 import dollarSquare from "../assets/svg/dollar-square.svg";
 import sales from "../assets/svg/sales1.svg";
+import time from "../assets/svg/time.svg";
 import settings from "../assets/svg/setting1.svg";
 
 const AdminLayout = () => {
@@ -19,40 +21,38 @@ const AdminLayout = () => {
     if (location.pathname.includes("/admin/users")) return "Người dùng";
     if (location.pathname.includes("/admin/bank-accounts")) return "Nạp tiền";
     if (location.pathname.includes("/admin/card-top-up")) return "Nạp tiền";
-    if (location.pathname.includes("/admin/discount-code")) return "Mã giảm giá";
+    if (location.pathname.includes("/admin/discount-code"))
+      return "Mã giảm giá";
     return "Danh mục";
   });
-  const [categories, setCategories] = useState([]);
-  
-  const accessToken = useAuthStore((s) => s.accessToken);
 
   useEffect(() => {
     const path = location.pathname;
     if (path.includes("/admin/accounts")) setOpenMenu("Tài khoản");
     else if (path.includes("/admin/categories")) setOpenMenu("Danh mục");
     else if (path.includes("/admin/users")) setOpenMenu("Người dùng");
-    else if (path.includes("/admin/payment") || path.includes("/admin/bank-accounts")) setOpenMenu("Nạp tiền");
+    else if (
+      path.includes("/admin/payment") ||
+      path.includes("/admin/bank-accounts")
+    )
+      setOpenMenu("Nạp tiền");
     else if (path.includes("/admin/discount-code")) setOpenMenu("Mã giảm giá");
   }, [location.pathname]);
 
+  const [categories, setCategories] = useState([]);
+  const [randomCategories, setRandomCategories] = useState([]);
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:5001/api/categories/admin",
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          },
-        );
-        setCategories(res.data.data);
+        const res = await categoriesService.readAllSlug();
+        setCategories(res.slugCategories);
+        setRandomCategories(res.slugRandomCategories);
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu", error);
       }
     };
     fetchCategories();
-  }, [accessToken]);
+  }, []);
 
   const toggleMenu = (e, menuName) => {
     e.preventDefault();
@@ -160,7 +160,7 @@ const AdminLayout = () => {
                     }}
                   >
                     {categories.map((item) => (
-                      <li key={item._id}>
+                      <li key={item.slug}>
                         <Link
                           to={`/admin/accounts/${item.slug}`}
                           className={
@@ -212,7 +212,7 @@ const AdminLayout = () => {
                     </li>
                     <li>
                       <Link
-                        to="/admin/categories/create"
+                        to="/admin/random-categories/create"
                         className={
                           location.pathname ===
                           "/admin/random-categories/create"
@@ -248,30 +248,21 @@ const AdminLayout = () => {
                         openMenu === "Tài khoản Random" ? "block" : "none",
                     }}
                   >
-                    <li>
-                      <Link
-                        to="/admin/random-accounts"
-                        className={
-                          location.pathname === "/admin/random-accounts"
-                            ? "active"
-                            : ""
-                        }
-                      >
-                        Danh sách tài khoản random
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/admin/random-accounts/create"
-                        className={
-                          location.pathname === "/admin/random-accounts/create"
-                            ? "active"
-                            : ""
-                        }
-                      >
-                        Thêm tài khoản random
-                      </Link>
-                    </li>
+                    {randomCategories.map((item) => (
+                      <li key={item.slug}>
+                        <Link
+                          to={`/admin/random-accounts/${item.slug}`}
+                          className={
+                            location.pathname ===
+                            `/admin/random-accounts/${item.slug}`
+                              ? "active"
+                              : ""
+                          }
+                        >
+                          {item.name}
+                        </Link>
+                      </li>
+                    ))}
                   </ul>
                 </li>
                 {/* Vòng quay may mắn */}
@@ -393,22 +384,12 @@ const AdminLayout = () => {
                       <Link
                         to="/admin/card-top-up"
                         className={
-                          location.pathname === "/admin/card-top-up" ? "active" : ""
-                        }
-                      >
-                        Nạp thẻ
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/admin/card-top-up/history"
-                        className={
-                          location.pathname === "/admin/card-top-up/history"
+                          location.pathname === "/admin/card-top-up"
                             ? "active"
                             : ""
                         }
                       >
-                        Lịch sử nạp thẻ
+                        Nạp thẻ
                       </Link>
                     </li>
                     <li>
@@ -421,18 +402,6 @@ const AdminLayout = () => {
                         }
                       >
                         Chuyển khoản
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/admin/bank-accounts/history"
-                        className={
-                          location.pathname === "/admin/bank-accounts/history"
-                            ? "active"
-                            : ""
-                        }
-                      >
-                        Lịch sử chuyển khoản
                       </Link>
                     </li>
                   </ul>
@@ -471,16 +440,86 @@ const AdminLayout = () => {
                         Danh sách mã giảm giá
                       </Link>
                     </li>
+                  </ul>
+                </li>
+                {/* Lịch sử */}
+                <li
+                  className={`submenu ${openMenu === "Lịch sử" ? "submenu-open" : ""}`}
+                >
+                  <Link
+                    to="#"
+                    onClick={(e) => toggleMenu(e, "Lịch sử")}
+                    className={openMenu === "Lịch sử" ? "subdrop active" : ""}
+                  >
+                    <img src={time} alt="time" />
+                    <span>Lịch sử</span>
+                    <span className="menu-arrow">
+                      <HiOutlineChevronRight />
+                    </span>
+                  </Link>
+                  <ul
+                    style={{
+                      display: openMenu === "Lịch sử" ? "block" : "none",
+                    }}
+                  >
                     <li>
                       <Link
-                        to="/admin/discount-code/history"
+                        to="/admin/history/accounts"
                         className={
-                          location.pathname === "/admin/discount-code/history"
+                          location.pathname === "/admin/history/accounts"
                             ? "active"
                             : ""
                         }
                       >
-                        Lịch sử sử dụng mã giảm giá
+                        Lịch sử mua tài khoản
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/admin/history/random-accounts"
+                        className={
+                          location.pathname === "/admin/history/random-accounts"
+                            ? "active"
+                            : ""
+                        }
+                      >
+                        Lịch sử mua random
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/admin/history/card-top-up"
+                        className={
+                          location.pathname === "/admin/history/card-top-up"
+                            ? "active"
+                            : ""
+                        }
+                      >
+                        Lịch sử nạp thẻ cào
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/admin/history/bank-accounts"
+                        className={
+                          location.pathname === "/admin/history/bank-accounts"
+                            ? "active"
+                            : ""
+                        }
+                      >
+                        Lịch sử nạp tiền ngân hàng
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/admin/history/discount-code"
+                        className={
+                          location.pathname === "/admin/history/discount-code"
+                            ? "active"
+                            : ""
+                        }
+                      >
+                        Lịch sử dùng mã giảm giá
                       </Link>
                     </li>
                   </ul>

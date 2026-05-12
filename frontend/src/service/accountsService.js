@@ -2,6 +2,7 @@ import api from "../lib/axios";
 
 export const accountsService = {
   // Admin
+  // Accounts
   createAccounts: async (data) => {
     const res = await api.post("/accounts/admin", data);
     return res.data;
@@ -24,6 +25,27 @@ export const accountsService = {
   },
   deleteAccount: async (id) => {
     const res = await api.delete(`/accounts/admin/${id}`);
+    return res.data;
+  },
+  // Random Accounts
+  createRandomAccounts: async (data) => {
+    const res = await api.post("/accounts/admin/random", data);
+    return res.data;
+  },
+  readRandomAccounts: async (slug) => {
+    const res = await api.get(`/accounts/admin/random/${slug}`);
+    return res.data;
+  },
+  readRandomAccountById: async (id) => {
+    const res = await api.get(`/accounts/admin/random/detail/${id}`);
+    return res.data;
+  },
+  updateRandomAccount: async (id, data) => {
+    const res = await api.put(`/accounts/admin/random/${id}`, data);
+    return res.data;
+  },
+  deleteRandomAccount: async (id) => {
+    const res = await api.delete(`/accounts/admin/random/${id}`);
     return res.data;
   },
   // Client

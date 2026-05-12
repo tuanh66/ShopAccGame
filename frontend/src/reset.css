@@ -27,6 +27,17 @@ input {
   line-height: normal;
 }
 
+/* Hide spin buttons for number inputs */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 label,
 button {
   cursor: pointer;
@@ -317,6 +328,30 @@ video {
   padding-right: 12px !important;
 }
 
+.p-15 {
+  padding: 15px !important;
+}
+
+.py-15,
+.pt-15 {
+  padding-top: 15px !important;
+}
+
+.py-15,
+.pb-15 {
+  padding-bottom: 15px !important;
+}
+
+.px-15,
+.pl-15 {
+  padding-left: 15px !important;
+}
+
+.px-15,
+.pr-15 {
+  padding-right: 15px !important;
+}
+
 .p-16 {
   padding: 16px !important;
 }
@@ -603,6 +638,30 @@ video {
 .mx-8,
 .mr-8 {
   margin-right: 8px !important;
+}
+
+.m-10 {
+  margin: 10px !important;
+}
+
+.my-10,
+.mt-10 {
+  margin-top: 10px !important;
+}
+
+.my-10,
+.mb-10 {
+  margin-bottom: 10px !important;
+}
+
+.mx-10,
+.ml-10 {
+  margin-left: 10px !important;
+}
+
+.mx-10,
+.mr-10 {
+  margin-right: 10px !important;
 }
 
 .my-12,
@@ -898,6 +957,217 @@ video {
 .container {
   padding-left: 16px;
   padding-right: 16px;
+}
+
+@media screen and (max-width: 992px) {
+  /* Padding */
+  .lg-p-6 {
+    padding: 6px !important;
+  }
+
+  .lg-py-6,
+  .lg-pt-6 {
+    padding-top: 6px !important;
+  }
+
+  .lg-py-6,
+  .lg-pb-6 {
+    padding-bottom: 6px !important;
+  }
+
+  .lg-px-6,
+  .lg-pl-6 {
+    padding-left: 6px !important;
+  }
+
+  .lg-px-6,
+  .lg-pr-6 {
+    padding-right: 6px !important;
+  }
+
+  .lg-p-12 {
+    padding: 12px !important;
+  }
+
+  .lg-py-12,
+  .lg-pt-12 {
+    padding-top: 12px !important;
+  }
+
+  .lg-py-12,
+  .lg-pb-12 {
+    padding-bottom: 12px !important;
+  }
+
+  .lg-px-12,
+  .lg-pl-12 {
+    padding-left: 12px !important;
+  }
+
+  .lg-px-12,
+  .lg-pr-12 {
+    padding-right: 12px !important;
+  }
+
+  .lg-p-14 {
+    padding: 14px !important;
+  }
+
+  .lg-py-14,
+  .lg-pt-14 {
+    padding-top: 14px !important;
+  }
+
+  .lg-py-14,
+  .lg-pb-14 {
+    padding-bottom: 14px !important;
+  }
+
+  .lg-px-14,
+  .lg-pl-14 {
+    padding-left: 14px !important;
+  }
+
+  .lg-px-14,
+  .lg-pr-14 {
+    padding-right: 14px !important;
+  }
+
+  .lg-p-15 {
+    padding: 15px !important;
+  }
+
+  .lg-py-15,
+  .lg-pt-15 {
+    padding-top: 15px !important;
+  }
+
+  .lg-py-15,
+  .lg-pb-15 {
+    padding-bottom: 15px !important;
+  }
+
+  .lg-px-15,
+  .lg-pl-15 {
+    padding-left: 15px !important;
+  }
+
+  .lg-px-15,
+  .lg-pr-15 {
+    padding-right: 15px !important;
+  }
+
+  .lg-p-16 {
+    padding: 16px !important;
+  }
+
+  .lg-py-16,
+  .lg-pt-16 {
+    padding-top: 16px !important;
+  }
+
+  .lg-py-16,
+  .lg-pb-16 {
+    padding-bottom: 16px !important;
+  }
+
+  .lg-px-16,
+  .lg-pl-16 {
+    padding-left: 16px !important;
+  }
+
+  .lg-px-16,
+  .lg-pr-16 {
+    padding-right: 16px !important;
+  }
+  /* End Padding */
+
+  /* Margin */
+  .lg-m-14 {
+    margin: 14px !important;
+  }
+
+  .lg-my-14,
+  .lg-mt-14 {
+    margin-top: 14px !important;
+  }
+
+  .lg-my-14,
+  .lg-mb-14 {
+    margin-bottom: 14px !important;
+  }
+
+  .lg-mx-14,
+  .lg-ml-14 {
+    margin-left: 14px !important;
+  }
+
+  .lg-mx-14,
+  .lg-mr-14 {
+    margin-right: 14px !important;
+  }
+
+  .lg-m-15 {
+    margin: 15px !important;
+  }
+
+  .lg-my-15,
+  .lg-mt-15 {
+    margin-top: 15px !important;
+  }
+
+  .lg-my-15,
+  .lg-mb-15 {
+    margin-bottom: 15px !important;
+  }
+
+  .lg-mx-15,
+  .lg-ml-15 {
+    margin-left: 15px !important;
+  }
+
+  .lg-mx-15,
+  .lg-mr-15 {
+    margin-right: 15px !important;
+  }
+
+  .lg-m-16 {
+    margin: 16px !important;
+  }
+
+  .lg-my-16,
+  .lg-mt-16 {
+    margin-top: 16px !important;
+  }
+
+  .lg-my-16,
+  .lg-mb-16 {
+    margin-bottom: 16px !important;
+  }
+
+  .lg-mx-16,
+  .lg-ml-16 {
+    margin-left: 16px !important;
+  }
+
+  .lg-mx-16,
+  .lg-mr-16 {
+    margin-right: 16px !important;
+  }
+  /* End Margin */
+
+  /* Font Size */
+  .lg-fz-15 {
+    font-size: 15px !important;
+  }
+
+  /* End Font Size */
+
+  /* Line Height */
+  .lg-lh-24 {
+    line-height: 24px !important;
+  }
+  /* End Line Height */
 }
 
 @media (min-width: 1200px) {

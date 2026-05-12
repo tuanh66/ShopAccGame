@@ -1,5 +1,6 @@
 import axios from "axios";
 import toast from "react-hot-toast";
+import { imageService } from "../../service/imageService";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -102,15 +103,7 @@ const CategoriesEdit = () => {
       let imageUrl = categoriesUpdate.image_category;
 
       if (fileImage) {
-        const formData = new FormData();
-        formData.append("image", fileImage);
-
-        const resImg = await axios.post(
-          `https://api.imgbb.com/1/upload?key=6624e532541b0b39305d1b01b8e065cd`,
-          formData,
-        );
-
-        imageUrl = resImg.data.data.url;
+        imageUrl = await imageService.uploadImage(fileImage);
       }
 
       const res = await axios.put(

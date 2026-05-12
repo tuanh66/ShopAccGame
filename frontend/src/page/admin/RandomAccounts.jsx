@@ -1,10 +1,8 @@
-import axios from "axios";
-import toast from "react-hot-toast";
+  import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useAuthStore } from "../../store/useAuthStore";
-import { accountsService } from "../../service/accountsService";
-import { formatCurrency, formatDate } from "../../utils/format";
+import { accountsService } from "@/service/accountsService";
+import { formatDate } from "../../utils/format";
 import NotFound from "../../components/common/NotFound";
 import { useModal } from "../../hooks/useModal";
 import ConfirmDeleteModal from "../../components/admin/ConfirmDeleteModal";
@@ -13,29 +11,25 @@ import icon_plus from "../../assets/svg/plus.svg";
 import icon_edit from "../../assets/svg/edit.svg";
 import icon_delete from "../../assets/svg/delete.svg";
 
-const Accounts = () => {
-  const { slugCategories } = useParams();
-  const [loading, setLoading] = useState(true);
-  const [accounts, setAccounts] = useState([]);
+const RandomAccounts = () => {
   const { showModal, showEffect, openModal, closeModal } = useModal();
-  // Xử lý lấy dữ liệu
-
-  // Xử lý lấy dữ liệu
-  const accessToken = useAuthStore((s) => s.accessToken);
+  // Lấy API service
+  const { slugCategories } = useParams();
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
-        const res = await accountsService.readAccounts(slugCategories);
+        const res = await accountsService.readRandomAccounts(slugCategories);
         setAccounts(res.data);
       } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu", error);
-        toast.error("Không thể lấy dữ liệu ");
+        console.error("Lỗi khi lấy dữ liệu:", error);
+        toast.error("Không thể lấy dữ liệu");
       } finally {
         setLoading(false);
       }
     };
-
     if (slugCategories) {
       fetchAccounts();
     }
@@ -44,28 +38,22 @@ const Accounts = () => {
   const [deleteAccount, setDeleteAccount] = useState(null);
   const handleDelete = async () => {
     try {
-      await axios.delete(
-        `http://localhost:5001/api/accounts/admin/${deleteAccount._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
-      setAccounts(accounts.filter((item) => item._id !== deleteAccount._id));
-      closeModal(); // đóng modal
+      await accountsService.deleteRandomAccount(deleteAccount.randomAccountsId);
+      setAccounts(accounts.filter((item) => item.randomAccountsId !== deleteAccount.randomAccountsId));
+      closeModal();
       toast.success(`Đã xoá tài khoản ${deleteAccount.username} thành công`);
     } catch (error) {
+      toast.error(`Lỗi xoá tài khoản ${deleteAccount.username}`);
       console.error("Lỗi xoá tài khoản", error);
     }
   };
-  // End Xử lý lấy dữ liệu
+  // End Lấy API service
   return (
     <>
       <div className="page-header-admin">
         <div className="page-title-admin">
-          <h4>DANH SÁCH TÀI KHOẢN GAME</h4>
-          <span>Quản lý tài khoản game của bạn</span>
+          <h4>DANH SÁCH RANDOM ACCOUNTS</h4>
+          <span>Quản lý random accounts của bạn</span>
         </div>
         <div className="page-btn">
           <Link to="create" className="btn primary btn-added">
@@ -93,7 +81,7 @@ const Accounts = () => {
                 <tr>
                   <th>ID</th>
                   <th>Tên tài khoản</th>
-                  <th>Giá tiền</th>
+                  <th>Bậc</th>
                   <th>Trạng thái</th>
                   <th>Ảnh đại diện</th>
                   <th>Ngày tạo</th>
@@ -110,18 +98,20 @@ const Accounts = () => {
                 ) : accounts.length === 0 ? (
                   <tr>
                     <td colSpan="7" className="text-center">
-                      <NotFound message="Không có dữ liệu" />
+                      <NotFound message="Chưa có tài khoản random" />
                     </td>
                   </tr>
                 ) : (
                   accounts.map((item) => (
-                    <tr key={item.accountsId}>
-                      <td>{item.accountsId}</td>
+                    <tr key={item.randomAccountsId}>
+                      <td>{item.randomAccountsId}</td>
                       <td>{item.username}</td>
                       <td>
-                        {item.price_sale > 0
-                          ? formatCurrency(item.price_sale)
-                          : formatCurrency(item.price)}
+                        {item.tier === "thuong"
+                          ? "Thường"
+                          : item.tier === "ngon"
+                            ? "Ngon"
+                            : "Siêu phẩm"}
                       </td>
                       <td>
                         <span
@@ -132,8 +122,8 @@ const Accounts = () => {
                       </td>
                       <td>
                         <img
-                          src={item.avatar}
-                          alt={item.user}
+                          src={item.image?.[0]}
+                          alt={item.username}
                           className="img-thumbnail"
                           style={{ width: "200px" }}
                         />
@@ -141,7 +131,7 @@ const Accounts = () => {
                       <td>{formatDate(item.createdAt)}</td>
                       <td className="align-middle text-center">
                         <div className="d-flex justify-content-center align-items-center">
-                          <Link to={`edit/${item.accountsId}`}>
+                          <Link to={`edit/${item.randomAccountsId}`}>
                             <img src={icon_edit} alt="edit" className="me-3" />
                           </Link>
                           <Link to="#">
@@ -200,4 +190,4 @@ const Accounts = () => {
   );
 };
 
-export default Accounts;
+export default RandomAccounts;

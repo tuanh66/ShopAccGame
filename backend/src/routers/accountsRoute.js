@@ -8,6 +8,11 @@ import {
   readAccountsById,
   updateAccounts,
   deleteAccounts,
+  createRandomAccounts,
+  readRandomAccounts,
+  readRandomAccountsById,
+  updateRandomAccounts,
+  deleteRandomAccounts,
   readCategoriesAccountStatus,
   readCategoriesAccountId,
   buyAccount,
@@ -17,6 +22,7 @@ import {
 const router = express.Router();
 
 // Admin
+// Accounts
 router.post("/admin", protectedRoute, authorize(ROLES.ADMIN), createAccounts);
 
 router.get(
@@ -46,11 +52,48 @@ router.put(
   authorize(ROLES.ADMIN),
   updateAccounts,
 );
+
 router.delete(
   "/admin/:id",
   protectedRoute,
   authorize(ROLES.ADMIN),
   deleteAccounts,
+);
+
+// Random Accounts
+router.post(
+  "/admin/random",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  createRandomAccounts,
+);
+
+router.get(
+  "/admin/random/:slug",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  readRandomAccounts,
+);
+
+router.get(
+  "/admin/random/detail/:id",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  readRandomAccountsById,
+);
+
+router.put(
+  "/admin/random/:id",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  updateRandomAccounts,
+);
+
+router.delete(
+  "/admin/random/:id",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  deleteRandomAccounts,
 );
 
 // Client

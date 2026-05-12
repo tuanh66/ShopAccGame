@@ -1,10 +1,11 @@
-import axios from "axios";
+import { imageService } from "../../service/imageService";
 import { accountsService } from "../../service/accountsService";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import uploadImage from "../../assets/svg/upload.svg";
 import selectedPhotos from "../../assets/img/selectedPhotos.png";
+import PriceInput from "../../components/common/PriceInput";
 
 const AccountsEdit = () => {
   const { id, slugCategories } = useParams();
@@ -95,30 +96,12 @@ const AccountsEdit = () => {
 
       // Upload avatar
       if (avatarFile) {
-        const formData = new FormData();
-        formData.append("image", avatarFile);
-
-        const resImg = await axios.post(
-          `https://api.imgbb.com/1/upload?key=6624e532541b0b39305d1b01b8e065cd`,
-          formData,
-        );
-
-        avatarUrl = resImg.data.data.url;
+        avatarUrl = await imageService.uploadImage(avatarFile);
       }
 
       // Upload nhiều ảnh chi tiết
       if (detailFiles.length > 0) {
-        const uploadPromises = detailFiles.map((file) => {
-          const formData = new FormData();
-          formData.append("image", file);
-          return axios.post(
-            `https://api.imgbb.com/1/upload?key=6624e532541b0b39305d1b01b8e065cd`,
-            formData,
-          );
-        });
-
-        const results = await Promise.all(uploadPromises);
-        imageUrls = results.map((res) => res.data.data.url);
+        imageUrls = await imageService.uploadImages(detailFiles);
       }
 
       await accountsService.updateAccount(id, {
@@ -182,8 +165,7 @@ const AccountsEdit = () => {
                   Giá tiền
                   <span>*</span>
                 </label>
-                <input
-                  type="number"
+                <PriceInput
                   name="price"
                   id="price"
                   placeholder="Nhập giá tiền"
@@ -197,8 +179,7 @@ const AccountsEdit = () => {
                   Giá tiền giảm
                   <span>*</span>
                 </label>
-                <input
-                  type="number"
+                <PriceInput
                   name="price_sale"
                   id="price_sale"
                   placeholder="Nhập giá giảm"
@@ -336,7 +317,7 @@ const AccountsEdit = () => {
                       key={index}
                       src={img}
                       alt={accountslUpdate._id}
-                      style={{ maxWidth: "200px", maxHeight: "200px" }}
+                      style={{ maxWidth: "200px", maxHeight: "200px", borderRadius: "10px" }}
                     />
                   ))}
                 </div>

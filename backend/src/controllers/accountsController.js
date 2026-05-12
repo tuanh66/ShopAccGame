@@ -2,12 +2,16 @@ import AccountsHistory from "../models/AccountsHistory.js";
 import mongoose from "mongoose";
 import Categories from "../models/Categories.js";
 import Accounts from "../models/Accounts.js";
+import RandomCategories from "../models/RandomCategories.js";
+import RandomAccounts from "../models/RandomAccounts.js";
 import Users from "../models/User.js";
 import UserHistory from "../models/UserHistory.js";
 import DiscountCode from "../models/DiscountCode.js";
 import DiscountCodeHistory from "../models/DiscountCodeHistory.js";
+import { encrypt, decrypt } from "../libs/encryption.js";
 
 // Admin
+// Accounts
 export const createAccounts = async (req, res) => {
   try {
     const {
@@ -331,6 +335,150 @@ export const deleteAccounts = async (req, res) => {
     });
   } catch (error) {
     console.error("Lỗi khi gọi deleteAccounts", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+// Random Accounts
+export const createRandomAccounts = async (req, res) => {
+  try {
+    const { randomCategories_id, categorySlug, username, password, tier, image } =
+      req.body;
+
+    let categoryId = randomCategories_id;
+
+    // Nếu không có ID nhưng có slug thì đi tìm ID từ slug
+    if (!categoryId && categorySlug) {
+      const category = await RandomCategories.findOne({ slug: categorySlug });
+      if (!category) {
+        return res.status(404).json({ message: "Không tìm thấy danh mục" });
+      }
+      categoryId = category._id;
+    }
+
+    if (!categoryId || !username || !password || !tier) {
+      return res.status(400).json({ message: "Vui lòng điền đầy đủ thông tin" });
+    }
+
+    const newAccount = new RandomAccounts({
+      randomCategories_id: categoryId,
+      username,
+      password: encrypt(password),
+      tier,
+      image: image || [],
+    });
+
+    await newAccount.save();
+
+    return res.status(201).json({
+      message: "Tạo tài khoản random thành công",
+      data: newAccount,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi createRandomAccounts", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const readRandomAccounts = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    let query = {};
+    if (slug) {
+      const category = await RandomCategories.findOne({ slug });
+      if (!category) {
+        return res.status(404).json({ message: "Không tìm thấy danh mục" });
+      }
+      query.randomCategories_id = category._id;
+    }
+
+    const accounts = await RandomAccounts.find(query)
+      .populate("randomCategories_id", "name")
+      .sort({ createdAt: -1 });
+
+    const decryptedAccounts = accounts.map((acc) => ({
+      ...acc.toObject(),
+      password: decrypt(acc.password),
+    }));
+
+    return res.status(200).json({
+      message: "Lấy danh sách tài khoản random thành công",
+      data: decryptedAccounts,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi readRandomAccounts", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const readRandomAccountsById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const account = await RandomAccounts.findOne({ randomAccountsId: id });
+
+    if (!account) {
+      return res.status(404).json({ message: "Không tìm thấy tài khoản" });
+    }
+
+    const decryptedAccount = {
+      ...account.toObject(),
+      password: decrypt(account.password),
+    };
+
+    return res.status(200).json({
+      message: "Lấy thông tin tài khoản random thành công",
+      data: decryptedAccount,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi readRandomAccountsById", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const updateRandomAccounts = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, password, tier, image, status } = req.body;
+
+    const account = await RandomAccounts.findOneAndUpdate(
+      { randomAccountsId: id },
+      {
+        username,
+        password: encrypt(password),
+        tier,
+        image,
+        status,
+      },
+      { new: true },
+    );
+
+    if (!account) {
+      return res.status(404).json({ message: "Không tìm thấy tài khoản để cập nhật" });
+    }
+
+    return res.status(200).json({
+      message: "Cập nhật tài khoản random thành công",
+      data: account,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi updateRandomAccounts", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const deleteRandomAccounts = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const account = await RandomAccounts.findOneAndDelete({
+      randomAccountsId: id,
+    });
+    if (!account) {
+      return res.status(404).json({ message: "Không tìm thấy tài khoản" });
+    }
+    return res.status(200).json({ message: "Xóa tài khoản thành công" });
+  } catch (error) {
+    console.error("Lỗi khi gọi deleteRandomAccounts", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
@@ -810,7 +958,7 @@ export const buyAccount = async (req, res) => {
           accountId: account._id,
           categoriesId: account.categories_id,
           price: finalPrice,
-          status: "success",
+          status: true,
         },
       ],
       { session },

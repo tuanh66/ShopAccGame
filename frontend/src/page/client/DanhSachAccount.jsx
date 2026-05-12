@@ -1,6 +1,13 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
+import {
+  Link,
+  useParams,
+  useNavigate,
+  useLocation,
+  Links,
+} from "react-router-dom";
+import { formatCurrency } from "@/utils/format";
 
 const DanhSachAccount = () => {
   const toLowerFirst = (str) => {
@@ -491,16 +498,15 @@ const DanhSachAccount = () => {
                         !(item?.price_sale > 0) ? "mb-16" : ""
                       }`}
                     >
-                      {new Intl.NumberFormat("vi-VN").format(
+                      {formatCurrency(
                         item?.price_sale > 0 ? item.price_sale : item.price,
                       )}
-                      đ
                     </div>
 
                     {/* Chỉ hiện khi price_sale > 0 */}
                     {item?.price_sale > 0 && (
                       <div className="price_old mr-8">
-                        {new Intl.NumberFormat("vi-VN").format(item.price)}đ
+                        {formatCurrency(item.price)}
                       </div>
                     )}
 
@@ -518,6 +524,34 @@ const DanhSachAccount = () => {
               </div>
             </div>
           ))}
+          <div className="account-item">
+            <div className="card card-hover">
+              <div
+                className="card-body scale-thumb"
+                style={{ cursor: "pointer" }}
+              >
+                <div className="account-thumb mb-8">
+                  <img
+                    src="https://i.ibb.co/pjffRJyF/z7632296226793-141365d0bcd6d61c92090db18389dfdd.jpg"
+                    alt=""
+                  />
+                </div>
+                <div className="account-title">
+                  <div className="text-title fz-15 fw-700 lh-24 text-limit limit-1">
+                    Thử Vận May Liên Quân 200k
+                  </div>
+                </div>
+                <div className="price">
+                  <div className="price_current w-100">200.000đ</div>
+                  <div className="price_old mr-8">400.000đ</div>
+                  <div className="discount">50%</div>
+                </div>
+                <div className="price pt-12">
+                  <button className="btn secondary w-100">Mua ngay</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </>

@@ -9,9 +9,8 @@ import Lightbox from "yet-another-react-lightbox";
 import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
 import Counter from "yet-another-react-lightbox/plugins/counter";
-import { FaLess, FaRegTimesCircle, FaRegCheckCircle } from "react-icons/fa";
-import successBuyAccount from "../../assets/img/success.png";
 import { discountCodeService } from "../../service/discountCodeService";
+import PurchaseModal from "../../components/client/PurchaseModal";
 
 const ChitietAccount = () => {
   // Data processing
@@ -155,8 +154,6 @@ const ChitietAccount = () => {
     setDiscountError("");
     setDiscountSuccess("");
   };
-
-  const isEnoughMoney = user && user.balance >= finalPrice;
 
   // BuyAccount
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -344,340 +341,35 @@ const ChitietAccount = () => {
                 >
                   Mua ngay
                 </button>
-                {showModalDetailAccount && (
-                  <>
-                    <div
-                      className={`modal fade ${showEffect ? "show" : ""}`}
-                      style={{
-                        display: showModalDetailAccount ? "block" : "none",
-                      }}
-                      onClick={close}
-                    >
-                      <div
-                        className="modal-dialog"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="modal-content">
-                          <form className="form-check-login">
-                            <div className="modal-header">
-                              <p className="fz-15 fw-700 lh-24 w-100 text-center">
-                                Xác nhận thanh toán
-                              </p>
-                              <button
-                                type="button"
-                                className="btn-close"
-                                data-bs-dismiss="modal"
-                                onClick={close}
-                              ></button>
-                            </div>
-                            <div className="modal-body py-24 px-0">
-                              <div className="fz-13 fw-700 mb-12 text-title">
-                                Thông tin mua Acc
-                              </div>
-                              <div className="card-gray py-8 px-12 mb-16">
-                                <div className="d-flex justify-content-between align-items-center mb-16">
-                                  <span className="fz-13 fw-400 text-link">
-                                    Danh mục
-                                  </span>
-                                  <span className="fz-13 fw-500">
-                                    {categories?.name}
-                                  </span>
-                                </div>
-                                <div className="d-flex justify-content-between align-items-center">
-                                  <span className="fz-13 fw-400 text-link">
-                                    Giá tiền
-                                  </span>
-                                  <span className="fz-13 fw-500">
-                                    {new Intl.NumberFormat("vi-VN").format(
-                                      account?.price_sale > 0
-                                        ? account.price_sale
-                                        : account.price,
-                                    )}
-                                    đ
-                                  </span>
-                                </div>
-                              </div>
-                              {account?.attributes?.length > 0 && (
-                                <div className="card-gray py-8 px-12 mb-16">
-                                  {account.attributes.map((attr, index, arr) => (
-                                    <div
-                                      key={index}
-                                      className={`d-flex justify-content-between align-items-center ${
-                                        index !== arr.length - 1 ? "mb-16" : ""
-                                      }`}
-                                    >
-                                      <span className="fz-13 fw-400 text-link">
-                                        {attr.label}
-                                      </span>
-                                      <span className="fz-13 fw-500">
-                                        {attr.value || "Không có"}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                              <div className="card-gray py-8 px-12 mb-16">
-                                <div className="d-flex justify-content-between align-items-center mb-16">
-                                  <span className="fz-13 fw-400 text-link">
-                                    Phương thức thanh toán
-                                  </span>
-                                  <span className="fz-13 fw-500">
-                                    Tài khoản Shopbrand
-                                  </span>
-                                </div>
-                                <div className="d-flex justify-content-between align-items-center">
-                                  <span className="fz-13 fw-400 text-link">
-                                    Phí thanh toán
-                                  </span>
-                                  <span className="fz-13 fw-500">Miễn phí</span>
-                                </div>
-                              </div>
-                              {user && (
-                                <div className="card-gray py-8 px-12 mb-16">
-                                  <div className="d-flex justify-content-between align-items-center mb-16">
-                                    <span className="fz-13 fw-400 text-link">
-                                      Nhập mã giảm giá
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <div className="d-flex justify-content-between align-items-center w-100">
-                                      <input
-                                        type="text"
-                                        value={discountInput}
-                                        onChange={(e) => {
-                                          setDiscountInput(e.target.value);
-                                          if (discountError) setDiscountError("");
-                                        }}
-                                        disabled={!!discountData}
-                                        placeholder="Nhập mã giảm giá"
-                                      />
-                                      {!discountData ? (
-                                        <button
-                                          className="btn primary fz-13 fw-400"
-                                          type="button"
-                                          style={{
-                                            display: "inline-block",
-                                            padding: "0 12px",
-                                            marginLeft: "8px",
-                                            width: "90px",
-                                          }}
-                                          onClick={handleApplyDiscount}
-                                        >
-                                          Áp dụng
-                                        </button>
-                                      ) : (
-                                        <button
-                                          className="btn red fz-13 fw-400"
-                                          type="button"
-                                          style={{
-                                            display: "inline-block",
-                                            padding: "0 12px",
-                                            marginLeft: "8px",
-                                            width: "90px",
-                                            color: "white",
-                                          }}
-                                          onClick={handleRemoveDiscount}
-                                        >
-                                          Huỷ
-                                        </button>
-                                      )}
-                                    </div>
-                                    {discountError && (
-                                      <p
-                                        className="form-message-error fz-13"
-                                        style={{
-                                          marginTop: "4px",
-                                          textAlign: "left",
-                                          display: "flex",
-                                          alignItems: "center",
-                                        }}
-                                      >
-                                        <FaRegTimesCircle className="mr-2" />
-                                        {discountError}
-                                      </p>
-                                    )}
-                                    {discountSuccess && (
-                                      <p
-                                        className="form-message-success fz-13"
-                                        style={{
-                                          marginTop: "4px",
-                                          textAlign: "left",
-                                          display: "flex",
-                                          alignItems: "center",
-                                        }}
-                                      >
-                                        <FaRegCheckCircle className="mr-2" />
-                                        {discountSuccess}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                              <div className="card-gray py-8 px-12 mb-16">
-                                <div className="d-flex justify-content-between align-items-center mb-16">
-                                  <span className="fz-13 fw-400 text-link">
-                                    Tổng thanh toán
-                                  </span>
-                                  <span className="fz-13 fw-500 text-primary">
-                                    {new Intl.NumberFormat("vi-VN").format(
-                                      finalPrice,
-                                    )}
-                                    đ
-                                  </span>
-                                </div>
-                                <div className="d-flex justify-content-between align-items-center">
-                                  <span className="fz-13 fw-400 text-link">
-                                    Giảm giá
-                                  </span>
-                                  <span className={`fz-13 fw-500 ${discountAmount > 0 ? "text-primary" : ""}`}>
-                                    {discountAmount > 0 ? "-" : ""}
-                                    {new Intl.NumberFormat("vi-VN").format(discountAmount)}đ
-                                  </span>
-                                </div>
-                              </div>
-                              {user &&
-                                user.balance < finalPrice && (
-                                  <div className="not-enough-money">
-                                    <div className="card-gray py-8 px-12 mt-16">
-                                      <span className="fz-13 fw-400 text-red">
-                                        Tài khoản của bạn không đủ để thanh
-                                        toán, vui lòng nạp tiền để tiếp tục giao
-                                        dịch
-                                      </span>
-                                    </div>
-                                  </div>
-                                )}
-                            </div>
-                            {!user ? (
-                              <div className="modal-footer">
-                                <button
-                                  type="button"
-                                  className="btn primary w-100"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    if (!user) {
-                                      close(); // đóng modal mua acc
-                                      setShowLoginModal(true);
-                                    }
-                                  }}
-                                >
-                                  Đăng nhập
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="modal-footer">
-                                {isEnoughMoney ? (
-                                  // ✅ ĐỦ TIỀN
-                                  <button
-                                    type="button"
-                                    className="btn primary w-100"
-                                    onClick={handleBuyAccount}
-                                  >
-                                    Thanh toán
-                                  </button>
-                                ) : (
-                                  // ❌ KHÔNG ĐỦ TIỀN
-                                  <>
-                                    <button className="btn ghost" disabled>
-                                      Thanh toán
-                                    </button>
-                                    <Link to="/nap-tien" className="btn primary">
-                                      Nạp tiền
-                                    </Link>
-                                  </>
-                                )}
-                              </div>
-                            )}
-                          </form>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className={`modal-backdrop fade ${showEffect ? "show" : ""}`}
-                    ></div>
-                  </>
-                )}
-                {showModalBuyAccount && (
-                  <>
-                    <div
-                      className={`modal fade modal-small ${showEffect ? "show" : ""}`}
-                      id="modal-buy-account"
-                      style={{
-                        display: showModalBuyAccount ? "block" : "none",
-                      }}
-                      onClick={close}
-                    >
-                      <div
-                        className="modal-dialog"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="modal-content p-0">
-                          <div className="modal-header justify-content-center p-0">
-                            <img
-                              src={successBuyAccount}
-                              alt="img"
-                              className="py-20"
-                            />
-                          </div>
-                          <div className="modal-body text-center px-24 py-0">
-                            <p className="fz-15 fw-700 mt-12 text-title">
-                              Mua Nick thành công
-                            </p>
-                            <div className="input-group mt-16 mb-8">
-                              <label
-                                htmlFor=""
-                                className="mb-4 fw-500 text-title"
-                              >
-                                ID tài khoản
-                              </label>
-                              <input
-                                type="text"
-                                value={`#${account.accountsId}`}
-                                disabled
-                                readOnly
-                              />
-                            </div>
-                            <p className="fz-13 fw-400 mt-16 text-color">
-                              Nick của bạn được sẽ gửi tới trang Lịch sử mua
-                              Nick, vui lòng kiểm tra và đăng nhập vào Game để
-                              thay đổi mật khẩu để bảo mật cho tài khoản đã mua
-                            </p>
-                          </div>
-                          <div className="modal-footer px-24 pb-24 pt-16">
-                            <Link
-                              to="/"
-                              className="btn secondary"
-                              style={{
-                                width: "calc(40% - 6px)",
-                              }}
-                            >
-                              Trang chủ
-                            </Link>
-                            <Link
-                              to="/profile/tai-khoan-da-mua"
-                              className="btn primary"
-                              style={{
-                                width: "calc(60% - 6px)",
-                              }}
-                            >
-                              Tài khoản đã mua
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      className={`modal-backdrop fade ${showEffect ? "show" : ""}`}
-                    ></div>
-                  </>
-                )}
+                {/* Reusable Purchase Modal */}
+                <PurchaseModal
+                  show={showModalDetailAccount}
+                  showEffect={showEffect}
+                  close={close}
+                  account={account}
+                  categories={categories}
+                  user={user}
+                  discountInput={discountInput}
+                  setDiscountInput={setDiscountInput}
+                  discountData={discountData}
+                  discountError={discountError}
+                  setDiscountError={setDiscountError}
+                  discountSuccess={discountSuccess}
+                  handleApplyDiscount={handleApplyDiscount}
+                  handleRemoveDiscount={handleRemoveDiscount}
+                  finalPrice={finalPrice}
+                  discountAmount={discountAmount}
+                  handleBuyAccount={handleBuyAccount}
+                  showModalBuyAccount={showModalBuyAccount}
+                  setShowLoginModal={setShowLoginModal}
+                />
               </div>
             </div>
           </div>
         </div>
       </section>
       <section className="section-category mb-32">
-        <div className="section-header">
+        <div className="section-header mb-24">
           <h2 className="section-title">Tài khoản liên quan</h2>
         </div>
         <Swiper
@@ -747,7 +439,7 @@ const ChitietAccount = () => {
       </section>
       {viewed.length > 1 && (
         <section className="section-category mb-32">
-          <div className="section-header">
+          <div className="section-header mb-24">
             <h2 className="section-title">Tài khoản đã xem</h2>
           </div>
           <Swiper

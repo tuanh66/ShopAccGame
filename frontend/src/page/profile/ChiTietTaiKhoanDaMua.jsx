@@ -42,7 +42,7 @@ const ChiTietTaiKhoanDaMua = () => {
       return;
     }
     navigator.clipboard.writeText(text);
-    toast.success("Đã sao chép!");
+    toast.success("Đã sao chép");
   };
 
   const handleGetPassword = async () => {
@@ -104,9 +104,12 @@ const ChiTietTaiKhoanDaMua = () => {
                   type="text"
                   value={account.username}
                   readOnly
-                  onClick={() => handleCopy(account.username)}
-                  style={{ cursor: "pointer" }}
                 />
+                <div 
+                  className="icon-copy" 
+                  onClick={() => handleCopy(account.username)}
+                  title="Sao chép"
+                ></div>
               </div>
             </div>
             <div className="">
@@ -121,27 +124,23 @@ const ChiTietTaiKhoanDaMua = () => {
                   type={showPassword ? "text" : "password"}
                   value={account.password}
                   readOnly
-                  onClick={() => handleCopy(account.password)}
                 />
-                <div
-                  className="position-absolute"
-                  style={{
-                    right: "40px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    cursor: "pointer",
-                    color: "#82869E",
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowPassword(!showPassword);
-                  }}
-                >
-                  {showPassword ? (
-                    <FaRegEye className="fz-20" />
-                  ) : (
-                    <FaRegEyeSlash className="fz-20" />
-                  )}
+                <div className="action-icons d-flex align-items-center">
+                  <div
+                    className="eye-icon mr-8"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <FaRegEye className="fz-20" />
+                    ) : (
+                      <FaRegEyeSlash className="fz-20" />
+                    )}
+                  </div>
+                  <div 
+                    className="icon-copy" 
+                    onClick={() => handleCopy(account.password)}
+                    title="Sao chép"
+                  ></div>
                 </div>
               </div>
             </div>
@@ -176,12 +175,16 @@ const ChiTietTaiKhoanDaMua = () => {
             <div className="history-detail-attr mb-8 d-flex justify-content-between align-items-center">
               <p className="fz-13 fw-400">Ngày giao dịch</p>
               <div className="fz-13 fw-500">
-                {formatDate(account.purchaseDate)}
+                {formatDate(account.createdAt)}
               </div>
             </div>
             <div className="history-detail-attr d-flex justify-content-between align-items-center">
               <p className="fz-13 fw-400">Trạng thái</p>
-              <div className="fz-13 fw-500 text-green">{account.status}</div>
+              <div
+                className={`fz-13 fw-500 ${account.status ? "text-green" : "text-red"}`}
+              >
+                {account.status ? "Thành công" : "Thất bại"}
+              </div>
             </div>
           </div>
           {!account.passwordStatus && (

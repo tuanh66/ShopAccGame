@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Categories from "../models/Categories.js";
+import RandomCategories from "../models/RandomCategories.js";
 import Accounts from "../models/Accounts.js";
 
 const slugify = (text) => {
@@ -28,6 +29,22 @@ const generateAttributeKey = (label) => {
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "_")
     .replace(/_+/g, "_");
+};
+
+export const readAllSlug = async (req, res) => {
+  try {
+    const slugCategories = await Categories.find().select("slug name -_id");
+    const slugRandomCategories = await RandomCategories.find().select("slug name -_id");
+    
+    return res.status(200).json({
+      message: "Lấy tất cả danh mục thành công",
+      slugCategories,
+      slugRandomCategories,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi readAllSlug", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
 };
 
 // Admin
@@ -262,14 +279,118 @@ export const deleteCategories = async (req, res) => {
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
+// Random
+export const createRandomCategories = async (req, res) => {
+  try {
+    const { name, image, price, chance, status } = req.body;
+    const slug = slugify(name);
+
+    const newCategory = await RandomCategories.create({
+      name,
+      slug,
+      image,
+      price,
+      chance,
+      status,
+    });
+
+    return res.status(201).json({
+      message: "Tạo danh mục random thành công",
+      data: newCategory,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi createRandomCategories", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const readRandomCategories = async (req, res) => {
+  try {
+    const categories = await RandomCategories.find().sort({ createdAt: -1 });
+    return res.status(200).json({
+      message: "Lấy danh sách danh mục random thành công",
+      data: categories,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi readRandomCategories", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const readRandomCategoriesById = async (req, res) => {
+  try {
+    const { id } = req.params; // randomCategoriesId (số)
+    const category = await RandomCategories.findOne({ randomCategoriesId: id });
+
+    if (!category) {
+      return res.status(404).json({ message: "Không tìm thấy danh mục" });
+    }
+
+    return res.status(200).json({
+      message: "Lấy chi tiết danh mục random thành công",
+      data: category,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi readRandomCategoriesById", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const updateRandomCategoriesById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, image, price, chance, status } = req.body;
+
+    const updateData = { image, price, chance, status };
+    if (name) {
+      updateData.name = name;
+      updateData.slug = slugify(name);
+    }
+
+    const category = await RandomCategories.findOneAndUpdate(
+      { randomCategoriesId: id },
+      { $set: updateData },
+      { new: true },
+    );
+
+    if (!category) {
+      return res.status(404).json({ message: "Không tìm thấy danh mục" });
+    }
+
+    return res.status(200).json({
+      message: "Cập nhật danh mục random thành công",
+      data: category,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi updateRandomCategoriesById", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const deleteRandomCategoriesById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const category = await RandomCategories.findOneAndDelete({
+      randomCategoriesId: id,
+    });
+
+    if (!category) {
+      return res.status(404).json({ message: "Không tìm thấy danh mục" });
+    }
+
+    return res.status(200).json({ message: "Xóa danh mục random thành công" });
+  } catch (error) {
+    console.error("Lỗi khi gọi deleteRandomCategoriesById", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
 
 // Client
 export const readCategoriesStatus = async (req, res) => {
   try {
+    // 1. Lấy danh mục thường và đếm số nick chưa bán
     const categories = await Categories.aggregate([
-      {
-        $match: { status: true },
-      },
+      { $match: { status: true } },
       {
         $lookup: {
           from: "accounts",
@@ -281,9 +402,7 @@ export const readCategoriesStatus = async (req, res) => {
                 status: false,
               },
             },
-            {
-              $count: "total",
-            },
+            { $count: "total" },
           ],
           as: "account_count",
         },
@@ -302,21 +421,62 @@ export const readCategoriesStatus = async (req, res) => {
           slug: 1,
           image: 1,
           totalAccount: 1,
+          createdAt: 1,
         },
-      },
-      {
-        $sort: { createdAt: -1 },
       },
     ]);
 
+    // 2. Lấy danh mục Random và đếm số nick chưa bán
+    const randomCategories = await RandomCategories.aggregate([
+      { $match: { status: true } },
+      {
+        $lookup: {
+          from: "randomaccounts",
+          let: { categoryId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$randomCategories_id", "$$categoryId"] },
+                status: false,
+              },
+            },
+            { $count: "total" },
+          ],
+          as: "account_count",
+        },
+      },
+      {
+        $addFields: {
+          totalAccount: {
+            $ifNull: [{ $arrayElemAt: ["$account_count.total", 0] }, 0],
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: 1,
+          slug: 1,
+          image: 1,
+          price: 1,
+          totalAccount: 1,
+          createdAt: 1,
+          isRandom: { $literal: true },
+        },
+      },
+    ]);
+
+    // 3. Gộp 2 mảng và sắp xếp theo ngày tạo (cũ nhất lên đầu)
+    const combinedCategories = [...categories, ...randomCategories].sort(
+      (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+    );
+
     return res.status(200).json({
       message: "Lấy dữ liệu thành công",
-      data: categories,
+      data: combinedCategories,
     });
   } catch (error) {
     console.error("Lỗi khi gọi readCategoriesStatus", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
-
-

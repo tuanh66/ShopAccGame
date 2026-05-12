@@ -2,51 +2,33 @@ import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { categoriesService } from "../../service/categoriesService";
+import { formatCurrency, formatDate } from "../../utils/format";
+import { useModal } from "../../hooks/useModal";
+import ConfirmDeleteModal from "../../components/admin/ConfirmDeleteModal";
+import NotFound from "../../components/common/NotFound";
 import search from "../../assets/svg/search.svg";
 import icon_plus from "../../assets/svg/plus.svg";
 import icon_edit from "../../assets/svg/edit.svg";
 import icon_delete from "../../assets/svg/delete.svg";
 
 const Categories = () => {
-  // Xử lý mở tắt modal
-  const [showModalDelete, setShowModalDelete] = useState(false);
-  const [showEffect, setShowEffect] = useState(false);
-  const close = () => {
-    setShowEffect(false);
-    setTimeout(() => {
-      setShowModalDelete(false);
-    }, 300);
-  };
+  const { showModal, showEffect, openModal, closeModal } = useModal();
 
-  useEffect(() => {
-    if (showModalDelete) {
-      setTimeout(() => {
-        setShowEffect(true);
-      }, 10);
-    }
-  }, [showModalDelete]);
-  // End Xử lý mở tắt modal
+  // Lấy API service
 
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    let isMounted = true;
     const fetchCategories = async () => {
       try {
         const res = await categoriesService.readCategories();
-        if (isMounted) {
-          setCategories(res.data || []);
-        }
+        setCategories(res.data);
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu", error);
         toast.error("Không thể tải danh sách danh mục");
       }
     };
-
     fetchCategories();
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   const [deleteCategories, setDeleteCategories] = useState(null);
@@ -63,8 +45,7 @@ const Categories = () => {
       toast.error("Xoá danh mục thất bại");
     }
   };
-  // End Xử lý lấy dữ liệu
-
+  // End Lấy API service
   return (
     <>
       <div className="page-header-admin">
@@ -121,16 +102,10 @@ const Categories = () => {
                       <span
                         className={`badges ${item.status ? "status-success" : "status-error"}`}
                       >
-                        {item.status ? "Hoạt động" : "Không hoạt động"}
+                        {item.status ? "Hoạt động" : "Tạm khoá"}
                       </span>
                     </td>
-                    <td>
-                      {new Date(item.createdAt).toLocaleDateString("vi-VN", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
-                    </td>
+                    <td>{formatDate(item.createdAt)}</td>
                     <td className="align-middle text-center">
                       <div className="d-flex justify-content-center align-items-center">
                         <Link to={`edit/${item._id}`}>
@@ -142,7 +117,7 @@ const Categories = () => {
                             alt="delete"
                             onClick={() => {
                               setDeleteCategories(item);
-                              setShowModalDelete(true);
+                              openModal();
                             }}
                           />
                         </Link>
@@ -152,58 +127,14 @@ const Categories = () => {
                 ))}
               </tbody>
             </table>
-            {showModalDelete && (
-              <>
-                <div
-                  className={`modal fade ${showEffect ? "show" : ""}`}
-                  style={{
-                    display: showModalDelete ? "block" : "none",
-                  }}
-                  onClick={close}
-                >
-                  <div
-                    className="modal-dialog"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="modal-content">
-                      <div className="modal-header">
-                        <h1 className="modal-title fs-5">Xác nhận xoá</h1>
-                        <button
-                          type="button"
-                          className="btn-close"
-                          data-bs-dismiss="modal"
-                          onClick={close}
-                        ></button>
-                      </div>
-                      <div className="modal-body">
-                        Bạn có chắc chắn muốn xóa danh mục{" "}
-                        <b>{deleteCategories.name}</b> này không? Tất cả dữ liệu
-                        có liên quan đến nó sẽ biến mất khỏi hệ thống!
-                      </div>
-                      <div className="modal-footer">
-                        <button
-                          type="button"
-                          className="btn btn-submit red"
-                          onClick={handleDelete}
-                        >
-                          Xoá
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-cancel"
-                          onClick={close}
-                        >
-                          Huỷ
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className={`modal-backdrop fade ${showEffect ? "show" : ""}`}
-                ></div>
-              </>
-            )}
+            <ConfirmDeleteModal
+              show={showModal}
+              showEffect={showEffect}
+              onClose={closeModal}
+              onConfirm={handleDelete}
+              message="Bạn có chắc chắn muốn xóa danh mục"
+              itemName={deleteCategories?.name}
+            />
             <div className="table-pagination-control">
               <span className="me-1">Show per page :</span>
               <select className="custom-select">

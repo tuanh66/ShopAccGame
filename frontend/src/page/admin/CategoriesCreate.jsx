@@ -1,4 +1,4 @@
-import axios from "axios";
+import { imageService } from "../../service/imageService";
 import toast from "react-hot-toast";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -43,15 +43,7 @@ const CategoriesCreate = () => {
 
       // upload ảnh nếu có
       if (fileImage) {
-        const formData = new FormData();
-        formData.append("image", fileImage);
-
-        const resImg = await axios.post(
-          "https://api.imgbb.com/1/upload?key=6624e532541b0b39305d1b01b8e065cd",
-          formData,
-        );
-
-        imageUrl = resImg.data.data.url;
+        imageUrl = await imageService.uploadImage(fileImage);
       }
 
       // gọi API create category

@@ -5,6 +5,7 @@ import CardTopUpHistory from "../models/CardTopUpHistory.js";
 import DiscountCodeHistory from "../models/DiscountCodeHistory.js";
 import UserHistory from "../models/UserHistory.js";
 
+// Admin
 // Lịch sử chuyển khoản ngân hàng
 export const readBankAccountsHistory = async (req, res) => {
   try {
@@ -58,6 +59,72 @@ export const readDiscountCodeHistory = async (req, res) => {
   }
 };
 
+// Lịch sử mua tài khoản (Admin)
+export const readAccountsBoughtHistoryAdmin = async (req, res) => {
+  try {
+    const { search, status, passwordStatus, page = 1, limit = 10 } = req.query;
+    const filter = {};
+
+    // 1. Lọc theo trạng thái giao dịch
+    if (status !== undefined && status !== "") {
+      filter.status = status === "true";
+    }
+
+    // 2. Lọc theo trạng thái lấy mật khẩu
+    if (passwordStatus !== undefined && passwordStatus !== "") {
+      filter.passwordStatus = passwordStatus === "true";
+    }
+
+    // 3. Tìm kiếm theo ID lịch sử (số)
+    if (search && !isNaN(search)) {
+      filter.historyAccountId = Number(search);
+    }
+
+    // 4. Tìm kiếm nâng cao (phải dùng aggregate hoặc populate match nếu muốn tìm theo username người mua)
+    // Để đơn giản, ở đây mình xử lý lọc cơ bản. 
+    // Nếu bạn muốn tìm theo username, chúng ta sẽ cần dùng $lookup (aggregate).
+
+    const total = await AccountsHistory.countDocuments(filter);
+    const histories = await AccountsHistory.find(filter)
+      .populate("userId", "username -_id")
+      .populate("accountId", "username -_id")
+      .populate("categoriesId", "name -_id")
+      .select("-__v -_id")
+      .sort({ createdAt: -1 })
+      .skip((Number(page) - 1) * Number(limit))
+      .limit(Number(limit));
+
+    // Phẳng hóa dữ liệu: Đưa giá trị bên trong ra ngoài
+    const cleanedData = histories.map((item) => {
+      const obj = item.toObject();
+      return {
+        ...obj,
+        buyerName: obj.userId?.username, // Tên người mua
+        gameUsername: obj.accountId?.username, // Tên nick game
+        categoryName: obj.categoriesId?.name, // Tên danh mục
+        userId: undefined, // Xóa đối tượng cũ
+        accountId: undefined,
+        categoriesId: undefined,
+      };
+    });
+
+    return res.status(200).json({
+      message: "Lấy lịch sử mua tài khoản thành công",
+      data: cleanedData,
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / Number(limit)),
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi readAccountsBoughtHistoryAdmin", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+// Client
 // Lịch sử giao dịch người dùng
 export const readUserTransactionHistory = async (req, res) => {
   try {
@@ -136,7 +203,7 @@ export const readAccountsBoughtHistoryById = async (req, res) => {
 
     // 1. Tìm thông tin lịch sử mua trước để kiểm tra quyền sở hữu và passwordStatus
     // Chúng ta cần tìm AccountId tương ứng với accountsId (số) trước
-    const account = await Accounts.findOne({ accountsId: id }).select("-__v -note -passwordStatus -avatar -categories_id");
+    const account = await Accounts.findOne({ accountsId: id });
     if (!account) {
       return res.status(404).json({ message: "Không tìm thấy tài khoản" });
     }
@@ -163,27 +230,33 @@ export const readAccountsBoughtHistoryById = async (req, res) => {
       },
     );
 
-    // 3. Xử lý ẩn thông tin nếu chưa nhấn "Lấy mật khẩu"
+    // 3. Chuẩn bị dữ liệu sạch trả về cho Client
     const data = {
       ...account.toObject(),
       attributes: enrichedAttributes,
       categoryName: history.categoriesId?.name,
       historyAccountId: history.historyAccountId,
-      purchaseDate: history.createdAt,
+      createdAt: history.createdAt, // Ngày mua (lấy từ lịch sử)
       passwordStatus: history.passwordStatus,
-      updatedAt: history.updatedAt, // Dùng cái này làm thời gian lấy mật khẩu
+      status: history.status, // Trạng thái giao dịch (Boolean)
+      updatedAt: history.updatedAt, // Thời gian lấy mật khẩu
     };
+
+    // Xóa tất cả các trường "rác" hoặc ID nội bộ
+    delete data._id;
+    delete data.__v;
+    delete data.categories_id;
+    delete data.note;
+    delete data.avatar;
+
+    // Đảm bảo không còn dấu vết của ngày tạo nick cũ
+    // (createdAt ở trên đã bị ghi đè bởi history.createdAt)
 
     if (!history.passwordStatus) {
       data.username = "********";
       data.password = "********";
-      data.image = []; // Ẩn danh sách ảnh nick
-      data.attributes = []; // Ẩn các thuộc tính chi tiết
-      // Xóa các ID nội bộ không cần thiết cho Client
-      delete data._id;
-      delete data.buyer;
-      delete data.categories_id;
-      delete data.status;
+      data.image = [];
+      data.attributes = [];
     }
 
     return res.status(200).json({
@@ -239,6 +312,7 @@ export const updatePasswordStatus = async (req, res) => {
         historyAccountId: history.historyAccountId,
         purchaseDate: history.createdAt,
         passwordStatus: true,
+        status: history.status, // Trạng thái giao dịch
         updatedAt: history.updatedAt,
       },
     });

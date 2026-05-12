@@ -3,6 +3,7 @@ import {
   readBankAccountsHistory,
   readCardTopUpHistory,
   readDiscountCodeHistory,
+  readAccountsBoughtHistoryAdmin,
   readUserTransactionHistory,
   readUserTransactionHistoryById,
   readAccountsBoughtHistory,
@@ -32,6 +33,12 @@ router.get(
   protectedRoute,
   authorize(ROLES.ADMIN),
   readDiscountCodeHistory,
+);
+router.get(
+  "/admin/accounts-bought",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  readAccountsBoughtHistoryAdmin,
 );
 
 // Client

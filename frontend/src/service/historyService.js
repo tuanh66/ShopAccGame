@@ -17,6 +17,15 @@ export const historyService = {
     const res = await api.get("/history/admin/discount-code");
     return res.data;
   },
+  readAccountsBoughtHistoryAdmin: async () => {
+    const res = await api.get("/history/admin/accounts-bought");
+    return res.data;
+  },
+  readRandomAccountsBoughtHistoryAdmin: async () => {
+    const res = await api.get("/history/admin/random-accounts-bought");
+    return res.data;
+  },
+
   // Client
   // Lịch sử giao dịch
   readUserTransactionHistory: async () => {
@@ -37,7 +46,9 @@ export const historyService = {
     return res.data;
   },
   updatePasswordStatus: async (id) => {
-    const res = await api.post(`/history/accounts-bought-history/${id}/get-password`);
+    const res = await api.post(
+      `/history/accounts-bought-history/${id}/get-password`,
+    );
     return res.data;
-  },  
+  },
 };

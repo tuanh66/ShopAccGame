@@ -96,10 +96,8 @@ const TaiKhoanDaMua = () => {
                           <span className="fz-13 fw-500 text-color d-block">
                             {formatCurrency(item.price)}
                           </span>
-                          <span className="text-green">
-                            {item.status === "success"
-                              ? "Thành công"
-                              : item.status}
+                          <span className={item.status ? "text-green" : "text-red"}>
+                            {item.status ? "Thành công" : "Thất bại"}
                           </span>
                         </div>
                       </Link>

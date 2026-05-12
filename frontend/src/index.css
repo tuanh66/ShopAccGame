@@ -449,12 +449,14 @@ select {
   color: #fff;
 }
 
-.btn.primary:hover {
+.btn.primary:hover,
+.btn.secondary:hover {
   background-color: var(--primary-hover-color);
   color: #fff;
 }
 
-.btn.primary:focus {
+.btn.primary:active,
+.btn.secondary:active {
   background-color: var(--primary-focus-color);
   color: #fff;
 }

@@ -33,19 +33,22 @@ const accountsHistorySchema = new mongoose.Schema(
       default: false,
     },
     status: {
-      type: String,
-      enum: ["success", "failed"],
-      default: "success",
+      type: Boolean,
+      default: true,
     },
   },
   { timestamps: true },
 );
 
+// PHẢI gọi plugin TRƯỚC KHI tạo model
+accountsHistorySchema.plugin(AutoIncrement, {
+  inc_field: "historyAccountId",
+  start_seq: 1,
+});
+
 const AccountsHistory = mongoose.model(
   "AccountsHistory",
   accountsHistorySchema,
 );
-accountsHistorySchema.plugin(AutoIncrement, {
-  inc_field: "historyAccountId",
-});
+
 export default AccountsHistory;

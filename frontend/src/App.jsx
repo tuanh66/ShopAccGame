@@ -34,6 +34,14 @@ import CategoriesEdit from "./page/admin/CategoriesEdit";
 import Accounts from "./page/admin/Accounts";
 import AccountsCreate from "./page/admin/AccountsCreate";
 import AccountsEdit from "./page/admin/AccountsEdit";
+import AccountsHistory from "./page/admin/AccountsHistory";
+import RandomCategories from "./page/admin/RandomCategories";
+import RandomCategoriesCreate from "./page/admin/RandomCategoriesCreate";
+import RandomCategoriesEdit from "./page/admin/RandomCategoriesEdit";
+import RandomAccounts from "./page/admin/RandomAccounts";
+import RandomAccountsCreate from "./page/admin/RandomAccountsCreate";
+import RandomAccountsEdit from "./page/admin/RandomAccountsEdit";
+import RandomAccountsHistory from "./page/admin/RandomAccountsHistory";
 import BankAccounts from "./page/admin/BankAccounts";
 import BankAccountsHistory from "./page/admin/BankAccountsHistory";
 import CardTopUp from "./page/admin/CardTopUp";
@@ -104,6 +112,18 @@ function App() {
                 <Route index element={<BankAccounts />} />
                 <Route path="history" element={<BankAccountsHistory />} />
               </Route>
+              {/* Random Categories */}
+              <Route path="random-categories">
+                <Route index element={<RandomCategories />} />
+                <Route path="create" element={<RandomCategoriesCreate />} />
+                <Route path="edit/:id" element={<RandomCategoriesEdit />} />
+              </Route>
+              {/* Random Accounts */}
+              <Route path="random-accounts/:slugCategories">
+                <Route index element={<RandomAccounts />} />
+                <Route path="create" element={<RandomAccountsCreate />} />
+                <Route path="edit/:id" element={<RandomAccountsEdit />} />
+              </Route>
               {/* Card Top Up */}
               <Route path="card-top-up">
                 <Route index element={<CardTopUp />} />
@@ -114,12 +134,18 @@ function App() {
                 <Route index element={<DiscountCode />} />
                 <Route path="create" element={<DiscountCodeCreate />} />
                 <Route path="edit/:id" element={<DiscountCodeEdit />} />
-                <Route path="history" element={<DiscountCodeHistory />} />
               </Route>
               {/* Users */}
               <Route path="users">
                 <Route index element={<User />} />
                 <Route path="edit/:userId" element={<UserEdit />} />
+              </Route>
+              <Route path="history">
+                <Route path="accounts" element={<AccountsHistory />} />
+                <Route path="random-accounts" element={<RandomAccountsHistory />} />
+                <Route path="bank-accounts" element={<BankAccountsHistory />} />
+                <Route path="card-top-up" element={<CardTopUpHistory />} />
+                <Route path="discount-code" element={<DiscountCodeHistory />} />
               </Route>
             </Route>
           </Route>

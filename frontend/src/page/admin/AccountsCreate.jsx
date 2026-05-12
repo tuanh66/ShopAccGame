@@ -1,10 +1,11 @@
-import { accountsService } from "../../service/accountsService";
-import axios from "axios";
 import toast from "react-hot-toast";
+import { accountsService } from "../../service/accountsService";
+import { imageService } from "../../service/imageService";
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import uploadImage from "../../assets/svg/upload.svg";
 import selectedPhotos from "../../assets/img/selectedPhotos.png";
+import PriceInput from "../../components/common/PriceInput";
 
 const AccountsCreate = () => {
   const [categoryId, setCategoryId] = useState(null);
@@ -89,7 +90,7 @@ const AccountsCreate = () => {
         break;
 
       case "price":
-        if (!value.trim()) message = "Chưa nhập giá";
+        if (!value) message = "Chưa nhập giá";
         break;
 
       case "avatar":
@@ -131,14 +132,12 @@ const AccountsCreate = () => {
 
       // upload avatar
       if (avatarFile) {
-        avatarUrl = await uploadImageToImgbb(avatarFile);
+        avatarUrl = await imageService.uploadImage(avatarFile);
       }
 
       // upload ảnh chi tiết
       if (detailFiles.length > 0) {
-        detailUrls = await Promise.all(
-          detailFiles.map((file) => uploadImageToImgbb(file)),
-        );
+        detailUrls = await imageService.uploadImages(detailFiles);
       }
 
       const res = await accountsService.createAccounts({
@@ -172,17 +171,7 @@ const AccountsCreate = () => {
     }
   };
 
-  const uploadImageToImgbb = async (file) => {
-    const formData = new FormData();
-    formData.append("image", file);
 
-    const res = await axios.post(
-      "https://api.imgbb.com/1/upload?key=6624e532541b0b39305d1b01b8e065cd",
-      formData,
-    );
-
-    return res.data.data.url;
-  };
   return (
     <>
       <div className="page-header-admin">
@@ -242,8 +231,7 @@ const AccountsCreate = () => {
                   Giá tiền
                   <span>*</span>
                 </label>
-                <input
-                  type="number"
+                <PriceInput
                   name="priceAccount"
                   id="priceAccount"
                   placeholder="Nhập giá tiền"
@@ -351,7 +339,7 @@ const AccountsCreate = () => {
                         key={index}
                         src={img}
                         alt={`preview-${index}`}
-                        style={{ maxWidth: "200px", maxHeight: "200px" }}
+                        style={{ maxWidth: "200px", maxHeight: "200px", borderRadius: "10px" }}
                       />
                     ))}
                   </div>
