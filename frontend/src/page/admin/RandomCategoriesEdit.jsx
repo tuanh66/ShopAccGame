@@ -12,6 +12,7 @@ const RandomCategoriesEdit = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    slug: "",
     price: "",
     status: true,
     chance: {

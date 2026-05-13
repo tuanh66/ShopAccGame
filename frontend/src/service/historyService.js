@@ -21,8 +21,10 @@ export const historyService = {
     const res = await api.get("/history/admin/accounts-bought");
     return res.data;
   },
-  readRandomAccountsBoughtHistoryAdmin: async () => {
-    const res = await api.get("/history/admin/random-accounts-bought");
+  readRandomAccountsBoughtHistoryAdmin: async (search = "") => {
+    const res = await api.get(
+      `/history/admin/random-accounts-bought?search=${search}`,
+    );
     return res.data;
   },
 
@@ -41,13 +43,17 @@ export const historyService = {
     const res = await api.get("/history/accounts-bought-history");
     return res.data;
   },
-  readAccountsBoughtHistoryById: async (id) => {
-    const res = await api.get(`/history/accounts-bought-history/${id}`);
+  readAccountsBoughtHistoryById: async (id, params) => {
+    const res = await api.get(`/history/accounts-bought-history/${id}`, {
+      params,
+    });
     return res.data;
   },
-  updatePasswordStatus: async (id) => {
+  updatePasswordStatus: async (id, params) => {
     const res = await api.post(
       `/history/accounts-bought-history/${id}/get-password`,
+      null,
+      { params },
     );
     return res.data;
   },

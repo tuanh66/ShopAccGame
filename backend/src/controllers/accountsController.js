@@ -1,4 +1,5 @@
 import AccountsHistory from "../models/AccountsHistory.js";
+import RandomAccountsHistory from "../models/RandomAccountsHistory.js";
 import mongoose from "mongoose";
 import Categories from "../models/Categories.js";
 import Accounts from "../models/Accounts.js";
@@ -342,8 +343,14 @@ export const deleteAccounts = async (req, res) => {
 // Random Accounts
 export const createRandomAccounts = async (req, res) => {
   try {
-    const { randomCategories_id, categorySlug, username, password, tier, image } =
-      req.body;
+    const {
+      randomCategories_id,
+      categorySlug,
+      username,
+      password,
+      tier,
+      image,
+    } = req.body;
 
     let categoryId = randomCategories_id;
 
@@ -357,7 +364,9 @@ export const createRandomAccounts = async (req, res) => {
     }
 
     if (!categoryId || !username || !password || !tier) {
-      return res.status(400).json({ message: "Vui lòng điền đầy đủ thông tin" });
+      return res
+        .status(400)
+        .json({ message: "Vui lòng điền đầy đủ thông tin" });
     }
 
     const newAccount = new RandomAccounts({
@@ -454,7 +463,9 @@ export const updateRandomAccounts = async (req, res) => {
     );
 
     if (!account) {
-      return res.status(404).json({ message: "Không tìm thấy tài khoản để cập nhật" });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy tài khoản để cập nhật" });
     }
 
     return res.status(200).json({
@@ -495,8 +506,44 @@ export const readCategoriesAccountStatus = async (req, res) => {
     );
 
     if (!categories) {
-      return res.status(404).json({
-        message: "Danh mục không tồn tại",
+      // Thử tìm trong danh mục Random
+      const randomCategory = await RandomCategories.findOne({
+        slug,
+        status: true,
+      });
+      if (!randomCategory) {
+        return res.status(404).json({
+          message: "Danh mục không tồn tại",
+        });
+      }
+
+      // Lấy danh sách tài khoản random chưa bán
+      const accounts = await RandomAccounts.find({
+        randomCategories_id: randomCategory._id,
+        status: false,
+      });
+
+      const stock = {
+        thuong: accounts.filter((a) => a.tier === "thuong").length,
+        ngon: accounts.filter((a) => a.tier === "ngon").length,
+        sieuPham: accounts.filter((a) => a.tier === "sieuPham").length,
+        total: accounts.length,
+      };
+
+      const samples = accounts.slice(0, 12).map((acc) => ({
+        accountsId: acc.randomAccountsId,
+        tier: acc.tier,
+        image: acc.image,
+        price: randomCategory.price,
+        status: acc.status,
+      }));
+
+      return res.status(200).json({
+        message: "Lấy thông tin danh mục random thành công",
+        category: randomCategory,
+        stock,
+        accounts: samples,
+        isRandom: true,
       });
     }
 
@@ -689,6 +736,7 @@ export const readCategoriesAccountStatus = async (req, res) => {
       },
       accounts,
       total: accounts.length,
+      isRandom: false,
     });
   } catch (error) {
     console.error("Lỗi khi gọi readCategoryAccountStatus", error);
@@ -999,47 +1047,299 @@ export const buyAccount = async (req, res) => {
     return res.status(400).json({ message: error.message });
   }
 };
-export const readAccountBoughtDetail = async (req, res) => {
+
+export const readRandomAccountsStatus = async (req, res) => {
   try {
-    const { id } = req.params; // accountsId (số)
-    const userId = req.user._id;
+    const { slug } = req.params;
 
-    // 1. Tìm account theo accountsId và phải đúng người mua mới cho xem
-    const account = await Accounts.findOne({
-      accountsId: id,
-      buyer: userId,
-      status: true,
-    }).populate("categories_id", "name slug attributes");
-
-    if (!account) {
-      return res.status(404).json({
-        message:
-          "Không tìm thấy thông tin tài khoản hoặc bạn không có quyền xem",
-      });
+    // 1. Tìm danh mục Random
+    const category = await RandomCategories.findOne({ slug, status: true });
+    if (!category) {
+      return res.status(404).json({ message: "Danh mục random không tồn tại" });
     }
 
-    // 2. Làm đẹp attributes
-    const enrichedAttributes = Object.entries(account.attributes || {}).map(
-      ([key, value]) => {
-        const config = account.categories_id.attributes?.[key];
-        return {
-          label: config?.label || key,
-          value: value,
+    // 2. Thống kê số lượng tồn kho theo từng Tier
+    // Lấy tất cả tài khoản chưa bán thuộc danh mục này
+    const accounts = await RandomAccounts.find({
+      randomCategories_id: category._id,
+      status: false,
+    });
+
+    const stock = {
+      thuong: accounts.filter((a) => a.tier === "thuong").length,
+      ngon: accounts.filter((a) => a.tier === "ngon").length,
+      sieuPham: accounts.filter((a) => a.tier === "sieuPham").length,
+      total: accounts.length,
+    };
+
+    const samples = accounts.slice(0, 12).map((acc) => ({
+      accountsId: acc.randomAccountsId,
+      tier: acc.tier,
+      image: acc.image,
+      price: category.price,
+      status: acc.status,
+    }));
+
+    return res.status(200).json({
+      message: "Lấy thông tin danh mục random thành công",
+      category,
+      stock,
+      accounts: samples,
+      total: accounts.length,
+      isRandom: true,
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi readRandomAccountsStatus", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+export const buyRandomAccounts = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const categoryIdOrSlug = req.params.id;
+    const userId = req.user._id;
+    const { discountCode: discountCodeInput } = req.body;
+
+    const user = await Users.findById(userId).session(session);
+    if (!user) throw new Error("Không tìm thấy user");
+
+    // Tìm danh mục thử vận may hỗ trợ linh hoạt cả ObjectId, chuỗi ID hoặc Slug
+    const categoryQuery = mongoose.isValidObjectId(categoryIdOrSlug)
+      ? { _id: categoryIdOrSlug, status: true }
+      : {
+          $or: [
+            { slug: categoryIdOrSlug },
+            {
+              randomCategoriesId: !isNaN(categoryIdOrSlug)
+                ? Number(categoryIdOrSlug)
+                : -1,
+            },
+          ],
+          status: true,
         };
-      },
+
+    const category =
+      await RandomCategories.findOne(categoryQuery).session(session);
+    if (!category) {
+      throw new Error("Danh mục thử vận may không tồn tại hoặc đã bị ẩn");
+    }
+
+    // Lấy danh sách tài khoản random chưa bán thuộc danh mục này
+    const availableAccounts = await RandomAccounts.find({
+      randomCategories_id: category._id,
+      status: false,
+    }).session(session);
+
+    if (availableAccounts.length === 0) {
+      throw new Error(
+        "Danh mục này hiện đã hết tài khoản, vui lòng quay lại sau",
+      );
+    }
+
+    const originalPrice =
+      category.priceSale > 0 ? category.priceSale : category.price;
+
+    // Xử lý mã giảm giá nếu có
+    let discountAmount = 0;
+    let appliedDiscount = null;
+
+    if (discountCodeInput) {
+      const discount = await DiscountCode.findOne({
+        code: discountCodeInput.trim().toUpperCase(),
+        status: true,
+      }).session(session);
+
+      if (!discount) throw new Error("Mã giảm giá không hợp lệ");
+
+      // Check hết hạn
+      if (
+        discount.expirationDate &&
+        new Date() > new Date(discount.expirationDate)
+      ) {
+        throw new Error("Mã giảm giá đã hết hạn");
+      }
+
+      // Check lượt dùng toàn hệ thống
+      if (discount.maxUses > 0 && discount.usedCount >= discount.maxUses) {
+        throw new Error("Mã giảm giá đã hết lượt sử dụng");
+      }
+
+      // Check lượt dùng của user
+      const userUsageCount = await DiscountCodeHistory.countDocuments({
+        user: userId,
+        code: discount.code,
+      }).session(session);
+      if (
+        discount.maxUsesPerUser > 0 &&
+        userUsageCount >= discount.maxUsesPerUser
+      ) {
+        throw new Error("Bạn đã sử dụng hết lượt dùng mã này");
+      }
+
+      // Check đơn tối thiểu
+      if (
+        discount.minOrderValue > 0 &&
+        originalPrice < discount.minOrderValue
+      ) {
+        throw new Error("Đơn hàng chưa đạt giá trị tối thiểu");
+      }
+
+      // Check applyTo (chấp nhận all hoặc account)
+      if (discount.applyTo !== "all" && discount.applyTo !== "account") {
+        throw new Error("Mã giảm giá không áp dụng cho sản phẩm này");
+      }
+
+      // Tính số tiền giảm
+      if (discount.type === "percent") {
+        discountAmount = Math.floor((originalPrice * discount.value) / 100);
+        if (discount.maxDiscount > 0 && discountAmount > discount.maxDiscount) {
+          discountAmount = discount.maxDiscount;
+        }
+      } else {
+        discountAmount = discount.value;
+      }
+      if (discountAmount > originalPrice) discountAmount = originalPrice;
+
+      appliedDiscount = discount;
+
+      // Tăng số lượt sử dụng
+      discount.usedCount += 1;
+      await discount.save({ session });
+
+      // Ghi lịch sử sử dụng mã giảm giá
+      await DiscountCodeHistory.create(
+        [
+          {
+            user: userId,
+            code: discount.code,
+            type: discount.type,
+            applyFor: discount.applyTo,
+            originalPrice,
+            discountAmount,
+            finalPrice: originalPrice - discountAmount,
+          },
+        ],
+        { session },
+      );
+    }
+
+    const finalPrice = originalPrice - discountAmount;
+
+    if (user.balance < finalPrice) {
+      throw new Error(
+        "Tài khoản của bạn không đủ số dư để thực hiện giao dịch",
+      );
+    }
+
+    // THUẬT TOÁN QUAY XÁC SUẤT (CHANCE) DỰA VÀO CẤU HÌNH RANDOM CATEGORIES
+    const r = Math.random() * 100;
+    const chanceThuong = category.chance?.thuong ?? 80;
+    const chanceNgon = category.chance?.ngon ?? 15;
+    const chanceSieuPham = category.chance?.sieuPham ?? 5;
+
+    let targetTier = "thuong";
+    if (r < chanceSieuPham) {
+      targetTier = "sieuPham";
+    } else if (r < chanceSieuPham + chanceNgon) {
+      targetTier = "ngon";
+    } else {
+      targetTier = "thuong";
+    }
+
+    // Lọc các nick chưa bán thuộc Tier quay trúng
+    let pool = availableAccounts.filter((a) => a.tier === targetTier);
+
+    // Fallback cực kỳ an toàn: Nếu Tier quay trúng đã hết tài khoản, lấy ngẫu nhiên từ toàn bộ kho còn lại
+    if (pool.length === 0) {
+      pool = availableAccounts;
+    }
+
+    const randomIndex = Math.floor(Math.random() * pool.length);
+    const selectedAccount = pool[randomIndex];
+
+    const balance_before = user.balance;
+    user.balance -= finalPrice;
+    await user.save({ session });
+
+    // Đánh dấu tài khoản đã được mua
+    selectedAccount.status = true;
+    selectedAccount.buyer = userId;
+    await selectedAccount.save({ session });
+
+    // Ghi lịch sử trừ tiền vào UserHistory
+    await UserHistory.create(
+      [
+        {
+          userId,
+          transaction: "buyAccount",
+          amount: finalPrice,
+          balance_before,
+          balance_after: user.balance,
+          description: appliedDiscount
+            ? `Mua hòm thử vận may ${category.name} (giảm ${discountAmount.toLocaleString()}đ với mã ${appliedDiscount.code})`
+            : `Mua hòm thử vận may ${category.name} (#${selectedAccount.randomAccountsId})`,
+        },
+      ],
+      { session },
     );
 
-    // 3. Trả về toàn bộ dữ liệu (bao gồm username và password)
+    // Ghi lịch sử sở hữu nick ngẫu nhiên vào RandomAccountsHistory
+    await RandomAccountsHistory.create(
+      [
+        {
+          userId,
+          accountId: selectedAccount._id,
+          categoriesId: category._id,
+          tier: selectedAccount.tier,
+          price: finalPrice,
+          passwordStatus: false,
+          status: true,
+        },
+      ],
+      { session },
+    );
+
+    // Ghi lịch sử dùng mã giảm giá vào UserHistory nếu có
+    if (appliedDiscount) {
+      await UserHistory.create(
+        [
+          {
+            userId,
+            transaction: "discountCode",
+            amount: discountAmount,
+            balance_before,
+            balance_after: user.balance,
+            description: `Sử dụng mã giảm giá ${appliedDiscount.code} - Giảm ${discountAmount.toLocaleString()}đ khi mua hòm ${category.name}`,
+          },
+        ],
+        { session },
+      );
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
     return res.status(200).json({
-      message: "Lấy chi tiết tài khoản đã mua thành công",
+      message: "Mua tài khoản thử vận may thành công",
       data: {
-        ...account.toObject(),
-        attributes: enrichedAttributes,
-        categoryName: account.categories_id.name,
+        account: {
+          randomAccountsId: selectedAccount.randomAccountsId,
+          username: selectedAccount.username,
+          password: selectedAccount.password,
+          tier: selectedAccount.tier,
+        },
+        discountAmount,
+        finalPrice,
+        originalPrice,
       },
     });
   } catch (error) {
-    console.error("Lỗi khi gọi readAccountBoughtDetail", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Lỗi khi gọi buyRandomAccounts", error);
+    return res.status(400).json({ message: error.message || "Lỗi hệ thống" });
   }
 };

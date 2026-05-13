@@ -49,20 +49,24 @@ export const accountsService = {
     return res.data;
   },
   // Client
-  readCategoriesAccountStatus: async (slug) => {
-    const res = await api.get(`/accounts/${slug}`);
+  readCategoriesAccountStatus: async (slug, params) => {
+    const res = await api.get(`/accounts/${slug}`, { params });
     return res.data;
   },
   readCategoriesAccountId: async (slug, id) => {
     const res = await api.get(`/accounts/${slug}/${id}`);
     return res.data;
   },
-  buyAccount: async (id) => {
-    const res = await api.post(`/accounts/${id}/buy-account`);
+  buyAccount: async (id, data) => {
+    const res = await api.post(`/accounts/${id}/buy-account`, data);
     return res.data;
   },
-  readAccountBoughtDetail: async (id) => {
-    const res = await api.get(`/accounts/bought-detail/${id}`);
+  readRandomAccountsStatus: async (slug) => {
+    const res = await api.get(`/accounts/random/${slug}`);
+    return res.data;
+  },
+  buyRandomAccounts: async (id, data) => {
+    const res = await api.post(`/accounts/random/${id}/buy-account`, data);
     return res.data;
   },
 };

@@ -14,9 +14,10 @@ import {
   updateRandomAccounts,
   deleteRandomAccounts,
   readCategoriesAccountStatus,
+  readRandomAccountsStatus,
   readCategoriesAccountId,
   buyAccount,
-  readAccountBoughtDetail,
+  buyRandomAccounts,
 } from "../controllers/accountsController.js";
 
 const router = express.Router();
@@ -105,6 +106,12 @@ router.post(
   authorize(ROLES.MEMBER, ROLES.ADMIN),
   buyAccount,
 );
-router.get("/bought-detail/:id", protectedRoute, readAccountBoughtDetail);
+router.get("/random/:slug", readRandomAccountsStatus);
+router.post(
+  "/random/:id/buy-account",
+  protectedRoute,
+  authorize(ROLES.MEMBER, ROLES.ADMIN),
+  buyRandomAccounts,
+);
 
 export default router;

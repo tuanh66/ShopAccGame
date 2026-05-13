@@ -82,6 +82,7 @@ const TaiKhoanDaMua = () => {
                     <li className="trans-item" key={item._id}>
                       <Link
                         to={`/profile/tai-khoan-da-mua/${item.accountId?.accountsId}`}
+                        state={{ isRandom: item.isRandom }}
                       >
                         <div className="text-left">
                           <span className="fw-500 title-color text-limit limit-1 bread-word">

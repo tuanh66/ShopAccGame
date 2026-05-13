@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import search from "../../assets/svg/search.svg";
 import { userService } from "../../service/userService";
+import { formatCurrency, formatDate } from "@/utils/format";
 
 const UsersEdit = () => {
   const { userId } = useParams();
@@ -284,7 +285,7 @@ const UsersEdit = () => {
               <tbody>
                 {transactions.length > 0 ? (
                   transactions.map((item, index) => (
-                    <tr key={`${item.userHistoryId}-${index}`}>
+                    <tr key={`${item.userHistoryId}`}>
                       <td>{item.userHistoryId}</td>
                       <td>
                         <span
@@ -302,21 +303,13 @@ const UsersEdit = () => {
                         }
                       >
                         {item.balance_after > item.balance_before ? "+" : "-"}
-                        {Number(item.amount).toLocaleString("en-US")}đ
+                        {formatCurrency(item.amount)}
                       </td>
-                      <td>
-                        {Number(item.balance_before).toLocaleString("en-US")}đ
-                      </td>
-                      <td>
-                        {Number(item.balance_after).toLocaleString("en-US")}đ
-                      </td>
+                      <td>{formatCurrency(item.balance_before)}</td>
+                      <td>{formatCurrency(item.balance_after)}</td>
                       <td>{item.description}</td>
                       <td>
-                        {new Date(item.createdAt).toLocaleDateString("vi-VN", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        })}
+                        {formatDate(item.createdAt)}
                       </td>
                     </tr>
                   ))

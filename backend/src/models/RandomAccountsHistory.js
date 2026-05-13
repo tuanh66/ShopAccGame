@@ -16,12 +16,12 @@ const randomAccountsHistorySchema = new mongoose.Schema(
     },
     accountId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Accounts",
+      ref: "RandomAccounts",
       required: true,
     },
     categoriesId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Categories",
+      ref: "RandomCategories",
       required: true,
     },
     tier: {

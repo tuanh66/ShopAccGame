@@ -26,6 +26,16 @@ const randomCategoriesSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    priceSale: {
+      type: Number,
+      default: null,
+      validate: {
+        validator: function (value) {
+          return value === null || value < this.price;
+        },
+        message: "Giá giảm phải nhỏ hơn giá gốc",
+      },
+    },
     chance: {
       thuong: { type: Number, default: 80 },
       ngon: { type: Number, default: 15 },

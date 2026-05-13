@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { historyService } from "../../service/historyService";
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa6";
 import toast from "react-hot-toast";
@@ -13,6 +13,9 @@ import { formatDate, formatCurrency } from "../../utils/format";
 
 const ChiTietTaiKhoanDaMua = () => {
   const { id } = useParams();
+  const location = useLocation();
+  const isRandom = location.state?.isRandom || false;
+
   const [account, setAccount] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +25,9 @@ const ChiTietTaiKhoanDaMua = () => {
 
   const fetchDetail = async () => {
     try {
-      const res = await historyService.readAccountsBoughtHistoryById(id);
+      const res = await historyService.readAccountsBoughtHistoryById(id, {
+        isRandom,
+      });
       setAccount(res.data);
     } catch (error) {
       console.error("Lỗi khi lấy chi tiết:", error);
@@ -34,7 +39,7 @@ const ChiTietTaiKhoanDaMua = () => {
 
   useEffect(() => {
     fetchDetail();
-  }, [id]);
+  }, [id, isRandom]);
 
   const handleCopy = (text) => {
     if (!text || text === "********") {
@@ -49,7 +54,7 @@ const ChiTietTaiKhoanDaMua = () => {
     if (unlocking) return;
     setUnlocking(true);
     try {
-      const res = await historyService.updatePasswordStatus(id);
+      const res = await historyService.updatePasswordStatus(id, { isRandom });
       setAccount(res.data);
       toast.success("Đã lấy thông tin tài khoản!");
     } catch (error) {
@@ -200,54 +205,63 @@ const ChiTietTaiKhoanDaMua = () => {
           )}
           {account.passwordStatus && (
             <>
-              <div className="my-16">
-                <Swiper
-                  modules={[Navigation, Pagination]}
-                  pagination={{ clickable: true }}
-                  spaceBetween={16}
-                  slidesPerView={1.2}
-                  breakpoints={{
-                    768: {
-                      slidesPerView: 3,
-                    },
-                  }}
-                  grabCursor={true}
-                  className="bought-account-swiper"
-                >
-                  {account.image?.map((img, index) => (
-                    <SwiperSlide key={index}>
-                      <div
-                        className="gallery-photo"
-                        onClick={() => {
-                          setPhotoIndex(index);
-                          setOpenLightbox(true);
-                        }}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <img src={img} alt={`nick-img-${index}`} />
-                      </div>
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
-                <Lightbox
-                  open={openLightbox}
-                  close={() => setOpenLightbox(false)}
-                  slides={slides}
-                  index={photoIndex}
-                  plugins={[Thumbnails, Zoom, Counter]}
-                />
-              </div>
-              <div className="history-detail-info-block brs-12 p-16">
-                {account.attributes?.map((attr, index) => (
-                  <div
-                    key={index}
-                    className="history-detail-attr mb-8 d-flex justify-content-between align-items-center"
+              {/* Chỉ hiện ảnh nếu KHÔNG PHẢI nick random và có ảnh */}
+              {!isRandom && account.image && account.image.length > 0 && (
+                <div className="my-16">
+                  <Swiper
+                    modules={[Navigation, Pagination]}
+                    pagination={{ clickable: true }}
+                    spaceBetween={16}
+                    slidesPerView={1.2}
+                    breakpoints={{
+                      768: {
+                        slidesPerView: 3,
+                      },
+                    }}
+                    grabCursor={true}
+                    className="bought-account-swiper"
                   >
-                    <p className="fz-13 fw-400">{attr.label}</p>
-                    <div className="fz-13 fw-500">{attr.value}</div>
+                    {account.image?.map((img, index) => (
+                      <SwiperSlide key={index}>
+                        <div
+                          className="gallery-photo"
+                          onClick={() => {
+                            setPhotoIndex(index);
+                            setOpenLightbox(true);
+                          }}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <img src={img} alt={`nick-img-${index}`} />
+                        </div>
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+                  <Lightbox
+                    open={openLightbox}
+                    close={() => setOpenLightbox(false)}
+                    slides={slides}
+                    index={photoIndex}
+                    plugins={[Thumbnails, Zoom, Counter]}
+                  />
+                </div>
+              )}
+
+              {/* Chỉ hiện khung thuộc tính nếu KHÔNG PHẢI nick random và CÓ thuộc tính */}
+              {!isRandom &&
+                account.attributes &&
+                account.attributes.length > 0 && (
+                  <div className="history-detail-info-block brs-12 p-16">
+                    {account.attributes?.map((attr, index) => (
+                      <div
+                        key={index}
+                        className="history-detail-attr mb-8 d-flex justify-content-between align-items-center"
+                      >
+                        <p className="fz-13 fw-400">{attr.label}</p>
+                        <div className="fz-13 fw-500">{attr.value}</div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                )}
             </>
           )}
         </div>

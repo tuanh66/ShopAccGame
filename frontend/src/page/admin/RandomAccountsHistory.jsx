@@ -1,17 +1,19 @@
-import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { historyService } from "../../service/historyService";
-import { formatDate, formatCurrency } from "../../utils/format";
-import NotFound from "../../components/common/NotFound";
-import search from "../../assets/svg/search.svg";
+import { useEffect, useState } from "react";
+import { historyService } from "@/service/historyService";
+import { formatDate, formatCurrency } from "@/utils/format";
+import NotFound from "@/components/common/NotFound";
+import search from "@/assets/svg/search.svg";
 
 const RandomAccountsHistory = () => {
   const [histories, setHistories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchHistories = async () => {
+  const fetchHistories = async (search = "") => {
     try {
-      const res = await historyService.readRandomAccountsBoughtHistoryAdmin();
+      const res =
+        await historyService.readRandomAccountsBoughtHistoryAdmin(search);
       setHistories(res.data);
     } catch (error) {
       console.error("Lỗi khi lấy lịch sử:", error);
@@ -20,6 +22,11 @@ const RandomAccountsHistory = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchHistories(searchTerm);
+  }, [searchTerm]);
+
   return (
     <>
       <div className="page-header-admin">
@@ -33,12 +40,15 @@ const RandomAccountsHistory = () => {
           <form
             className="mobi-search"
             style={{ width: "200px", marginBottom: "25px" }}
+            onSubmit={(e) => e.preventDefault()}
           >
             <img src={search} alt="search" />
             <input
               type="text"
               className="search-form-input"
-              placeholder="Tìm kiếm"
+              placeholder="Tìm kiếm theo ID"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </form>
           <div className="table-responsive">
@@ -49,8 +59,9 @@ const RandomAccountsHistory = () => {
                   <th>Người mua</th>
                   <th>Tài khoản</th>
                   <th>Danh mục</th>
-                  <th>Lấy mật khẩu</th>
+                  <th>Bậc</th>
                   <th>Giá</th>
+                  <th>Lấy mật khẩu</th>
                   <th>Trạng thái</th>
                   <th>Thời gian mua</th>
                 </tr>
@@ -58,13 +69,13 @@ const RandomAccountsHistory = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="8" className="text-center">
+                    <td colSpan="9" className="text-center">
                       Đang tải dữ liệu...
                     </td>
                   </tr>
                 ) : histories.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="text-center">
+                    <td colSpan="9" className="text-center">
                       <NotFound />
                     </td>
                   </tr>
@@ -76,13 +87,20 @@ const RandomAccountsHistory = () => {
                       <td>{item.gameUsername || "N/A"}</td>
                       <td>{item.categoryName}</td>
                       <td>
+                        {item.tier === "thuong"
+                          ? "Thường"
+                          : item.tier === "ngon"
+                            ? "Ngon"
+                            : "Siêu phẩm"}
+                      </td>
+                      <td>{formatCurrency(item.price)}</td>
+                      <td>
                         <span
                           className={`badges ${item.passwordStatus ? "status-success" : "status-error"}`}
                         >
                           {item.passwordStatus ? "Đã lấy" : "Chưa lấy"}
                         </span>
                       </td>
-                      <td>{formatCurrency(item.price)}</td>
                       <td>
                         <span
                           className={`badges ${item.status ? "status-success" : "status-error"}`}
