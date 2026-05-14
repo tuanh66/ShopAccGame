@@ -1,23 +1,70 @@
 import { Link } from "react-router-dom";
 import Chart from "react-apexcharts";
-import { FaArrowDown, FaArrowUp, FaShoppingCart, FaUndo } from "react-icons/fa";
+import { FaArrowDown, FaShoppingCart, FaUndo } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { dashboardService } from "../../service/dashboardService";
+import { formatCurrency, formatDate } from "../../utils/format";
+import Loading from "../../components/common/Loading";
 
 const Dashboard = () => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const transactionType = {
+    bankAccount: {
+      label: "Chuyển khoản",
+      className: "status-success",
+    },
+    topUp: {
+      label: "Nạp thẻ",
+      className: "status-success",
+    },
+    buyAccount: {
+      label: "Mua acc",
+      className: "bg-info",
+    },
+    adminTopUp: {
+      label: "Admin sửa",
+      className: "bg-danger",
+    },
+    discountCode: {
+      label: "Mã giảm giá",
+      className: "bg-secondary",
+    },
+  };
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await dashboardService.getStats();
+        setStats(res.data);
+      } catch (error) {
+        console.error("Lỗi lấy thống kê dashboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (loading) return <Loading />;
+
+  const {
+    counts,
+    finance,
+    recentTransactions,
+    userStatistics,
+    registrationStatistics,
+    topupAndPurchaseStatistics,
+    activeDiscountCodes,
+  } = stats || {};
+
   const chartOptions = {
     chart: {
       id: "sales-chart",
       toolbar: { show: false },
     },
     xaxis: {
-      categories: [
-        "22/02",
-        "23/02",
-        "24/02",
-        "25/02",
-        "26/02",
-        "27/02",
-        "28/02",
-      ],
+      categories: topupAndPurchaseStatistics?.map((d) => d.date) || [],
     },
     stroke: {
       curve: "smooth",
@@ -25,22 +72,24 @@ const Dashboard = () => {
     dataLabels: {
       enabled: false,
     },
-    colors: ["#28a745", "#007bff"],
+    colors: ["#28C76F", "#008FFB"],
     legend: {
-      position: "top",
+      position: "bottom",
+      horizontalAlign: "center",
     },
   };
 
   const chartSeries = [
     {
       name: "Nạp tiền",
-      data: [0, 1, 0, 1, 3, 4, 100],
+      data: topupAndPurchaseStatistics?.map((d) => d.topup) || [],
     },
     {
       name: "Mua hàng",
-      data: [0, 2, 0, 0, 0, 0, 0],
+      data: topupAndPurchaseStatistics?.map((d) => d.purchase) || [],
     },
   ];
+
   return (
     <>
       <div className="page-header-admin">
@@ -49,13 +98,14 @@ const Dashboard = () => {
           <span>Thống kê tổng quan hệ thống</span>
         </div>
       </div>
+
       {/* Thống kê tài khoản */}
       <div className="row">
         <div className="col-lg-3 col-sm-6 col-12 d-flex">
           <div className="dash-count">
             <div className="dash-counts">
-              <h4>5</h4>
-              <span className="">Tài khoản game</span>
+              <h4>{counts.totalAccounts}</h4>
+              <span>Tài khoản game</span>
             </div>
             <div className="dash-imgs">
               <svg
@@ -79,8 +129,8 @@ const Dashboard = () => {
         <div className="col-lg-3 col-sm-6 col-12 d-flex">
           <div className="dash-count das1">
             <div className="dash-counts">
-              <h4>5</h4>
-              <span className="">Chưa bán</span>
+              <h4>{counts.unsoldAccounts}</h4>
+              <span>Chưa bán</span>
             </div>
             <div className="dash-imgs">
               <svg
@@ -105,8 +155,8 @@ const Dashboard = () => {
         <div className="col-lg-3 col-sm-6 col-12 d-flex">
           <div className="dash-count das2">
             <div className="dash-counts">
-              <h4>5</h4>
-              <span className="">Đã bán</span>
+              <h4>{counts.soldAccounts}</h4>
+              <span>Đã bán</span>
             </div>
             <div className="dash-imgs">
               <svg
@@ -130,8 +180,8 @@ const Dashboard = () => {
         <div className="col-lg-3 col-sm-6 col-12 d-flex">
           <div className="dash-count das3">
             <div className="dash-counts">
-              <h4>5</h4>
-              <span className="">Chưa bán</span>
+              <h4>{counts.totalUsers}</h4>
+              <span>Người dùng</span>
             </div>
             <div className="dash-imgs">
               <svg
@@ -155,13 +205,14 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-      {/* Thống kê dịch vụ và danh mục */}
+
+      {/* Thống kê dịch vụ */}
       <div className="row">
         <div className="col-lg-3 col-sm-6 col-12 d-flex">
           <div className="dash-count">
             <div className="dash-counts">
-              <h4>5</h4>
-              <span className="">Dịch vụ</span>
+              <h4>0</h4>
+              <span>Dịch vụ</span>
             </div>
             <div className="dash-imgs">
               <svg
@@ -185,8 +236,8 @@ const Dashboard = () => {
         <div className="col-lg-3 col-sm-6 col-12 d-flex">
           <div className="dash-count das1">
             <div className="dash-counts">
-              <h4>5</h4>
-              <span className="">Acc Random</span>
+              <h4>{counts.totalRandomAccounts}</h4>
+              <span>Acc Random</span>
             </div>
             <div className="dash-imgs">
               <svg
@@ -212,8 +263,8 @@ const Dashboard = () => {
         <div className="col-lg-3 col-sm-6 col-12 d-flex">
           <div className="dash-count das2">
             <div className="dash-counts">
-              <h4>5</h4>
-              <span className="">Vòng Quay</span>
+              <h4>0</h4>
+              <span>Vòng Quay</span>
             </div>
             <div className="dash-imgs">
               <svg
@@ -238,8 +289,8 @@ const Dashboard = () => {
         <div className="col-lg-3 col-sm-6 col-12 d-flex">
           <div className="dash-count das3">
             <div className="dash-counts">
-              <h4>5</h4>
-              <span className="">Người dùng mới hôm nay</span>
+              <h4>{counts.newUsersToday}</h4>
+              <span>Người dùng mới hôm nay</span>
             </div>
             <div className="dash-imgs">
               <svg
@@ -263,93 +314,59 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-      {/* Tổng hợp giao dịch */}
+
+      {/* Tổng hợp giao dịch tài chính */}
       <div className="row">
-        <div className="col-lg-3 col-sm-6 col-12 d-flex">
+        <div className="col-lg-4 col-sm-12 col-12 d-flex">
           <div className="dash-widget dash1">
             <div className="dash-widget-img">
               <FaArrowDown className="text-success" />
             </div>
             <div className="dash-widget-content">
               <h5>
-                <span className="counters">1,000,000</span> VNĐ
+                <span className="counters">
+                  {formatCurrency(finance?.totalDeposit)}
+                </span>
               </h5>
               <span className="dash-widget-text">Tổng nạp tiền</span>
             </div>
           </div>
         </div>
-        <div className="col-lg-3 col-sm-6 col-12 d-flex">
-          <div className="dash-widget dash2">
-            <div className="dash-widget-img">
-              <FaArrowUp className="text-danger" />
-            </div>
-            <div className="dash-widget-content">
-              <h5>
-                <span className="counters">0</span> VNĐ
-              </h5>
-              <span className="dash-widget-text">Tổng rút tiền</span>
-            </div>
-          </div>
-        </div>
-        <div className="col-lg-3 col-sm-6 col-12 d-flex">
+        <div className="col-lg-4 col-sm-12 col-12 d-flex">
           <div className="dash-widget dash3">
             <div className="dash-widget-img">
               <FaShoppingCart className="text-info" />
             </div>
             <div className="dash-widget-content">
               <h5>
-                <span className="counters">0</span> VNĐ
+                <span className="counters">
+                  {formatCurrency(finance?.totalPurchase)}
+                </span>
               </h5>
               <span className="dash-widget-text">Tổng mua hàng</span>
             </div>
           </div>
         </div>
-        <div className="col-lg-3 col-sm-6 col-12 d-flex">
+        <div className="col-lg-4 col-sm-12 col-12 d-flex">
           <div className="dash-widget dash4">
             <div className="dash-widget-img">
               <FaUndo className="text-warning" />
             </div>
             <div className="dash-widget-content">
               <h5>
-                <span className="counters">0</span> VNĐ
+                <span className="counters">
+                  {formatCurrency(finance?.totalRefund)}
+                </span>
               </h5>
               <span className="dash-widget-text">Tổng hoàn tiền</span>
             </div>
           </div>
         </div>
       </div>
-      {/* Phân bố loại dịch vụ và các tài khoản mua gần đây */}
+
+      {/* Mã giảm giá và Thống kê người dùng */}
       <div className="row">
-        <div className="col-lg-4 col-sm-12 col-12 d-flex">
-          <div className="card flex-fill">
-            <div className="card-header pb-0 d-flex justify-content-between align-items-center">
-              <h5 className="card-title mb-0">Loại dịch vụ</h5>
-            </div>
-            <div className="card-body pd-[20px]">
-              <div className="table-responsive">
-                <table className="table table-sm">
-                  <thead>
-                    <tr>
-                      <th>Loại</th>
-                      <th>Số lượng</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <span className="badge bg-success">Cày thuê</span>
-                      </td>
-                      <td>
-                        <span className="badge bg-primary">4</span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="col-lg-4 col-sm-12 col-12 d-flex">
+        <div className="col-lg-6 col-sm-12 col-12 d-flex">
           <div className="card flex-fill">
             <div className="card-header pb-0 d-flex justify-content-between align-items-center">
               <h5 className="card-title mb-0">Mã giảm giá đang hoạt động</h5>
@@ -365,18 +382,36 @@ const Dashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td colSpan={3} className="text-center">
-                        Không có mã giảm giá nào đang hoạt động
-                      </td>
-                    </tr>
+                    {activeDiscountCodes?.length > 0 ? (
+                      activeDiscountCodes.map((item) => (
+                        <tr key={item.discountCodeId}>
+                          <td>{item.code}</td>
+                          <td>
+                            {item.type === "percent"
+                              ? `${item.value}%`
+                              : formatCurrency(item.value)}
+                          </td>
+                          <td>
+                            {item.expirationDate
+                              ? formatDate(item.expirationDate)
+                              : "Không giới hạn"}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={3} className="text-center">
+                          Không có mã giảm giá nào đang hoạt động
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
             </div>
           </div>
         </div>
-        <div className="col-lg-4 col-sm-12 col-12 d-flex">
+        <div className="col-lg-6 col-sm-12 col-12 d-flex">
           <div className="card flex-fill">
             <div className="card-header pb-0 d-flex justify-content-between align-items-center">
               <h5 className="card-title mb-0">Thống kê người dùng</h5>
@@ -386,49 +421,57 @@ const Dashboard = () => {
                 <div className="starts-info mb-3">
                   <p style={{ marginBottom: "20px" }}>
                     Admin{" "}
-                    <span className="badge rounded-pill bg-primary">3</span>
+                    <span className="badge rounded-pill bg-primary">
+                      {userStatistics?.admin || 0}
+                    </span>
                   </p>
                   <div className="progress">
                     <div
                       className="progress-bar bg-primary"
-                      style={{ width: "8.33%" }}
+                      style={{
+                        width: `${((userStatistics?.admin || 0) / (counts?.totalUsers || 1)) * 100}%`,
+                      }}
                       role="progressbar"
-                      aria-valuenow="3"
-                      aria-valuemin="0"
-                      aria-valuemax="36"
                     ></div>
                   </div>
                 </div>
                 <div className="starts-info mb-3">
                   <p style={{ marginBottom: "20px" }}>
                     Khách hàng{" "}
-                    <span className="badge rounded-pill bg-success">0</span>
+                    <span className="badge rounded-pill bg-success">
+                      {userStatistics?.customer || 0}
+                    </span>
                   </p>
                   <div className="progress">
                     <div
                       className="progress-bar bg-success"
-                      style={{ width: "50%" }}
+                      style={{
+                        width: `${((userStatistics?.customer || 0) / (counts?.totalUsers || 1)) * 100}%`,
+                      }}
                       role="progressbar"
-                      aria-valuenow="3"
-                      aria-valuemin="0"
-                      aria-valuemax="36"
                     ></div>
                   </div>
                 </div>
                 <div className="starts-info mb-3">
-                  <p style={{ marginBottom: "20px" }}>Thống kê người dùng</p>
+                  <p style={{ marginBottom: "20px" }}>Thống kê đăng ký</p>
                   <div className="row">
                     <div className="col-4">
                       <small>Hôm nay: </small>
-                      <div className="badge bg-info">0</div>
+                      <div className="badge bg-info">
+                        {registrationStatistics?.today || 0}
+                      </div>
                     </div>
                     <div className="col-4">
                       <small>Tuần này: </small>
-                      <div className="badge bg-info">1</div>
+                      <div className="badge bg-info">
+                        {registrationStatistics?.thisWeek || 0}
+                      </div>
                     </div>
                     <div className="col-4">
                       <small>Tháng này: </small>
-                      <div className="badge bg-info">3</div>
+                      <div className="badge bg-info">
+                        {registrationStatistics?.thisMonth || 0}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -437,83 +480,81 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-      {/* Giao dịch gần đây */}
-      <div className="card mb-0">
+
+      {/* Lịch sử giao dịch gần đây */}
+      <div className="card">
         <div className="card-header">
           <h4 className="card-title">Lịch sử giao dịch gần đây</h4>
         </div>
         <div className="card-body pt-0">
-          <div className="table-responsive dataview">
-            <div className="dataTables_wrapper">
-              <div className="row">
-                <div className="col-sm-12">
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>Người dùng</th>
-                        <th>Loại giao dịch</th>
-                        <th>Số tiền</th>
-                        <th>Số dư trước</th>
-                        <th>Số dư sau</th>
-                        <th>Mô tả</th>
-                        <th>Thời gian</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>1</td>
-                        <td>
-                          <Link to="#">moderator</Link>
-                        </td>
-                        <td>
-                          <span className="badge bg-warning">Hoàn tiền</span>
-                        </td>
-                        <td>1,000,000 VNĐ</td>
-                        <td>2,000,000 VNĐ</td>
-                        <td>3,000,000 VNĐ</td>
-                        <td>Hoàn tiền cho yêu cầu rút tiền bị từ chối ID: 2</td>
-                        <td>26/05/2025 09:08</td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>
-                          <Link to="#">moderator</Link>
-                        </td>
-                        <td>
-                          <span className="badge bg-warning">Hoàn tiền</span>
-                        </td>
-                        <td>1,000,000 VNĐ</td>
-                        <td>2,000,000 VNĐ</td>
-                        <td>3,000,000 VNĐ</td>
-                        <td>Hoàn tiền cho yêu cầu rút tiền bị từ chối ID: 2</td>
-                        <td>26/05/2025 09:08</td>
-                      </tr>
-                      <tr>
-                        <td>3</td>
-                        <td>
-                          <Link to="#">moderator</Link>
-                        </td>
-                        <td>
-                          <span className="badge bg-warning">Hoàn tiền</span>
-                        </td>
-                        <td>1,000,000 VNĐ</td>
-                        <td>2,000,000 VNĐ</td>
-                        <td>3,000,000 VNĐ</td>
-                        <td>Hoàn tiền cho yêu cầu rút tiền bị từ chối ID: 2</td>
-                        <td>26/05/2025 09:08</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+          <div className="table-responsive" style={{ maxHeight: "300px" }}>
+            <table className="table">
+              <thead
+                style={{
+                  position: "sticky",
+                  top: 0,
+                  zIndex: 1,
+                  backgroundColor: "#fff",
+                }}
+              >
+                <tr>
+                  <th>ID</th>
+                  <th>Người dùng</th>
+                  <th>Loại giao dịch</th>
+                  <th>Số tiền</th>
+                  <th>Số dư trước</th>
+                  <th>Số dư sau</th>
+                  <th>Mô tả</th>
+                  <th>Thời gian</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentTransactions?.length > 0 ? (
+                  recentTransactions.map((item) => (
+                    <tr key={item.userHistoryId}>
+                      <td>#{item.userHistoryId}</td>
+                      <td>{item.userName}</td>
+                      <td>
+                        <span
+                          className={`badges ${transactionType[item.transaction]?.className || "bg-secondary"}`}
+                          style={{ width: "100px" }}
+                        >
+                          {transactionType[item.transaction]?.label ||
+                            item.transaction}
+                        </span>
+                      </td>
+                      <td
+                        className={
+                          item.balance_after > item.balance_before
+                            ? "text-success"
+                            : "text-danger"
+                        }
+                      >
+                        {item.balance_after > item.balance_before ? "+" : "-"}
+                        {formatCurrency(item.amount)}
+                      </td>
+                      <td>{formatCurrency(item.balance_before)}</td>
+                      <td>{formatCurrency(item.balance_after)}</td>
+                      <td>{item.description}</td>
+                      <td>{formatDate(item.createdAt)}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={8} className="text-center">
+                      Không có giao dịch nào gần đây
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-      {/* Biểu đồ tổng quan và Dịch vụ cần xử lý */}
+
+      {/* Biểu đồ và Bảng thống kê 7 ngày */}
       <div className="row mt-4">
-        <div className="col-lg-7 col-sm-12 col-12 d-flex">
+        <div className="col-lg-12 col-sm-12 col-12 d-flex">
           <div className="card flex-fill">
             <div className="card-header pb-0 d-flex justify-content-between align-items-center">
               <h5 className="card-title mb-0">
@@ -532,13 +573,9 @@ const Dashboard = () => {
                   <thead>
                     <tr>
                       <th>Ngày</th>
-                      <th>20/02</th>
-                      <th>21/02</th>
-                      <th>22/02</th>
-                      <th>23/02</th>
-                      <th>24/02</th>
-                      <th>25/02</th>
-                      <th>26/02</th>
+                      {topupAndPurchaseStatistics?.map((d, index) => (
+                        <th key={index}>{d.date}</th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
@@ -546,125 +583,17 @@ const Dashboard = () => {
                       <td>
                         <strong>Nạp tiền</strong>
                       </td>
-                      <td>0</td>
-                      <td>0</td>
-                      <td>0</td>
-                      <td>0</td>
-                      <td>0</td>
-                      <td>0</td>
-                      <td>0</td>
+                      {topupAndPurchaseStatistics?.map((d, index) => (
+                        <td key={index}>{formatCurrency(d.topup)}</td>
+                      ))}
                     </tr>
                     <tr>
                       <td>
                         <strong>Mua hàng</strong>
                       </td>
-                      <td>0</td>
-                      <td>0</td>
-                      <td>0</td>
-                      <td>0</td>
-                      <td>0</td>
-                      <td>0</td>
-                      <td>0</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="col-lg-5 col-sm-12 col-12 d-flex">
-          <div className="card flex-fill">
-            <div className="card-header pb-0 d-flex justify-content-between align-items-center">
-              <h4 className="card-title mb-0">Dịch vụ đang chờ xử lý</h4>
-              <Link to="#" className="btn primary btn-sm">
-                Xem tất cả
-              </Link>
-            </div>
-            <div className="card-body">
-              <div className="table-responsive">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Dịch vụ</th>
-                      <th>Người dùng</th>
-                      <th>Trạng thái</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td colSpan={4} className="text-center">
-                        Không có dịch vụ nào đang chờ xử lý
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* Rút tiền đang chờ và Rút tài nguyên đang chờ */}
-      <div className="row">
-        <div className="col-lg-6 col-sm-12 col-12 d-flex">
-          <div className="card flex-fill">
-            <div className="card-header pb-0 d-flex justify-content-between align-items-center">
-              <h4 className="card-title mb-0">Yêu cầu rút tiền đang chờ</h4>
-              <Link to="#" className="btn primary btn-sm">
-                Xem tất cả
-              </Link>
-            </div>
-            <div className="card-body">
-              <div className="table-responsive dataview">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Người dùng</th>
-                      <th>Số tiền</th>
-                      <th>Ngân hàng</th>
-                      <th>Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td colSpan={5} className="text-center">
-                        Không có yêu cầu rút nào
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="col-lg-6 col-sm-12 col-12 d-flex">
-          <div className="card flex-fill">
-            <div className="card-header pb-0 d-flex justify-content-between align-items-center">
-              <h4 className="card-title mb-0">
-                Yêu cầu rút tài nguyên đang chờ
-              </h4>
-              <Link to="#" className="btn primary btn-sm">
-                Xem tất cả
-              </Link>
-            </div>
-            <div className="card-body">
-              <div className="table-responsive dataview">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Người dùng</th>
-                      <th>Loại</th>
-                      <th>Số lượng</th>
-                      <th>Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td colSpan={5} className="text-center">
-                        Không có yêu cầu rút tài nguyên nào
-                      </td>
+                      {topupAndPurchaseStatistics?.map((d, index) => (
+                        <td key={index}>{formatCurrency(d.purchase)}</td>
+                      ))}
                     </tr>
                   </tbody>
                 </table>

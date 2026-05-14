@@ -1,59 +1,67 @@
+import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import search from "../../assets/svg/search.svg";
-import { useUIStore } from "../../store/useUIStore";
-import NotFound from "../../components/common/NotFound";
 import { historyService } from "../../service/historyService";
+import { formatCurrency, formatDate } from "../../utils/format";
+import NotFound from "../../components/common/NotFound";
+import search from "../../assets/svg/search.svg";
 
 const BankAccountsHistory = () => {
-  const setNotFoundText = useUIStore((s) => s.setNotFoundText);
-
-  useEffect(() => {
-    setNotFoundText("Không có lịch sử giao dịch nào");
-  }, [setNotFoundText]);
-
   const [histories, setHistories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pagination, setPagination] = useState({
+    total: 0,
+    totalPages: 0,
+    currentPage: 1,
+    limit: 10,
+  });
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        // Gọi API qua Service đã trừu tượng hóa toàn bộ axios và tokens
-        const response = await historyService.bankAccountsHistory();
-        if (response.data) {
-          setHistories(response.data);
-        }
-      } catch (error) {
-        console.error("Lỗi lấy lịch sử ngân hàng:", error);
-      } finally {
-        setLoading(false);
+  const fetchHistories = async (page = 1, limit = 10, search = "") => {
+    setLoading(true);
+    try {
+      const res = await historyService.bankAccountsHistory(page, limit, search);
+      setHistories(res.data);
+      if (res.pagination) {
+        setPagination(res.pagination);
       }
-    };
-    fetchHistory();
-  }, []);
-
-  // Hàm format tiền tệ (VNĐ)
-  const formatCurrency = (amount) => {
-    if (!amount) return "0 VNĐ";
-    return amount.toLocaleString("en-US") + " VNĐ";
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu:", error);
+      toast.error("Không thể lấy dữ liệu");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Hàm format ngày giờ
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${day}/${month}/${year} - ${hours}:${minutes}`;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchHistories(pagination.currentPage, pagination.limit, searchTerm);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [pagination.currentPage, pagination.limit, searchTerm]);
+
+  const handlePageChange = (page) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+  };
+
+  const handleLimitChange = (e) => {
+    setPagination((prev) => ({
+      ...prev,
+      limit: parseInt(e.target.value),
+      currentPage: 1,
+    }));
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
   };
   return (
     <>
       <div className="page-header-admin">
         <div className="page-title-admin">
-          <h4>Lịch sử nạp tiền qua ngân hàng</h4>
+          <h4>LỊCH SỬ NẠP TIỀN QUA NGÂN HÀNG</h4>
           <span>Xem tất cả lịch sử nạp tiền qua ngân hàng của người dùng</span>
         </div>
       </div>
@@ -68,6 +76,8 @@ const BankAccountsHistory = () => {
               type="text"
               className="search-form-input"
               placeholder="Tìm kiếm"
+              value={searchTerm}
+              onChange={handleSearchChange}
             />
           </form>
           <div className="table-responsive">
@@ -93,7 +103,7 @@ const BankAccountsHistory = () => {
                 ) : histories.length === 0 ? (
                   <tr>
                     <td colSpan="7" className="text-center">
-                      <NotFound />
+                      <NotFound message="Không có dữ liệu" />
                     </td>
                   </tr>
                 ) : (
@@ -101,7 +111,7 @@ const BankAccountsHistory = () => {
                     <tr key={item.bankAccountsHistoryId}>
                       <td>{item.bankAccountsHistoryId}</td>
                       <td>{item.transaction_id}</td>
-                      <td>{item.depositor?.username}</td>
+                      <td>{item.userName}</td>
                       <td>{formatCurrency(item.amount)}</td>
                       <td>{item.content}</td>
                       <td>
@@ -121,7 +131,11 @@ const BankAccountsHistory = () => {
             </table>
             <div className="table-pagination-control">
               <span className="me-1">Show per page :</span>
-              <select className="custom-select">
+              <select
+                className="custom-select"
+                value={pagination.limit}
+                onChange={handleLimitChange}
+              >
                 <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
@@ -130,19 +144,39 @@ const BankAccountsHistory = () => {
             </div>
             <div className="table-pagination-nav">
               <ul className="pagination-list">
-                <li className="pagination-item active">
-                  <Link to="#" className="pagination-link">
-                    <span>1</span>
-                  </Link>
-                </li>
-                <li className="pagination-item">
-                  <Link to="#" className="pagination-link">
-                    <span>2</span>
-                  </Link>
-                </li>
+                {Array.from(
+                  { length: pagination.totalPages },
+                  (_, i) => i + 1,
+                ).map((page) => (
+                  <li
+                    className={`pagination-item ${
+                      pagination.currentPage === page ? "active" : ""
+                    }`}
+                    key={page}
+                  >
+                    <Link
+                      to="#"
+                      className="pagination-link"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(page);
+                      }}
+                    >
+                      <span>{page}</span>
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
-            <div className="table-pagination-info">1 - 5 of 5 items</div>
+            <div className="table-pagination-info">
+              {pagination.total > 0
+                ? `${pagination.total - Math.min(pagination.currentPage * pagination.limit, pagination.total) + 1} - ${
+                    pagination.total -
+                    (pagination.currentPage - 1) * pagination.limit
+                  }`
+                : "0 - 0"}{" "}
+              of {pagination.total} items
+            </div>
           </div>
         </div>
       </div>

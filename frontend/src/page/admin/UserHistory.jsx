@@ -6,10 +6,35 @@ import { formatDate, formatCurrency } from "@/utils/format";
 import NotFound from "@/components/common/NotFound";
 import search from "@/assets/svg/search.svg";
 
-const RandomAccountsHistory = () => {
+const UserHistory = () => {
   const [histories, setHistories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const transactionType = {
+    bankAccount: {
+      label: "Chuyển khoản",
+      className: "status-success",
+    },
+    topUp: {
+      label: "Nạp thẻ",
+      className: "status-success",
+    },
+    buyAccount: {
+      label: "Mua acc",
+      className: "bg-info",
+    },
+    adminTopUp: {
+      label: "Admin sửa",
+      className: "bg-danger",
+    },
+    discountCode: {
+      label: "Mã giảm giá",
+      className: "bg-secondary",
+    },
+  };
+
+  // States cho phân trang
   const [pagination, setPagination] = useState({
     total: 0,
     totalPages: 0,
@@ -18,8 +43,9 @@ const RandomAccountsHistory = () => {
   });
 
   const fetchHistories = async (page = 1, limit = 10, search = "") => {
+    setLoading(true);
     try {
-      const res = await historyService.readRandomAccountsBoughtHistoryAdmin(
+      const res = await historyService.readUserTransactionHistoryAdmin(
         page,
         limit,
         search,
@@ -37,6 +63,7 @@ const RandomAccountsHistory = () => {
   };
 
   useEffect(() => {
+    // Thêm debounce nhẹ cho tìm kiếm để tránh gọi API quá nhiều
     const timer = setTimeout(() => {
       fetchHistories(pagination.currentPage, pagination.limit, searchTerm);
     }, 500);
@@ -44,33 +71,37 @@ const RandomAccountsHistory = () => {
     return () => clearTimeout(timer);
   }, [pagination.currentPage, pagination.limit, searchTerm]);
 
+  // Xử lý đổi trang
   const handlePageChange = (page) => {
     setPagination((prev) => ({ ...prev, currentPage: page }));
   };
 
+  // Xử lý đổi số lượng hiển thị
   const handleLimitChange = (e) => {
     setPagination((prev) => ({
       ...prev,
       limit: parseInt(e.target.value),
-      currentPage: 1,
+      currentPage: 1, // Reset về trang 1 khi đổi limit
     }));
   };
 
+  // Xử lý tìm kiếm
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    setPagination((prev) => ({ ...prev, currentPage: 1 })); // Reset về trang 1 khi tìm kiếm
   };
+
   return (
     <>
       <div className="page-header-admin">
         <div className="page-title-admin">
-          <h4>LỊCH SỬ MUA RANDOM ACCOUNTS</h4>
-          <span>Xem tất cả lịch sử mua random accounts của người dùng</span>
+          <h4>LỊCH SỬ GIAO DỊCH</h4>
+          <span>Xem tất cả lịch sử giao dịch của người dùng</span>
         </div>
       </div>
       <div className="card">
         <div className="card-body">
-          <form
+          <div
             className="mobi-search"
             style={{ width: "200px", marginBottom: "25px" }}
           >
@@ -82,72 +113,69 @@ const RandomAccountsHistory = () => {
               value={searchTerm}
               onChange={handleSearchChange}
             />
-          </form>
+          </div>
           <div className="table-responsive">
             <table className="table">
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Người mua</th>
-                  <th>Tài khoản</th>
-                  <th>Danh mục</th>
-                  <th>Bậc</th>
-                  <th>Giá</th>
-                  <th>Trạng thái</th>
-                  <th>Lấy mật khẩu</th>
-                  <th>Thời gian lấy mật khẩu</th>
-                  <th>Thời gian mua</th>
+                  <th>Người dùng</th>
+                  <th>Loại giao dịch</th>
+                  <th>Số tiền</th>
+                  <th>Số dư trước</th>
+                  <th>Số dư sau</th>
+                  <th>Mô tả</th>
+                  <th>Thời gian</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="9" className="text-center">
+                    <td colSpan="8" className="text-center">
                       Đang tải dữ liệu...
                     </td>
                   </tr>
                 ) : histories.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="text-center">
+                    <td colSpan="8" className="text-center">
                       <NotFound message="Không có dữ liệu" />
                     </td>
                   </tr>
                 ) : (
                   histories.map((item) => (
-                    <tr key={item.historyRandomAccountsId}>
-                      <td>#{item.historyRandomAccountsId}</td>
-                      <td>{item.userName}</td>
-                      <td>{item.accountName}</td>
-                      <td>{item.categoryName}</td>
-                      <td>
-                        {item.tier === "thuong"
-                          ? "Thường"
-                          : item.tier === "ngon"
-                            ? "Ngon"
-                            : "Siêu phẩm"}
-                      </td>
-                      <td>{formatCurrency(item.price)}</td>
+                    <tr key={item.userHistoryId}>
+                      <td>#{item.userHistoryId}</td>
+                      <td>{item.username}</td>
                       <td>
                         <span
-                          className={`badges ${item.status ? "status-success" : "status-error"}`}
+                          className={`badges ${transactionType[item.transaction]?.className || "bg-secondary"}`}
+                          style={{ width: "100px" }}
                         >
-                          {item.status ? "Thành công" : "Thất bại"}
+                          {transactionType[item.transaction]?.label ||
+                            item.transaction}
                         </span>
                       </td>
-                      <td>
-                        <span
-                          className={`badges ${item.passwordStatus ? "status-success" : "status-error"}`}
-                        >
-                          {item.passwordStatus ? "Đã lấy" : "Chưa lấy"}
-                        </span>
+                      <td
+                        className={
+                          item.balance_after > item.balance_before
+                            ? "text-success"
+                            : "text-danger"
+                        }
+                      >
+                        {item.balance_after > item.balance_before ? "+" : "-"}
+                        {formatCurrency(item.amount)}
                       </td>
-                      <td>{formatDate(item.updatedAt)}</td>
+                      <td>{formatCurrency(item.balance_before)}</td>
+                      <td>{formatCurrency(item.balance_after)}</td>
+                      <td>{item.description}</td>
                       <td>{formatDate(item.createdAt)}</td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
+
+            {/* PHẦN PHÂN TRANG */}
             <div className="table-pagination-control">
               <span className="me-1">Show per page :</span>
               <select
@@ -161,6 +189,7 @@ const RandomAccountsHistory = () => {
                 <option value="100">100</option>
               </select>
             </div>
+
             <div className="table-pagination-nav">
               <ul className="pagination-list">
                 {Array.from(
@@ -187,6 +216,7 @@ const RandomAccountsHistory = () => {
                 ))}
               </ul>
             </div>
+
             <div className="table-pagination-info">
               {pagination.total > 0
                 ? `${pagination.total - Math.min(pagination.currentPage * pagination.limit, pagination.total) + 1} - ${
@@ -203,4 +233,4 @@ const RandomAccountsHistory = () => {
   );
 };
 
-export default RandomAccountsHistory;
+export default UserHistory;

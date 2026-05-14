@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  readUserTransactionHistoryAdmin,
   readBankAccountsHistory,
   readCardTopUpHistory,
   readDiscountCodeHistory,
@@ -18,6 +19,24 @@ const router = express.Router();
 
 // Admin
 router.get(
+  "/admin/transaction-history",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  readUserTransactionHistoryAdmin,
+);
+router.get(
+  "/admin/accounts-bought",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  readAccountsBoughtHistoryAdmin,
+);
+router.get(
+  "/admin/random-accounts-bought",
+  protectedRoute,
+  authorize(ROLES.ADMIN),
+  readRandomAccountsBoughtHistoryAdmin,
+);
+router.get(
   "/admin/bank-accounts",
   protectedRoute,
   authorize(ROLES.ADMIN),
@@ -34,18 +53,6 @@ router.get(
   protectedRoute,
   authorize(ROLES.ADMIN),
   readDiscountCodeHistory,
-);
-router.get(
-  "/admin/accounts-bought",
-  protectedRoute,
-  authorize(ROLES.ADMIN),
-  readAccountsBoughtHistoryAdmin,
-);
-router.get(
-  "/admin/random-accounts-bought",
-  protectedRoute,
-  authorize(ROLES.ADMIN),
-  readRandomAccountsBoughtHistoryAdmin,
 );
 
 // Client

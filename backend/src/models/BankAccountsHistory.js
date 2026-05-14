@@ -9,8 +9,8 @@ const bankAccountsHistorySchema = new mongoose.Schema(
       type: Number,
       unique: true,
     },
-    transaction_id: { type: String, unique: true },
     depositor: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    transaction_id: { type: String, unique: true },
     amount: { type: Number },
     content: { type: String }, // Nội dung CK
     status: { type: String, enum: ["success", "failed"] }, // Trạng thái

@@ -48,6 +48,7 @@ import CardTopUp from "./page/admin/CardTopUp";
 import CardTopUpHistory from "./page/admin/CardTopUpHistory";
 import User from "./page/admin/Users";
 import UserEdit from "./page/admin/UsersEdit";
+import UserHistory from "./page/admin/UserHistory";
 import DiscountCode from "./page/admin/DiscountCode";
 import DiscountCodeCreate from "./page/admin/DiscountCodeCreate";
 import DiscountCodeEdit from "./page/admin/DiscountCodeEdit";
@@ -141,8 +142,12 @@ function App() {
                 <Route path="edit/:userId" element={<UserEdit />} />
               </Route>
               <Route path="history">
+                <Route path="transactions" element={<UserHistory />} />
                 <Route path="accounts" element={<AccountsHistory />} />
-                <Route path="random-accounts" element={<RandomAccountsHistory />} />
+                <Route
+                  path="random-accounts"
+                  element={<RandomAccountsHistory />}
+                />
                 <Route path="bank-accounts" element={<BankAccountsHistory />} />
                 <Route path="card-top-up" element={<CardTopUpHistory />} />
                 <Route path="discount-code" element={<DiscountCodeHistory />} />

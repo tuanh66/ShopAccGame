@@ -284,7 +284,7 @@ const UsersEdit = () => {
               </thead>
               <tbody>
                 {transactions.length > 0 ? (
-                  transactions.map((item, index) => (
+                  transactions.map((item) => (
                     <tr key={`${item.userHistoryId}`}>
                       <td>{item.userHistoryId}</td>
                       <td>

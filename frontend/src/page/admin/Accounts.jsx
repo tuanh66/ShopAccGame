@@ -1,8 +1,6 @@
-import axios from "axios";
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useAuthStore } from "../../store/useAuthStore";
 import { accountsService } from "../../service/accountsService";
 import { formatCurrency, formatDate } from "../../utils/format";
 import NotFound from "../../components/common/NotFound";
@@ -15,42 +13,70 @@ import icon_delete from "../../assets/svg/delete.svg";
 
 const Accounts = () => {
   const { slugCategories } = useParams();
-  const [loading, setLoading] = useState(true);
   const [accounts, setAccounts] = useState([]);
-  const { showModal, showEffect, openModal, closeModal } = useModal();
-  // Xử lý lấy dữ liệu
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pagination, setPagination] = useState({
+    total: 0,
+    totalPages: 0,
+    currentPage: 1,
+    limit: 10,
+  });
 
-  // Xử lý lấy dữ liệu
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const fetchAccounts = async (page = 1, limit = 10, search = "") => {
+    try {
+      const res = await accountsService.readAccounts(
+        slugCategories,
+        page,
+        limit,
+        search,
+      );
+      setAccounts(res.data);
+      if (res.pagination) {
+        setPagination(res.pagination);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu:", error);
+      toast.error("Không thể lấy dữ liệu");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchAccounts = async () => {
-      try {
-        const res = await accountsService.readAccounts(slugCategories);
-        setAccounts(res.data);
-      } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu", error);
-        toast.error("Không thể lấy dữ liệu ");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (slugCategories) {
-      fetchAccounts();
+      const timer = setTimeout(() => {
+        fetchAccounts(pagination.currentPage, pagination.limit, searchTerm);
+      }, 500);
+
+      return () => clearTimeout(timer);
     }
-  }, [slugCategories]);
+  }, [slugCategories, pagination.currentPage, pagination.limit, searchTerm]);
+
+  const handlePageChange = (page) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+  };
+
+  const handleLimitChange = (e) => {
+    setPagination((prev) => ({
+      ...prev,
+      limit: parseInt(e.target.value),
+      currentPage: 1,
+    }));
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  };
 
   const [deleteAccount, setDeleteAccount] = useState(null);
+  const { showModal, showEffect, openModal, closeModal } = useModal();
+
   const handleDelete = async () => {
     try {
       await axios.delete(
         `http://localhost:5001/api/accounts/admin/${deleteAccount._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
       );
       setAccounts(accounts.filter((item) => item._id !== deleteAccount._id));
       closeModal(); // đóng modal
@@ -85,6 +111,8 @@ const Accounts = () => {
               type="text"
               className="search-form-input"
               placeholder="Tìm kiếm"
+              value={searchTerm}
+              onChange={handleSearchChange}
             />
           </form>
           <div className="table-responsive">
@@ -118,11 +146,7 @@ const Accounts = () => {
                     <tr key={item.accountsId}>
                       <td>{item.accountsId}</td>
                       <td>{item.username}</td>
-                      <td>
-                        {item.price_sale > 0
-                          ? formatCurrency(item.price_sale)
-                          : formatCurrency(item.price)}
-                      </td>
+                      <td>{formatCurrency(item.final_price)}</td>
                       <td>
                         <span
                           className={`badges ${item.status ? "status-error" : "status-success"}`}
@@ -171,7 +195,11 @@ const Accounts = () => {
             />
             <div className="table-pagination-control">
               <span className="me-1">Show per page :</span>
-              <select className="custom-select">
+              <select
+                className="custom-select"
+                value={pagination.limit}
+                onChange={handleLimitChange}
+              >
                 <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
@@ -180,19 +208,39 @@ const Accounts = () => {
             </div>
             <div className="table-pagination-nav">
               <ul className="pagination-list">
-                <li className="pagination-item active">
-                  <Link to="#" className="pagination-link">
-                    <span>1</span>
-                  </Link>
-                </li>
-                <li className="pagination-item">
-                  <Link to="#" className="pagination-link">
-                    <span>2</span>
-                  </Link>
-                </li>
+                {Array.from(
+                  { length: pagination.totalPages },
+                  (_, i) => i + 1,
+                ).map((page) => (
+                  <li
+                    className={`pagination-item ${
+                      pagination.currentPage === page ? "active" : ""
+                    }`}
+                    key={page}
+                  >
+                    <Link
+                      to="#"
+                      className="pagination-link"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(page);
+                      }}
+                    >
+                      <span>{page}</span>
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
-            <div className="table-pagination-info">1 - 5 of 5 items</div>
+            <div className="table-pagination-info">
+              {pagination.total > 0
+                ? `${pagination.total - Math.min(pagination.currentPage * pagination.limit, pagination.total) + 1} - ${
+                    pagination.total -
+                    (pagination.currentPage - 1) * pagination.limit
+                  }`
+                : "0 - 0"}{" "}
+              of {pagination.total} items
+            </div>
           </div>
         </div>
       </div>

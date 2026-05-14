@@ -11,8 +11,8 @@ export const accountsService = {
     const res = await api.get(`/accounts/admin/attributes/${slug}`);
     return res.data;
   },
-  readAccounts: async (slug) => {
-    const res = await api.get(`/accounts/admin/category/${slug}`);
+  readAccounts: async (slug, page = 1, limit = 10, search = "") => {
+    const res = await api.get(`/accounts/admin/category/${slug}?page=${page}&limit=${limit}&search=${search}`);
     return res.data;
   },
   readAccountById: async (id) => {

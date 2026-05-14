@@ -1,9 +1,10 @@
+import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import search from "../../assets/svg/search.svg";
-import { useUIStore } from "../../store/useUIStore";
-import NotFound from "../../components/common/NotFound";
 import { historyService } from "../../service/historyService";
+import { formatDate, formatCurrency } from "../../utils/format";
+import NotFound from "../../components/common/NotFound";
+import search from "../../assets/svg/search.svg";
 
 const applyForLabel = {
   all: "Tất cả",
@@ -12,62 +13,62 @@ const applyForLabel = {
 };
 
 const DiscountCodeHistory = () => {
-  const setNotFoundText = useUIStore((s) => s.setNotFoundText);
-
-  useEffect(() => {
-    setNotFoundText("Không có lịch sử sử dụng mã giảm giá nào");
-  }, [setNotFoundText]);
-
   const [histories, setHistories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pagination, setPagination] = useState({
+    total: 0,
+    totalPages: 0,
+    currentPage: 1,
+    limit: 10,
+  });
+
+  const fetchHistories = async (page = 1, limit = 10, search = "") => {
+    setLoading(true);
+    try {
+      const res = await historyService.discountCodeHistory(page, limit, search);
+      setHistories(res.data);
+      if (res.pagination) {
+        setPagination(res.pagination);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu:", error);
+      toast.error("Không thể lấy dữ liệu");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const response = await historyService.discountCodeHistory();
-        if (response.data) {
-          setHistories(response.data);
-        }
-      } catch (error) {
-        console.error("Lỗi lấy lịch sử mã giảm giá:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchHistory();
-  }, []);
+    const timer = setTimeout(() => {
+      fetchHistories(pagination.currentPage, pagination.limit, searchTerm);
+    }, 500);
 
-  // Hàm format tiền tệ (VNĐ)
-  const formatCurrency = (amount) => {
-    if (!amount && amount !== 0) return "0 VNĐ";
-    return amount.toLocaleString("en-US") + " VNĐ";
+    return () => clearTimeout(timer);
+  }, [pagination.currentPage, pagination.limit, searchTerm]);
+
+  const handlePageChange = (page) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
   };
 
-  // Hàm format ngày giờ
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${day}/${month}/${year} - ${hours}:${minutes}`;
+  const handleLimitChange = (e) => {
+    setPagination((prev) => ({
+      ...prev,
+      limit: parseInt(e.target.value),
+      currentPage: 1,
+    }));
   };
 
-  // Tìm kiếm
-  const [searchTerm, setSearchTerm] = useState("");
-  const filtered = histories.filter(
-    (item) =>
-      item.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.user?.username?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  };
 
   return (
     <>
       <div className="page-header-admin">
         <div className="page-title-admin">
-          <h4>Lịch sử sử dụng mã giảm giá</h4>
+          <h4>LỊCH SỬ SỬ DỤNG MÃ GIẢM GIÁ</h4>
           <span>Xem tất cả lịch sử sử dụng mã giảm giá của người dùng</span>
         </div>
       </div>
@@ -84,7 +85,7 @@ const DiscountCodeHistory = () => {
               className="search-form-input"
               placeholder="Tìm kiếm"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
             />
           </form>
           <div className="table-responsive">
@@ -109,17 +110,17 @@ const DiscountCodeHistory = () => {
                       Đang tải dữ liệu...
                     </td>
                   </tr>
-                ) : filtered.length === 0 ? (
+                ) : histories.length === 0 ? (
                   <tr>
                     <td colSpan="9" className="text-center">
-                      <NotFound />
+                      <NotFound message="Không có dữ liệu" />
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((item) => (
+                  histories.map((item) => (
                     <tr key={item.discountCodeHistoryId}>
                       <td>{item.discountCodeHistoryId}</td>
-                      <td>{item.user.username}</td>
+                      <td>{item.userName}</td>
                       <td>{item.code}</td>
                       <td>
                         {item.type === "percent" ? "Phần trăm" : "Cố định"}
@@ -136,28 +137,51 @@ const DiscountCodeHistory = () => {
             </table>
             <div className="table-pagination-control">
               <span className="me-1">Show per page :</span>
-              <select className="custom-select">
+              <select
+                className="custom-select"
+                value={pagination.limit}
+                onChange={handleLimitChange}
+              >
                 <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
               </select>
             </div>
-            {filtered.length > 0 && (
-              <div className="table-pagination-nav">
-                <ul className="pagination-list">
-                  <li className="pagination-item active">
-                    <Link to="#" className="pagination-link">
-                      <span>1</span>
+            <div className="table-pagination-nav">
+              <ul className="pagination-list">
+                {Array.from(
+                  { length: pagination.totalPages },
+                  (_, i) => i + 1,
+                ).map((page) => (
+                  <li
+                    className={`pagination-item ${
+                      pagination.currentPage === page ? "active" : ""
+                    }`}
+                    key={page}
+                  >
+                    <Link
+                      to="#"
+                      className="pagination-link"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(page);
+                      }}
+                    >
+                      <span>{page}</span>
                     </Link>
                   </li>
-                </ul>
-              </div>
-            )}
+                ))}
+              </ul>
+            </div>
             <div className="table-pagination-info">
-              {filtered.length > 0
-                ? `1 - ${filtered.length} of ${filtered.length} items`
-                : "Showing 0 to 0 of 0 entries"}
+              {pagination.total > 0
+                ? `${pagination.total - Math.min(pagination.currentPage * pagination.limit, pagination.total) + 1} - ${
+                    pagination.total -
+                    (pagination.currentPage - 1) * pagination.limit
+                  }`
+                : "0 - 0"}{" "}
+              of {pagination.total} items
             </div>
           </div>
         </div>

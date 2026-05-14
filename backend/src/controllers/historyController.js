@@ -8,56 +8,74 @@ import RandomAccountsHistory from "../models/RandomAccountsHistory.js";
 import RandomAccounts from "../models/RandomAccounts.js";
 import RandomCategories from "../models/RandomCategories.js";
 
-// Admin
-// Lịch sử chuyển khoản ngân hàng
-export const readBankAccountsHistory = async (req, res) => {
+// Lịch sử giao dịch (Admin)
+export const readUserTransactionHistoryAdmin = async (req, res) => {
   try {
-    const bankAccountsHistory = await BankAccountsHistory.find()
-      .populate("depositor", "username")
-      .select(
-        "bankAccountsHistoryId transaction_id amount content status createdAt depositor -_id",
-      )
-      .sort({ createdAt: -1 });
-    return res.status(200).json({
-      message: "Lấy lịch sử ngân hàng thành công",
-      data: bankAccountsHistory,
-    });
-  } catch (error) {
-    console.error("Lỗi khi gọi readBankAccountsHistory", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
-  }
-};
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const skip = (page - 1) * limit;
 
-// Lịch sử nạp thẻ cào
-export const readCardTopUpHistory = async (req, res) => {
-  try {
-    const cardTopUpHistory = await CardTopUpHistory.find()
+    let filter = {};
+
+    // Xử lý tìm kiếm đa năng
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+
+      // 1. Tìm các User có username khớp với search
+      const Users = await import("../models/User.js").then((m) => m.default);
+      const matchingUsers = await Users.find({
+        username: searchRegex,
+      }).select("_id");
+      const userIds = matchingUsers.map((u) => u._id);
+
+      // 2. Tạo filter tổng hợp
+      filter.$or = [
+        { transaction: searchRegex },
+        { description: searchRegex },
+        { userId: { $in: userIds } },
+      ];
+
+      // Nếu search là số, tìm thêm theo ID lịch sử, số tiền và số dư
+      if (!isNaN(search)) {
+        const num = parseInt(search);
+        filter.$or.push({ userHistoryId: num });
+        filter.$or.push({ amount: num });
+        filter.$or.push({ balance_before: num });
+        filter.$or.push({ balance_after: num });
+      }
+    }
+
+    const total = await UserHistory.countDocuments(filter);
+    const transactions = await UserHistory.find(filter)
       .populate("userId", "username")
+      .select("-_id -__v -updatedAt")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
-      .sort({ createdAt: -1 });
+    // Định dạng lại dữ liệu trước khi trả về
+    const formattedTransactions = transactions.map((item) => {
+      const doc = item.toObject();
+      return {
+        ...doc,
+        username: doc.userId?.username || "N/A",
+        userId: undefined,
+      };
+    });
+
     return res.status(200).json({
-      message: "Lấy lịch sử nạp thẻ thành công",
-      data: cardTopUpHistory,
+      message: "Lấy toàn bộ lịch sử giao dịch thành công",
+      data: formattedTransactions,
+      pagination: {
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        limit,
+      },
     });
   } catch (error) {
-    console.error("Lỗi khi gọi readCardTopUpHistory", error);
-    return res.status(500).json({ message: "Lỗi hệ thống" });
-  }
-};
-
-// Lịch sử sử dụng mã giảm giá
-export const readDiscountCodeHistory = async (req, res) => {
-  try {
-    const discountCodeHistory = await DiscountCodeHistory.find()
-      .populate("user", "username")
-      .select("-__v -_id")
-      .sort({ createdAt: -1 });
-    return res.status(200).json({
-      message: "Lấy lịch sử mã giảm giá thành công",
-      data: discountCodeHistory,
-    });
-  } catch (error) {
-    console.error("Lỗi khi gọi readDiscountCodeHistory", error);
+    console.error("Lỗi khi gọi readUserTransactionHistoryAdmin", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
@@ -65,47 +83,60 @@ export const readDiscountCodeHistory = async (req, res) => {
 // Lịch sử mua tài khoản (Admin)
 export const readAccountsBoughtHistoryAdmin = async (req, res) => {
   try {
-    const { search, status, passwordStatus, page = 1, limit = 10 } = req.query;
-    const filter = {};
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const skip = (page - 1) * limit;
 
-    // 1. Lọc theo trạng thái giao dịch
-    if (status !== undefined && status !== "") {
-      filter.status = status === "true";
+    let filter = {};
+
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+
+      // Tìm các User, Accounts, Categories khớp
+      const [users, accounts, categories] = await Promise.all([
+        import("../models/User.js").then((m) =>
+          m.default.find({ username: searchRegex }).select("_id"),
+        ),
+        import("../models/Accounts.js").then((m) =>
+          m.default.find({ username: searchRegex }).select("_id"),
+        ),
+        import("../models/Categories.js").then((m) =>
+          m.default.find({ name: searchRegex }).select("_id"),
+        ),
+      ]);
+
+      filter.$or = [
+        { userId: { $in: users.map((u) => u._id) } },
+        { accountId: { $in: accounts.map((a) => a._id) } },
+        { categoriesId: { $in: categories.map((c) => c._id) } },
+      ];
+
+      if (!isNaN(search)) {
+        const num = parseInt(search);
+        filter.$or.push({ historyAccountId: num });
+        filter.$or.push({ price: num }); // Thêm tìm kiếm theo giá
+      }
     }
-
-    // 2. Lọc theo trạng thái lấy mật khẩu
-    if (passwordStatus !== undefined && passwordStatus !== "") {
-      filter.passwordStatus = passwordStatus === "true";
-    }
-
-    // 3. Tìm kiếm theo ID lịch sử (số)
-    if (search && !isNaN(search)) {
-      filter.historyAccountId = Number(search);
-    }
-
-    // 4. Tìm kiếm nâng cao (phải dùng aggregate hoặc populate match nếu muốn tìm theo username người mua)
-    // Để đơn giản, ở đây mình xử lý lọc cơ bản. 
-    // Nếu bạn muốn tìm theo username, chúng ta sẽ cần dùng $lookup (aggregate).
 
     const total = await AccountsHistory.countDocuments(filter);
-    const histories = await AccountsHistory.find(filter)
-      .populate("userId", "username -_id")
-      .populate("accountId", "username -_id")
-      .populate("categoriesId", "name -_id")
-      .select("-__v -_id")
+    const transaction = await AccountsHistory.find(filter)
+      .populate("userId", "username")
+      .populate("accountId", "username")
+      .populate("categoriesId", "name")
+      .select("-_id -__v")
       .sort({ createdAt: -1 })
-      .skip((Number(page) - 1) * Number(limit))
-      .limit(Number(limit));
+      .skip(skip)
+      .limit(limit);
 
-    // Phẳng hóa dữ liệu: Đưa giá trị bên trong ra ngoài
-    const cleanedData = histories.map((item) => {
-      const obj = item.toObject();
+    const formattedTransaction = transaction.map((item) => {
+      const doc = item.toObject();
       return {
-        ...obj,
-        buyerName: obj.userId?.username, // Tên người mua
-        gameUsername: obj.accountId?.username, // Tên nick game
-        categoryName: obj.categoriesId?.name, // Tên danh mục
-        userId: undefined, // Xóa đối tượng cũ
+        ...doc,
+        userName: doc.userId?.username || "N/A",
+        accountName: doc.accountId?.username || "N/A",
+        categoryName: doc.categoriesId?.name || "N/A",
+        userId: undefined,
         accountId: undefined,
         categoriesId: undefined,
       };
@@ -113,12 +144,12 @@ export const readAccountsBoughtHistoryAdmin = async (req, res) => {
 
     return res.status(200).json({
       message: "Lấy lịch sử mua tài khoản thành công",
-      data: cleanedData,
+      data: formattedTransaction,
       pagination: {
         total,
-        page: Number(page),
-        limit: Number(limit),
-        totalPages: Math.ceil(total / Number(limit)),
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        limit,
       },
     });
   } catch (error) {
@@ -130,31 +161,75 @@ export const readAccountsBoughtHistoryAdmin = async (req, res) => {
 // Lịch sử mua random account (Admin)
 export const readRandomAccountsBoughtHistoryAdmin = async (req, res) => {
   try {
-    const { search, page = 1, limit = 10 } = req.query;
-    const filter = {};
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const skip = (page - 1) * limit;
 
-    if (search && !isNaN(search)) {
-      filter.historyRandomAccountsId = Number(search);
+    let filter = {};
+
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+
+      // Tìm các User, Accounts, Categories khớp
+      const [users, accounts, categories] = await Promise.all([
+        import("../models/User.js").then((m) =>
+          m.default.find({ username: searchRegex }).select("_id"),
+        ),
+        import("../models/RandomAccounts.js").then((m) =>
+          m.default.find({ username: searchRegex }).select("_id"),
+        ),
+        import("../models/RandomCategories.js").then((m) =>
+          m.default.find({ name: searchRegex }).select("_id"),
+        ),
+      ]);
+
+      filter.$or = [
+        { userId: { $in: users.map((u) => u._id) } },
+        { accountId: { $in: accounts.map((a) => a._id) } },
+        { categoriesId: { $in: categories.map((c) => c._id) } },
+      ];
+
+      // Ánh xạ từ tiếng Việt sang database cho field tier
+      const lowerSearch = search.toLowerCase();
+      if ("thường".includes(lowerSearch) || "thuong".includes(lowerSearch)) {
+        filter.$or.push({ tier: "thuong" });
+      }
+      if ("ngon".includes(lowerSearch)) {
+        filter.$or.push({ tier: "ngon" });
+      }
+      if (
+        "siêu phẩm".includes(lowerSearch) ||
+        "sieu pham".includes(lowerSearch) ||
+        "siêu".includes(lowerSearch)
+      ) {
+        filter.$or.push({ tier: "sieuPham" });
+      }
+
+      if (!isNaN(search)) {
+        const num = parseInt(search);
+        filter.$or.push({ historyRandomAccountsId: num });
+        filter.$or.push({ price: num }); // Thêm tìm kiếm theo giá
+      }
     }
 
     const total = await RandomAccountsHistory.countDocuments(filter);
-    const histories = await RandomAccountsHistory.find(filter)
-      .populate("userId", "username -_id")
-      .populate("accountId", "username -_id")
-      .populate("categoriesId", "name -_id")
-      .select("-__v -_id")
+    const transaction = await RandomAccountsHistory.find(filter)
+      .populate("userId", "username")
+      .populate("accountId", "username")
+      .populate("categoriesId", "name")
+      .select("-_id -__v")
       .sort({ createdAt: -1 })
-      .skip((Number(page) - 1) * Number(limit))
-      .limit(Number(limit));
+      .skip(skip)
+      .limit(limit);
 
-    const cleanedData = histories.map((item) => {
-      const obj = item.toObject();
+    const formattedTransaction = transaction.map((item) => {
+      const doc = item.toObject();
       return {
-        ...obj,
-        historyAccountId: obj.historyRandomAccountsId, // Map to match frontend
-        buyerName: obj.userId?.username,
-        gameUsername: obj.accountId?.username,
-        categoryName: obj.categoriesId?.name,
+        ...doc,
+        userName: doc.userId?.username || "N/A",
+        accountName: doc.accountId?.username || "N/A",
+        categoryName: doc.categoriesId?.name || "N/A",
         userId: undefined,
         accountId: undefined,
         categoriesId: undefined,
@@ -162,17 +237,233 @@ export const readRandomAccountsBoughtHistoryAdmin = async (req, res) => {
     });
 
     return res.status(200).json({
-      message: "Lấy lịch sử mua random account thành công",
-      data: cleanedData,
+      message: "Lấy lịch sử mua tài khoản thành công",
+      data: formattedTransaction,
       pagination: {
         total,
-        page: Number(page),
-        limit: Number(limit),
-        totalPages: Math.ceil(total / Number(limit)),
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        limit,
       },
     });
   } catch (error) {
     console.error("Lỗi khi gọi readRandomAccountsBoughtHistoryAdmin", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+// Lịch sử chuyển khoản ngân hàng
+export const readBankAccountsHistory = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const skip = (page - 1) * limit;
+
+    let filter = {};
+
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+
+      const [users] = await Promise.all([
+        import("../models/User.js").then((m) =>
+          m.default.find({ username: searchRegex }).select("_id"),
+        ),
+      ]);
+
+      filter.$or = [
+        { transaction_id: searchRegex },
+        { content: searchRegex },
+        { depositor: { $in: users.map((u) => u._id) } },
+      ];
+
+      if (!isNaN(search)) {
+        const num = parseInt(search);
+        filter.$or.push({ bankAccountsHistoryId: num });
+        filter.$or.push({ amount: num });
+      }
+    }
+
+    const total = await BankAccountsHistory.countDocuments(filter);
+    const transaction = await BankAccountsHistory.find(filter)
+      .populate("depositor", "username")
+      .select("-_id -__v -updatedAt")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const formattedTransaction = transaction.map((item) => {
+      const doc = item.toObject();
+      return {
+        ...doc,
+        userName: doc.depositor?.username || "N/A",
+        depositor: undefined,
+      };
+    });
+
+    return res.status(200).json({
+      message: "Lấy lịch sử chuyển khoản thành công",
+      data: formattedTransaction,
+      pagination: {
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        limit,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi readBankAccountsHistory", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+// Lịch sử nạp thẻ cào
+export const readCardTopUpHistory = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const skip = (page - 1) * limit;
+
+    let filter = {};
+
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+
+      const [users] = await Promise.all([
+        import("../models/User.js").then((m) =>
+          m.default.find({ username: searchRegex }).select("_id"),
+        ),
+      ]);
+
+      filter.$or = [
+        { content: searchRegex },
+        { userId: { $in: users.map((u) => u._id) } },
+      ];
+
+      if (!isNaN(search)) {
+        const num = parseInt(search);
+        filter.$or.push({ cardTopUpHistoryId: num });
+        filter.$or.push({ amount: num });
+      }
+    }
+
+    const total = await CardTopUpHistory.countDocuments(filter);
+    const transaction = await CardTopUpHistory.find(filter)
+      .populate("userId", "username")
+      .select("-_id -__v -updatedAt")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const formattedTransaction = transaction.map((item) => {
+      const doc = item.toObject();
+      return {
+        ...doc,
+        userName: doc.userId?.username || "N/A",
+        userId: undefined,
+      };
+    });
+
+    return res.status(200).json({
+      message: "Lấy lịch sử nạp thẻ thành công",
+      data: formattedTransaction,
+      pagination: {
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        limit,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi readCardTopUpHistory", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
+  }
+};
+
+// Lịch sử sử dụng mã giảm giá
+export const readDiscountCodeHistory = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const skip = (page - 1) * limit;
+
+    let filter = {};
+
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+
+      // Tìm User sử dụng mã
+      const Users = await import("../models/User.js").then((m) =>
+        m.default.find({ username: searchRegex }).select("_id"),
+      );
+
+      filter.$or = [
+        { code: searchRegex },
+        { user: { $in: Users.map((u) => u._id) } },
+      ];
+
+      // Ánh xạ từ tiếng Việt sang database cho field type (Loại mã) và applyFor (Áp dụng cho)
+      const lowerSearch = search.toLowerCase();
+      
+      // Mapping Type
+      if ("phần trăm".includes(lowerSearch) || "phan tram".includes(lowerSearch)) {
+        filter.$or.push({ type: "percent" });
+      }
+      if ("cố định".includes(lowerSearch) || "co dinh".includes(lowerSearch)) {
+        filter.$or.push({ type: "fixed" });
+      }
+
+      // Mapping ApplyFor
+      if ("tất cả".includes(lowerSearch) || "tat ca".includes(lowerSearch)) {
+        filter.$or.push({ applyFor: "all" });
+      }
+      if ("tài khoản".includes(lowerSearch) || "tai khoan".includes(lowerSearch)) {
+        filter.$or.push({ applyFor: "account" });
+      }
+      if ("random".includes(lowerSearch)) {
+        filter.$or.push({ applyFor: "random" });
+      }
+
+      if (!isNaN(search)) {
+        const num = parseInt(search);
+        filter.$or.push({ discountCodeHistoryId: num });
+        filter.$or.push({ discountAmount: num });
+        filter.$or.push({ originalPrice: num });
+        filter.$or.push({ finalPrice: num });
+      }
+    }
+
+    const total = await DiscountCodeHistory.countDocuments(filter);
+    const transaction = await DiscountCodeHistory.find(filter)
+      .populate("user", "username")
+      .select("-_id -__v -updatedAt")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const formattedTransaction = transaction.map((item) => {
+      const doc = item.toObject();
+      return {
+        ...doc,
+        userName: doc.user?.username || "N/A",
+        user: undefined,
+      };
+    });
+
+    return res.status(200).json({
+      message: "Lấy lịch sử mã giảm giá thành công",
+      data: formattedTransaction,
+      pagination: {
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        limit,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi khi gọi readDiscountCodeHistory", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };

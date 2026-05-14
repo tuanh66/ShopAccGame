@@ -2,28 +2,53 @@ import api from "../lib/axios";
 
 export const historyService = {
   // Admin
+  // Lịch sử giao dịch
+  readUserTransactionHistoryAdmin: async (
+    page = 1,
+    limit = 10,
+    search = "",
+  ) => {
+    const res = await api.get(
+      `/history/admin/transaction-history?page=${page}&limit=${limit}&search=${search}`,
+    );
+    return res.data;
+  },
+  // Lịch sử mua tài khoản
+  readAccountsBoughtHistoryAdmin: async (page = 1, limit = 10, search = "") => {
+    const res = await api.get(
+      `/history/admin/accounts-bought?page=${page}&limit=${limit}&search=${search}`,
+    );
+    return res.data;
+  },
+  // Lịch sử mua random
+  readRandomAccountsBoughtHistoryAdmin: async (
+    page = 1,
+    limit = 10,
+    search = "",
+  ) => {
+    const res = await api.get(
+      `/history/admin/random-accounts-bought?page=${page}&limit=${limit}&search=${search}`,
+    );
+    return res.data;
+  },
   // Lịch sử chuyển khoản
-  bankAccountsHistory: async () => {
-    const res = await api.get("/history/admin/bank-accounts");
+  bankAccountsHistory: async (page = 1, limit = 10, search = "") => {
+    const res = await api.get(
+      `/history/admin/bank-accounts?page=${page}&limit=${limit}&search=${search}`,
+    );
     return res.data;
   },
   // Lịch sử nạp thẻ
-  cardTopUpHistory: async () => {
-    const res = await api.get("/history/admin/card-top-up");
+  cardTopUpHistory: async (page = 1, limit = 10, search = "") => {
+    const res = await api.get(
+      `/history/admin/card-top-up?page=${page}&limit=${limit}&search=${search}`,
+    );
     return res.data;
   },
   // Lịch sử mã giảm giá
-  discountCodeHistory: async () => {
-    const res = await api.get("/history/admin/discount-code");
-    return res.data;
-  },
-  readAccountsBoughtHistoryAdmin: async () => {
-    const res = await api.get("/history/admin/accounts-bought");
-    return res.data;
-  },
-  readRandomAccountsBoughtHistoryAdmin: async (search = "") => {
+  discountCodeHistory: async (page = 1, limit = 10, search = "") => {
     const res = await api.get(
-      `/history/admin/random-accounts-bought?search=${search}`,
+      `/history/admin/discount-code?page=${page}&limit=${limit}&search=${search}`,
     );
     return res.data;
   },

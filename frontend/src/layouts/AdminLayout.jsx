@@ -464,6 +464,18 @@ const AdminLayout = () => {
                   >
                     <li>
                       <Link
+                        to="/admin/history/transactions"
+                        className={
+                          location.pathname === "/admin/history/transactions"
+                            ? "active"
+                            : ""
+                        }
+                      >
+                        Lịch sử giao dịch
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
                         to="/admin/history/accounts"
                         className={
                           location.pathname === "/admin/history/accounts"

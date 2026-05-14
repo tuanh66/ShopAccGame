@@ -140,8 +140,21 @@ export const readAccounts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || "";
+    const skip = (page - 1) * limit;
     const slugCategory = req.params.slugCategories;
-    const filter = {};
+    let filter = {};
+
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+      filter.$or = [{ username: searchRegex }];
+
+      if (!isNaN(search)) {
+        const num = parseInt(search);
+        filter.$or.push({ accountsId: num });
+        filter.$or.push({ price: num });
+        filter.$or.push({ price_sale: num });
+      }
+    }
 
     if (slugCategory) {
       const category = await Categories.findOne({
@@ -153,25 +166,36 @@ export const readAccounts = async (req, res) => {
       filter.categories_id = category._id;
     }
 
-    if (search) {
-      filter.username = { $regex: search, $options: "i" };
-    }
-
     const total = await Accounts.countDocuments(filter);
-
     const accounts = await Accounts.find(filter)
-      .select("-__v -_id -password -categories_id -image ")
+      .select("-__v -_id -password -categories_id -buyer -image -attributes -updatedAt")
       .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
+      .skip(skip)
       .limit(limit);
+
+    const formattedAccounts = accounts.map((item) => {
+      const doc = item.toObject();
+      const final_price = doc.price_sale > 0 ? doc.price_sale : doc.price;
+      return {
+        ...doc,
+        final_price,
+        price: undefined,
+        price_sale: undefined,
+      };
+    });
 
     return res.status(200).json({
       message: "Lấy danh sách account thành công",
-
-      data: accounts,
+      data: formattedAccounts,
+      pagination: {
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        limit,
+      },
     });
   } catch (error) {
-    console.error("Lỗi khi gọi readAccountDetail", error);
+    console.error("Lỗi khi gọi readAccounts", error);
     return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };

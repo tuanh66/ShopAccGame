@@ -1,7 +1,14 @@
 import mongoose from "mongoose";
+import AutoIncrementFactory from "mongoose-sequence";
+
+const AutoIncrement = AutoIncrementFactory(mongoose);
 
 const categoriesSchema = new mongoose.Schema(
   {
+    categoriesId: {
+      type: Number,
+      unique: true,
+    },
     name: {
       type: String,
       required: true,
@@ -27,5 +34,8 @@ const categoriesSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+categoriesSchema.plugin(AutoIncrement, {
+  inc_field: "categoriesId",
+});
 const Categories = mongoose.model("Categories", categoriesSchema);
 export default Categories;
