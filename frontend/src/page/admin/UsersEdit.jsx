@@ -4,6 +4,7 @@ import { useParams, Link } from "react-router-dom";
 import search from "../../assets/svg/search.svg";
 import { userService } from "../../service/userService";
 import { formatCurrency, formatDate } from "@/utils/format";
+import PriceInput from "@/components/common/PriceInput";
 
 const UsersEdit = () => {
   const { userId } = useParams();
@@ -68,23 +69,6 @@ const UsersEdit = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Các field chỉ cho nhập số
-    const numberFields = ["maxBalance", "balance"];
-
-    if (numberFields.includes(name)) {
-      // bỏ dấu phẩy
-      const rawValue = value.replace(/,/g, "");
-
-      // chỉ cho nhập số
-      if (!/^\d*$/.test(rawValue)) return;
-
-      setUserUpdate((prev) => ({
-        ...prev,
-        [name]: rawValue,
-      }));
-
-      return;
-    }
 
     if (name === "status") {
       setUserUpdate((prev) => ({
@@ -196,15 +180,11 @@ const UsersEdit = () => {
                   Số dư
                   <span>*</span>
                 </label>
-                <input
-                  type="text"
+                <PriceInput
                   name="balance"
                   id="balance"
                   className="input-form"
-                  placeholder="Nhập số tiền"
-                  value={Number(userUpdate.balance || 0).toLocaleString(
-                    "en-US",
-                  )}
+                  value={Number(userUpdate.balance || 0)}
                   onChange={handleChange}
                 />
               </div>
@@ -213,15 +193,11 @@ const UsersEdit = () => {
                   Tổng nạp
                   <span>*</span>
                 </label>
-                <input
-                  type="text"
+                <PriceInput
                   name="maxBalance"
                   id="maxBalance"
                   className="input-form"
-                  placeholder="Nhập tổng nạp"
-                  value={Number(userUpdate.maxBalance || 0).toLocaleString(
-                    "en-US",
-                  )}
+                  value={Number(userUpdate.maxBalance || 0)}
                   onChange={handleChange}
                   readOnly
                 />
@@ -308,9 +284,7 @@ const UsersEdit = () => {
                       <td>{formatCurrency(item.balance_before)}</td>
                       <td>{formatCurrency(item.balance_after)}</td>
                       <td>{item.description}</td>
-                      <td>
-                        {formatDate(item.createdAt)}
-                      </td>
+                      <td>{formatDate(item.createdAt)}</td>
                     </tr>
                   ))
                 ) : (

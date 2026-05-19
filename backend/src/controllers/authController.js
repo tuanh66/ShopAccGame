@@ -5,6 +5,7 @@ import { validationResult } from "express-validator";
 import User from "../models/User.js";
 import Session from "../models/Session.js";
 
+
 // Đã bỏ loadFont vì chuyển sang dùng font hệ thống mặc định siêu nét
 
 const ACCESS_TOKEN_TTL = "30m";
@@ -94,10 +95,11 @@ export const signIn = async (req, res) => {
     });
 
     //  trả refresh về trong cookie
+    const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: isSecure || process.env.NODE_ENV === "production",
+      sameSite: (isSecure || process.env.NODE_ENV === "production") ? "none" : "lax",
       maxAge: REFRESH_TOKEN_TTL,
     });
 
@@ -195,5 +197,51 @@ export const getCaptcha = async (req, res) => {
   } catch (error) {
     console.error("Lỗi khi gọi getCaptcha:", error);
     return res.status(500).json({ message: "Lỗi hệ thống khi sinh captcha" });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+
+    // 1. Validate inputs
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      return res
+        .status(400)
+        .json({ message: "Vui lòng nhập đầy đủ thông tin" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "Mật khẩu mới không khớp" });
+    }
+
+    if (newPassword.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Mật khẩu mới phải có ít nhất 6 ký tự" });
+    }
+
+    // 2. Tìm user (lấy cả password để so sánh)
+    const user = await User.findById(req.user._id).select("+password");
+
+    if (!user) {
+      return res.status(404).json({ message: "Người dùng không tồn tại" });
+    }
+
+    // 3. Kiểm tra mật khẩu cũ
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Mật khẩu cũ không chính xác" });
+    }
+
+    // 4. Hash mật khẩu mới và lưu
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({ message: "Đổi mật khẩu thành công" });
+  } catch (error) {
+    console.error("Lỗi khi gọi changePassword:", error);
+    return res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };

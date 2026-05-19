@@ -1,13 +1,15 @@
 import express from "express";
 import { loginLimiter } from "../middlewares/limiterMiddleware.js";
 import { validateRequest } from "../middlewares/validateRequest.js";
+import { protectedRoute } from "../middlewares/authMiddleware.js";
 import { signUpValidator } from "../validators/signUp.validator.js";
 import {
   signUp,
-  signIn,
   signOut,
+  signIn,
   refreshToken,
   getCaptcha,
+  changePassword,
 } from "../controllers/authController.js";
 
 const router = express.Router();
@@ -17,6 +19,6 @@ router.post("/signin", validateRequest, signIn);
 router.post("/signout", signOut);
 router.post("/refresh", refreshToken);
 router.get("/captcha", getCaptcha);
-
+router.post("/change-password", protectedRoute, changePassword);
 
 export default router;

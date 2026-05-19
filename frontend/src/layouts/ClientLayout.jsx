@@ -3,6 +3,7 @@ import { Link, Outlet } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import useLogin from "../hook/auth/useLogin";
 import useRegister from "../hook/auth/useRegister";
+import { loginConfigService } from "../service/loginConfigService";
 import {
   FaFacebookF,
   FaYoutube,
@@ -41,6 +42,19 @@ import paypal from "../assets/svg/paypal.svg";
 import visa from "../assets/svg/visa.svg";
 
 const ClientLayout = () => {
+  const [loginConfig, setLoginConfig] = useState(null);
+  useEffect(() => {
+    const fetchLoginConfig = async () => {
+      try {
+        const data = await loginConfigService.getPublicLoginConfig();
+        setLoginConfig(data);
+      } catch (error) {
+        console.error("Lỗi khi lấy cấu hình đăng nhập", error);
+      }
+    };
+    fetchLoginConfig();
+  }, []);
+
   // Xử lý mở tắt modal
   const showModalLogin = useAuthStore((s) => s.showLoginModal);
   const setShowModalLogin = useAuthStore((s) => s.setShowLoginModal);
@@ -299,87 +313,91 @@ const ClientLayout = () => {
                                 </p>
                               </div>
                               <div className="input-group mt-12">
-                                <input
-                                  type={
-                                    showPasswordRegister ? "text" : "password"
-                                  }
-                                  name="password"
-                                  className={`modal-input-password pr-32 ${registerErrors.password ? "input-error" : ""}`}
-                                  placeholder="Nhập mật khẩu"
-                                  value={regPassword}
-                                  onChange={(e) => {
-                                    setRegPassword(e.target.value);
-                                    if (registerErrors.password) {
-                                      setRegisterErrors((prev) => ({
-                                        ...prev,
-                                        password: "",
-                                      }));
+                                <div className="w-100 relative">
+                                  <input
+                                    type={
+                                      showPasswordRegister ? "text" : "password"
                                     }
-                                  }}
-                                  onBlur={() =>
-                                    validateRegisterField(
-                                      "password",
-                                      regPassword,
-                                    )
-                                  }
-                                />
-                                {showPasswordRegister ? (
-                                  <FaRegEye
-                                    onClick={() =>
-                                      setShowPasswordRegister(false)
+                                    name="password"
+                                    className={`modal-input-password pr-32 ${registerErrors.password ? "input-error" : ""}`}
+                                    placeholder="Nhập mật khẩu"
+                                    value={regPassword}
+                                    onChange={(e) => {
+                                      setRegPassword(e.target.value);
+                                      if (registerErrors.password) {
+                                        setRegisterErrors((prev) => ({
+                                          ...prev,
+                                          password: "",
+                                        }));
+                                      }
+                                    }}
+                                    onBlur={() =>
+                                      validateRegisterField(
+                                        "password",
+                                        regPassword,
+                                      )
                                     }
                                   />
-                                ) : (
-                                  <FaRegEyeSlash
-                                    onClick={() =>
-                                      setShowPasswordRegister(true)
-                                    }
-                                  />
-                                )}
+                                  {showPasswordRegister ? (
+                                    <FaRegEye
+                                      onClick={() =>
+                                        setShowPasswordRegister(false)
+                                      }
+                                    />
+                                  ) : (
+                                    <FaRegEyeSlash
+                                      onClick={() =>
+                                        setShowPasswordRegister(true)
+                                      }
+                                    />
+                                  )}
+                                </div>
                                 <p className="form-message-error">
                                   {registerErrors.password}
                                 </p>
                               </div>
                               <div className="input-group mt-12">
-                                <input
-                                  type={
-                                    showPasswordRegisterConfirm
-                                      ? "text"
-                                      : "password"
-                                  }
-                                  name="password_confirm"
-                                  className={`modal-input-password pr-32 ${registerErrors.password_confirm ? "input-error" : ""}`}
-                                  placeholder="Nhập lại mật khẩu"
-                                  value={regPasswordConfirm}
-                                  onChange={(e) => {
-                                    setRegPasswordConfirm(e.target.value);
-                                    if (registerErrors.password_confirm) {
-                                      setRegisterErrors((prev) => ({
-                                        ...prev,
-                                        password_confirm: "",
-                                      }));
+                                <div className="w-100 relative">
+                                  <input
+                                    type={
+                                      showPasswordRegisterConfirm
+                                        ? "text"
+                                        : "password"
                                     }
-                                  }}
-                                  onBlur={() =>
-                                    validateRegisterField(
-                                      "password_confirm",
-                                      regPasswordConfirm,
-                                    )
-                                  }
-                                />
-                                {showPasswordRegisterConfirm ? (
-                                  <FaRegEye
-                                    onClick={() =>
-                                      setShowPasswordRegisterConfirm(false)
+                                    name="password_confirm"
+                                    className={`modal-input-password pr-32 ${registerErrors.password_confirm ? "input-error" : ""}`}
+                                    placeholder="Nhập lại mật khẩu"
+                                    value={regPasswordConfirm}
+                                    onChange={(e) => {
+                                      setRegPasswordConfirm(e.target.value);
+                                      if (registerErrors.password_confirm) {
+                                        setRegisterErrors((prev) => ({
+                                          ...prev,
+                                          password_confirm: "",
+                                        }));
+                                      }
+                                    }}
+                                    onBlur={() =>
+                                      validateRegisterField(
+                                        "password_confirm",
+                                        regPasswordConfirm,
+                                      )
                                     }
                                   />
-                                ) : (
-                                  <FaRegEyeSlash
-                                    onClick={() =>
-                                      setShowPasswordRegisterConfirm(true)
-                                    }
-                                  />
-                                )}
+                                  {showPasswordRegisterConfirm ? (
+                                    <FaRegEye
+                                      onClick={() =>
+                                        setShowPasswordRegisterConfirm(false)
+                                      }
+                                    />
+                                  ) : (
+                                    <FaRegEyeSlash
+                                      onClick={() =>
+                                        setShowPasswordRegisterConfirm(true)
+                                      }
+                                    />
+                                  )}
+                                </div>
                                 <p className="form-message-error">
                                   {registerErrors.password_confirm}
                                 </p>
@@ -442,36 +460,38 @@ const ClientLayout = () => {
                                 </p>
                               </div>
                               <div className="input-group mt-12">
-                                <input
-                                  type={showPassword ? "text" : "password"}
-                                  name="password"
-                                  placeholder="Nhập mật khẩu"
-                                  className={`modal-input-password pr-32 ${
-                                    loginErrors.password ? "input-error" : ""
-                                  }`}
-                                  value={password}
-                                  onChange={(e) => {
-                                    setPassword(e.target.value);
-                                    if (loginErrors.password) {
-                                      setLoginErrors((prev) => ({
-                                        ...prev,
-                                        password: "",
-                                      }));
+                                <div className="w-100 relative">
+                                  <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="password"
+                                    placeholder="Nhập mật khẩu"
+                                    className={`modal-input-password pr-32 ${
+                                      loginErrors.password ? "input-error" : ""
+                                    }`}
+                                    value={password}
+                                    onChange={(e) => {
+                                      setPassword(e.target.value);
+                                      if (loginErrors.password) {
+                                        setLoginErrors((prev) => ({
+                                          ...prev,
+                                          password: "",
+                                        }));
+                                      }
+                                    }}
+                                    onBlur={() =>
+                                      validateLoginField("password", password)
                                     }
-                                  }}
-                                  onBlur={() =>
-                                    validateLoginField("password", password)
-                                  }
-                                />
-                                {showPassword ? (
-                                  <FaRegEye
-                                    onClick={() => setShowPassword(false)}
                                   />
-                                ) : (
-                                  <FaRegEyeSlash
-                                    onClick={() => setShowPassword(true)}
-                                  />
-                                )}
+                                  {showPassword ? (
+                                    <FaRegEye
+                                      onClick={() => setShowPassword(false)}
+                                    />
+                                  ) : (
+                                    <FaRegEyeSlash
+                                      onClick={() => setShowPassword(true)}
+                                    />
+                                  )}
+                                </div>
                                 <p className="form-message-error">
                                   {loginErrors.password}
                                 </p>
@@ -485,27 +505,41 @@ const ClientLayout = () => {
                               <span className="login-via mt-24 fz-13 fw-400 relative">
                                 Hoặc đăng nhập qua
                               </span>
-                              <div className="d-flex justify-content-center ">
-                                <div className="social-container mt-24">
-                                  <Link to="#">
-                                    <img src={facebook} alt="login-facebook" />
-                                  </Link>
-                                </div>
-                                <div className="social-container mt-24">
-                                  <Link to="#">
-                                    <img src={googole} alt="login-facebook" />
-                                  </Link>
-                                </div>
-                                <div className="social-container mt-24">
-                                  <Link to="#">
-                                    <img src={discord} alt="login-facebook" />
-                                  </Link>
-                                </div>
-                                <div className="social-container mt-24">
-                                  <Link to="#">
-                                    <img src={zalo} alt="login-facebook" />
-                                  </Link>
-                                </div>
+                              <div className="d-flex justify-content-center">
+                                {loginConfig?.facebookActive && (
+                                  <div className="social-container mt-24">
+                                    <Link to={`${import.meta.env.VITE_API_URL}/login-config/facebook`}>
+                                      <img
+                                        src={facebook}
+                                        alt="login-facebook"
+                                      />
+                                    </Link>
+                                  </div>
+                                )}
+                                {loginConfig?.googleActive && (
+                                  <div className="social-container mt-24">
+                                    <Link to={`${import.meta.env.VITE_API_URL}/login-config/google`}>
+                                      <img src={googole} alt="login-google" />
+                                    </Link>
+                                  </div>
+                                )}
+                                {loginConfig?.discordActive && (
+                                  <div className="social-container mt-24">
+                                    <Link to={`${import.meta.env.VITE_API_URL}/login-config/discord`}>
+                                      <img
+                                        src={discord}
+                                        alt="login-discord"
+                                      />
+                                    </Link>
+                                  </div>
+                                )}
+                                {loginConfig?.zaloActive && (
+                                  <div className="social-container mt-24">
+                                    <Link to={`${import.meta.env.VITE_API_URL}/login-config/zalo`}>
+                                      <img src={zalo} alt="login-zalo" />
+                                    </Link>
+                                  </div>
+                                )}
                               </div>
                             </form>
                           </div>

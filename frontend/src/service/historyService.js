@@ -7,9 +7,10 @@ export const historyService = {
     page = 1,
     limit = 10,
     search = "",
+    today = false,
   ) => {
     const res = await api.get(
-      `/history/admin/transaction-history?page=${page}&limit=${limit}&search=${search}`,
+      `/history/admin/transaction-history?page=${page}&limit=${limit}&search=${search}&today=${today}`,
     );
     return res.data;
   },

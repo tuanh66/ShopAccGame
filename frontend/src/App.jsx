@@ -17,6 +17,7 @@ import ChitietAccount from "./page/client/ChitietAccount";
 import DaXem from "./page/client/DaXem";
 import NapTien from "./page/client/NapTien";
 import NotFound from "./page/NotFound";
+import LoginSuccess from "./page/client/LoginSuccess";
 // import profile
 import ProfileLayout from "./layouts/ProfileLayout";
 import ThongTin from "./page/profile/ThongTin";
@@ -53,6 +54,7 @@ import DiscountCode from "./page/admin/DiscountCode";
 import DiscountCodeCreate from "./page/admin/DiscountCodeCreate";
 import DiscountCodeEdit from "./page/admin/DiscountCodeEdit";
 import DiscountCodeHistory from "./page/admin/DiscountCodeHistory";
+import LoginConfiguration from "./page/admin/LoginConfiguration";
 
 function App() {
   const authLoading = useAuthStore((s) => s.loading);
@@ -90,6 +92,7 @@ function App() {
             </Route>
             <Route path="nap-tien" element={<NapTien />} />
             <Route path="da-xem" element={<DaXem />} />
+            <Route path="login-success" element={<LoginSuccess />} />
             <Route path="404" element={<NotFound />} />
           </Route>
           {/* Admin */}
@@ -151,6 +154,9 @@ function App() {
                 <Route path="bank-accounts" element={<BankAccountsHistory />} />
                 <Route path="card-top-up" element={<CardTopUpHistory />} />
                 <Route path="discount-code" element={<DiscountCodeHistory />} />
+              </Route>
+              <Route path="settings">
+                <Route path="login" element={<LoginConfiguration />} />
               </Route>
             </Route>
           </Route>

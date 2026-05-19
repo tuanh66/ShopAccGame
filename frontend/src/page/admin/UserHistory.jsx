@@ -10,6 +10,7 @@ const UserHistory = () => {
   const [histories, setHistories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [todayOnly, setTodayOnly] = useState(true);
 
   const transactionType = {
     bankAccount: {
@@ -42,13 +43,19 @@ const UserHistory = () => {
     limit: 10,
   });
 
-  const fetchHistories = async (page = 1, limit = 10, search = "") => {
+  const fetchHistories = async (
+    page = 1,
+    limit = 10,
+    search = "",
+    today = todayOnly,
+  ) => {
     setLoading(true);
     try {
       const res = await historyService.readUserTransactionHistoryAdmin(
         page,
         limit,
         search,
+        today,
       );
       setHistories(res.data);
       if (res.pagination) {
@@ -65,11 +72,16 @@ const UserHistory = () => {
   useEffect(() => {
     // Thêm debounce nhẹ cho tìm kiếm để tránh gọi API quá nhiều
     const timer = setTimeout(() => {
-      fetchHistories(pagination.currentPage, pagination.limit, searchTerm);
+      fetchHistories(
+        pagination.currentPage,
+        pagination.limit,
+        searchTerm,
+        todayOnly,
+      );
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [pagination.currentPage, pagination.limit, searchTerm]);
+  }, [pagination.currentPage, pagination.limit, searchTerm, todayOnly]);
 
   // Xử lý đổi trang
   const handlePageChange = (page) => {
@@ -101,18 +113,40 @@ const UserHistory = () => {
       </div>
       <div className="card">
         <div className="card-body">
-          <div
-            className="mobi-search"
-            style={{ width: "200px", marginBottom: "25px" }}
-          >
-            <img src={search} alt="search" />
-            <input
-              type="text"
-              className="search-form-input"
-              placeholder="Tìm kiếm"
-              value={searchTerm}
-              onChange={handleSearchChange}
-            />
+          <div className="d-flex justify-content-between align-items-center mb-25 flex-wrap gap-3">
+            <div className="mobi-search" style={{ width: "250px" }}>
+              <img src={search} alt="search" />
+              <input
+                type="text"
+                className="search-form-input"
+                placeholder="Tìm kiếm..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+              />
+            </div>
+
+            <div className="btn-group" role="group" aria-label="Date Filter">
+              <button
+                type="button"
+                className={`btn ${todayOnly ? "primary text-white fw-600" : "btn-light text-dark fw-600 border"}`}
+                onClick={() => {
+                  setTodayOnly(true);
+                  setPagination((prev) => ({ ...prev, currentPage: 1 }));
+                }}
+              >
+                Hôm nay
+              </button>
+              <button
+                type="button"
+                className={`btn ${!todayOnly ? "primary text-white fw-600" : "btn-light text-dark fw-600 border"}`}
+                onClick={() => {
+                  setTodayOnly(false);
+                  setPagination((prev) => ({ ...prev, currentPage: 1 }));
+                }}
+              >
+                Tất cả lịch sử
+              </button>
+            </div>
           </div>
           <div className="table-responsive">
             <table className="table">

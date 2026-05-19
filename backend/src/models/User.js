@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: false, // Để trống nếu đăng nhập qua Google/FB
       minlength: 6,
     },
     role: {
@@ -31,7 +31,29 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
+      unique: true, // Email không được trùng
       trim: true,
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationToken: String,
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
+    provider: {
+      type: String,
+      enum: ["local", "google", "facebook", "discord", "zalo"],
+      default: "local",
+    },
+    providerId: {
+      type: String,
+      unique: true,
+      sparse: true, // Cho phép null nhưng nếu có giá trị thì phải unique
+    },
+    avatar: {
+      type: String,
+      default: "",
     },
     balance: {
       type: Number,

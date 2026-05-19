@@ -9,6 +9,7 @@ import historyRoute from "./routers/historyRoute.js";
 import paymentRoute from "./routers/paymentRoute.js";
 import discountCodeRoute from "./routers/discountCodeRoute.js";
 import dashboardRoute from "./routers/dashboardRoute.js";
+import loginConfigRoute from "./routers/loginConfigRoute.js";
 import cookieParser from "cookie-parser";
 // import { protectedRoute } from "./middlewares/authMiddleware.js";
 import cors from "cors";
@@ -31,6 +32,7 @@ app.use("/api/accounts", accountsRoute);
 app.use("/api/payment", paymentRoute);
 app.use("/api/discount-code", discountCodeRoute);
 app.use("/api/dashboard", dashboardRoute);
+app.use("/api/login-config", loginConfigRoute);
 
 // private routes
 // app.use(protectedRoute);

@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../../store/useAuthStore";
+import { formatCurrency, formatDate } from "../../utils/format";
 import search from "../../assets/svg/search.svg";
 import icon_edit from "../../assets/svg/edit.svg";
 import icon_delete from "../../assets/svg/delete.svg";
@@ -106,7 +107,7 @@ const Users = () => {
                 </tr>
               </thead>
               <tbody>
-                {user.map((item, index) => (
+                {user.map((item) => (
                   <tr key={item._id}>
                     <td>{item.userId}</td>
                     <td>{item.username}</td>
@@ -122,8 +123,8 @@ const Users = () => {
                         {item.role}
                       </span>
                     </td>
-                    <td>{Number(item.balance).toLocaleString("en-US")}đ</td>
-                    <td>{item.maxBalance}đ</td>
+                    <td>{formatCurrency(item.balance)}</td>
+                    <td>{formatCurrency(item.maxBalance)}</td>
                     <td>
                       <span
                         className={`badges ${item.status ? "status-success" : "status-error"}`}
@@ -132,13 +133,7 @@ const Users = () => {
                       </span>
                     </td>
                     <td>{item.lastIp}</td>
-                    <td>
-                      {new Date(item.createdAt).toLocaleDateString("vi-VN", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
-                    </td>
+                    <td>{formatDate(item.createdAt)}</td>
                     <td className="align-middle text-center">
                       <div className="d-flex justify-content-center align-items-center">
                         <Link to={`edit/${item.userId}`}>

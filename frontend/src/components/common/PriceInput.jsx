@@ -8,6 +8,7 @@ const PriceInput = ({
   placeholder,
   className,
   required,
+  ...props
 }) => {
   // Format number with dots (e.g., 20000 -> 20.000)
   const formatValue = (val) => {
@@ -40,6 +41,7 @@ const PriceInput = ({
       value={formatValue(value)}
       onChange={handleChange}
       required={required}
+      {...props}
     />
   );
 };

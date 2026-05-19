@@ -14,9 +14,21 @@ export const readUserTransactionHistoryAdmin = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || "";
+    const today = req.query.today === "true";
     const skip = (page - 1) * limit;
 
     let filter = {};
+
+    if (today) {
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      const endOfToday = new Date();
+      endOfToday.setHours(23, 59, 59, 999);
+      filter.createdAt = {
+        $gte: startOfToday,
+        $lte: endOfToday,
+      };
+    }
 
     // Xử lý tìm kiếm đa năng
     if (search) {
