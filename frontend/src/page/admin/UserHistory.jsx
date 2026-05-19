@@ -10,7 +10,7 @@ const UserHistory = () => {
   const [histories, setHistories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [todayOnly, setTodayOnly] = useState(true);
+  const [todayOnly, setTodayOnly] = useState(false);
 
   const transactionType = {
     bankAccount: {

@@ -2,7 +2,7 @@ import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { categoriesService } from "../../service/categoriesService";
-import { formatCurrency, formatDate } from "../../utils/format";
+import { formatDate } from "../../utils/format";
 import { useModal } from "../../hooks/useModal";
 import ConfirmDeleteModal from "../../components/admin/ConfirmDeleteModal";
 import NotFound from "../../components/common/NotFound";
@@ -13,9 +13,7 @@ import icon_delete from "../../assets/svg/delete.svg";
 
 const Categories = () => {
   const { showModal, showEffect, openModal, closeModal } = useModal();
-
-  // Lấy API service
-
+  const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
@@ -26,6 +24,8 @@ const Categories = () => {
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu", error);
         toast.error("Không thể tải danh sách danh mục");
+      } finally {
+        setLoading(false);
       }
     };
     fetchCategories();
@@ -86,45 +86,59 @@ const Categories = () => {
                 </tr>
               </thead>
               <tbody>
-                {categories.map((item, index) => (
-                  <tr key={item._id}>
-                    <td>{index + 1}</td>
-                    <td>{item.name}</td>
-                    <td>
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="img-thumbnail"
-                        style={{ width: "200px" }}
-                      />
-                    </td>
-                    <td>
-                      <span
-                        className={`badges ${item.status ? "status-success" : "status-error"}`}
-                      >
-                        {item.status ? "Hoạt động" : "Tạm khoá"}
-                      </span>
-                    </td>
-                    <td>{formatDate(item.createdAt)}</td>
-                    <td className="align-middle text-center">
-                      <div className="d-flex justify-content-center align-items-center">
-                        <Link to={`edit/${item._id}`}>
-                          <img src={icon_edit} alt="edit" className="me-3" />
-                        </Link>
-                        <Link to="#">
-                          <img
-                            src={icon_delete}
-                            alt="delete"
-                            onClick={() => {
-                              setDeleteCategories(item);
-                              openModal();
-                            }}
-                          />
-                        </Link>
-                      </div>
+                {loading ? (
+                  <tr>
+                    <td colSpan="6" className="text-center">
+                      Đang tải dữ liệu...
                     </td>
                   </tr>
-                ))}
+                ) : categories.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center">
+                      <NotFound message="Không có dữ liệu" />
+                    </td>
+                  </tr>
+                ) : (
+                  categories.map((item) => (
+                    <tr key={item.categoriesId}>
+                      <td>{item.categoriesId}</td>
+                      <td>{item.name}</td>
+                      <td>
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="img-thumbnail"
+                          style={{ width: "200px" }}
+                        />
+                      </td>
+                      <td>
+                        <span
+                          className={`badges ${item.status ? "status-success" : "status-error"}`}
+                        >
+                          {item.status ? "Hoạt động" : "Tạm khoá"}
+                        </span>
+                      </td>
+                      <td>{formatDate(item.createdAt)}</td>
+                      <td className="align-middle text-center">
+                        <div className="d-flex justify-content-center align-items-center">
+                          <Link to={`edit/${item._id}`}>
+                            <img src={icon_edit} alt="edit" className="me-3" />
+                          </Link>
+                          <Link to="#">
+                            <img
+                              src={icon_delete}
+                              alt="delete"
+                              onClick={() => {
+                                setDeleteCategories(item);
+                                openModal();
+                              }}
+                            />
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
             <ConfirmDeleteModal

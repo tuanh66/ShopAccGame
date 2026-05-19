@@ -34,8 +34,9 @@ const generateAttributeKey = (label) => {
 export const readAllSlug = async (req, res) => {
   try {
     const slugCategories = await Categories.find().select("slug name -_id");
-    const slugRandomCategories = await RandomCategories.find().select("slug name -_id");
-    
+    const slugRandomCategories =
+      await RandomCategories.find().select("slug name -_id");
+
     return res.status(200).json({
       message: "Lấy tất cả danh mục thành công",
       slugCategories,
@@ -183,10 +184,26 @@ export const removeCategoriesAttribute = async (req, res) => {
 
 export const readCategories = async (req, res) => {
   try {
-    const categories = await Categories.find().sort({ createdAt: -1 });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const skip = (page - 1) * limit;
+
+    const total = await Categories.countDocuments();
+    const categories = await Categories.find()
+      .skip(skip)
+      .limit(limit)
+      .select("-_id -__v -updatedAt")
+      .sort({ createdAt: -1 });
     return res.status(200).json({
       message: "Lấy danh mục thành công",
       data: categories,
+      pagination: {
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        limit,
+      },
     });
   } catch (error) {
     console.error("Lỗi khi gọi readCategories", error);
@@ -468,7 +485,7 @@ export const readCategoriesStatus = async (req, res) => {
 
     // 3. Gộp 2 mảng và sắp xếp theo ngày tạo (cũ nhất lên đầu)
     const combinedCategories = [...categories, ...randomCategories].sort(
-      (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
     );
 
     return res.status(200).json({
