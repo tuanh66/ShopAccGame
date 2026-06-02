@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import useLogin from "../hook/auth/useLogin";
 import useRegister from "../hook/auth/useRegister";
@@ -42,6 +42,7 @@ import paypal from "../assets/svg/paypal.svg";
 import visa from "../assets/svg/visa.svg";
 
 const ClientLayout = () => {
+  const navigate = useNavigate();
   const [loginConfig, setLoginConfig] = useState(null);
   useEffect(() => {
     const fetchLoginConfig = async () => {
@@ -126,6 +127,7 @@ const ClientLayout = () => {
     e.preventDefault();
     await signOut();
     setShowBoxAccount(false);
+    navigate("/");
   };
 
   const formatMoney = (value) => {
@@ -508,7 +510,9 @@ const ClientLayout = () => {
                               <div className="d-flex justify-content-center">
                                 {loginConfig?.facebookActive && (
                                   <div className="social-container mt-24">
-                                    <Link to={`${import.meta.env.VITE_API_URL}/login-config/facebook`}>
+                                    <Link
+                                      to={`${import.meta.env.VITE_API_URL}/login-config/facebook`}
+                                    >
                                       <img
                                         src={facebook}
                                         alt="login-facebook"
@@ -518,24 +522,27 @@ const ClientLayout = () => {
                                 )}
                                 {loginConfig?.googleActive && (
                                   <div className="social-container mt-24">
-                                    <Link to={`${import.meta.env.VITE_API_URL}/login-config/google`}>
+                                    <Link
+                                      to={`${import.meta.env.VITE_API_URL}/login-config/google`}
+                                    >
                                       <img src={googole} alt="login-google" />
                                     </Link>
                                   </div>
                                 )}
                                 {loginConfig?.discordActive && (
                                   <div className="social-container mt-24">
-                                    <Link to={`${import.meta.env.VITE_API_URL}/login-config/discord`}>
-                                      <img
-                                        src={discord}
-                                        alt="login-discord"
-                                      />
+                                    <Link
+                                      to={`${import.meta.env.VITE_API_URL}/login-config/discord`}
+                                    >
+                                      <img src={discord} alt="login-discord" />
                                     </Link>
                                   </div>
                                 )}
                                 {loginConfig?.zaloActive && (
                                   <div className="social-container mt-24">
-                                    <Link to={`${import.meta.env.VITE_API_URL}/login-config/zalo`}>
+                                    <Link
+                                      to={`${import.meta.env.VITE_API_URL}/login-config/zalo`}
+                                    >
                                       <img src={zalo} alt="login-zalo" />
                                     </Link>
                                   </div>
@@ -634,21 +641,25 @@ const ClientLayout = () => {
                         <p className="fz-15 fw-500 title-color mb-16">
                           MENU TÀI KHOẢN
                         </p>
-                        <div className="sidebar-item">
-                          <Link
-                            to="/admin"
-                            className="d-flex align-items-center"
-                          >
-                            <div className="sidebar-item-icon">
-                              <PiUserCircleLight className="fz-24 title-color" />
+                        {user?.role === "admin" && (
+                          <>
+                            <div className="sidebar-item">
+                              <Link
+                                to="/admin"
+                                className="d-flex align-items-center"
+                              >
+                                <div className="sidebar-item-icon">
+                                  <PiUserCircleLight className="fz-24 title-color" />
+                                </div>
+                                <p className="sidebar-item-text fz-12 fw-400">
+                                  Vào trang Admin
+                                </p>
+                                <HiOutlineChevronRight className="fz-20 text-link" />
+                              </Link>
                             </div>
-                            <p className="sidebar-item-text fz-12 fw-400">
-                              Vào trang Admin
-                            </p>
-                            <HiOutlineChevronRight className="fz-20 text-link" />
-                          </Link>
-                        </div>
-                        <div className="sidebar-item-partition"></div>
+                            <div className="sidebar-item-partition"></div>
+                          </>
+                        )}
                         <div className="sidebar-item">
                           <Link
                             to="/profile/thong-tin"

@@ -15,12 +15,24 @@ export const categoriesService = {
     const res = await api.get("/categories/admin");
     return res.data;
   },
+  readCategoriesById: async (id) => {
+    const res = await api.get(`/categories/admin/${id}`);
+    return res.data;
+  },
   updateCategories: async (id, data) => {
     const res = await api.put(`/categories/admin/${id}`, data);
     return res.data;
   },
   deleteCategories: async (id) => {
     const res = await api.delete(`/categories/admin/${id}`);
+    return res.data;
+  },
+  addCategoriesAttribute: async (id, data) => {
+    const res = await api.post(`/categories/admin/${id}/attribute`, data);
+    return res.data;
+  },
+  removeCategoriesAttribute: async (id, key) => {
+    const res = await api.delete(`/categories/admin/${id}/attribute/${key}`);
     return res.data;
   },
   // Random Categories

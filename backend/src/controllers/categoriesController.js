@@ -104,7 +104,7 @@ export const addCategoriesAttribute = async (req, res) => {
       });
     }
 
-    const categories = await Categories.findById(id);
+    const categories = await Categories.findOne({ categoriesId: id });
     if (!categories) {
       return res.status(404).json({
         message: "Danh mục không tồn tại",
@@ -148,7 +148,7 @@ export const removeCategoriesAttribute = async (req, res) => {
   try {
     const { id, key } = req.params;
 
-    const categories = await Categories.findById(id);
+    const categories = await Categories.findOne({ categoriesId: id });
     if (!categories) {
       return res.status(404).json({
         message: "Danh mục không tồn tại",
@@ -168,7 +168,7 @@ export const removeCategoriesAttribute = async (req, res) => {
 
     // 2️⃣ Xoá attribute đó trong tất cả account
     await Accounts.updateMany(
-      { categories_id: id },
+      { categories_id: categories._id },
       { $unset: { [`attributes.${key}`]: "" } },
     );
 
@@ -215,8 +215,8 @@ export const readCategoriesById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const categories = await Categories.findById(id).select(
-      "name slug image attributes status",
+    const categories = await Categories.findOne({ categoriesId: id }).select(
+      "categoriesId name slug image attributes status",
     );
 
     if (!categories) {
@@ -240,7 +240,7 @@ export const updateCategories = async (req, res) => {
     const { id } = req.params;
     const { name, image, status } = req.body;
 
-    const categories = await Categories.findById(id);
+    const categories = await Categories.findOne({ categoriesId: id });
     if (!categories) {
       return res.status(404).json({
         message: "Danh mục không tồn tại",
@@ -277,16 +277,16 @@ export const deleteCategories = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const categories = await Categories.findById(id);
+    const categories = await Categories.findOne({ categoriesId: id });
     if (!categories) {
       return res.status(404).json({
         message: "Danh mục không tồn tại",
       });
     }
 
-    await Accounts.deleteMany({ categories_id: id });
+    await Accounts.deleteMany({ categories_id: categories._id });
 
-    await Categories.findByIdAndDelete(id);
+    await Categories.deleteOne({ categoriesId: id });
 
     return res.status(200).json({
       message: `Đã xoá danh mục ${categories.name} và toàn bộ dữ liệu liên quan`,

@@ -1,9 +1,8 @@
-import axios from "axios";
 import toast from "react-hot-toast";
 import { imageService } from "../../service/imageService";
+import { categoriesService } from "../../service/categoriesService";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useAuthStore } from "../../store/useAuthStore";
 import uploadImage from "../../assets/svg/upload.svg";
 import selectedPhotos from "../../assets/img/selectedPhotos.png";
 import icon_delete from "../../assets/svg/delete.svg";
@@ -46,11 +45,11 @@ const CategoriesEdit = () => {
   };
 
   // Xử lý lấy dữ liệu
-  const accessToken = useAuthStore((s) => s.accessToken);
   const { id } = useParams();
   const [categoriesUpdate, setCategoriesUpdate] = useState({
     name: "",
     slug: "",
+    image: "",
     attributes: {},
     status: true,
   });
@@ -58,19 +57,14 @@ const CategoriesEdit = () => {
   useEffect(() => {
     const fetchCategory = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:5001/api/categories/admin/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          },
-        );
-
-        setCategoriesUpdate(res.data.data);
+        const response = await categoriesService.readCategoriesById(id);
+        if (response.data) {
+          setCategoriesUpdate(response.data);
+        }
         setLoadingImage(false);
       } catch (error) {
-        console.error("Lỗi khi lấy dữ liệu", error);
+        console.error("Lỗi khi lấy dữ liệu danh mục", error);
+        toast.error("Không thể tải thông tin danh mục");
       }
     };
 
@@ -100,30 +94,24 @@ const CategoriesEdit = () => {
     e.preventDefault();
 
     try {
-      let imageUrl = categoriesUpdate.image_category;
+      let imageUrl = categoriesUpdate.image;
 
       if (fileImage) {
         imageUrl = await imageService.uploadImage(fileImage);
       }
 
-      const res = await axios.put(
-        `http://localhost:5001/api/categories/admin/${id}`,
-        {
-          ...categoriesUpdate,
-          image_category: imageUrl,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
-      setCategoriesUpdate(res.data.data);
+      const response = await categoriesService.updateCategories(id, {
+        ...categoriesUpdate,
+        image: imageUrl,
+      });
 
-      toast.success("Cập nhật thành công");
+      if (response.data) {
+        setCategoriesUpdate(response.data);
+      }
+      toast.success("Cập nhật danh mục thành công");
     } catch (error) {
-      console.error("Lỗi khi cập nhật", error);
-      toast.error("Cập nhật thất bại");
+      console.error("Lỗi khi cập nhật danh mục:", error);
+      toast.error(error.response?.data?.message || "Cập nhật thất bại");
     }
   };
 
@@ -142,25 +130,19 @@ const CategoriesEdit = () => {
               .filter((opt) => opt !== "")
           : [];
 
-      const res = await axios.post(
-        `http://localhost:5001/api/categories/admin/${id}/attribute`,
-        {
-          label: newAttribute.label,
-          type: newAttribute.type,
-          options: formattedOptions,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
+      const response = await categoriesService.addCategoriesAttribute(id, {
+        label: newAttribute.label,
+        type: newAttribute.type,
+        options: formattedOptions,
+      });
 
       // Cập nhật lại state từ response backend
-      setCategoriesUpdate((prev) => ({
-        ...prev,
-        attributes: res.data.data,
-      }));
+      if (response.data) {
+        setCategoriesUpdate((prev) => ({
+          ...prev,
+          attributes: response.data,
+        }));
+      }
 
       setNewAttribute({
         label: "",
@@ -178,22 +160,18 @@ const CategoriesEdit = () => {
   const [deleteAttribute, setDeleteAttribute] = useState(null);
   const handleDeleteAttribute = async () => {
     try {
-      const res = await axios.delete(
-        `http://localhost:5001/api/categories/admin/${id}/attribute/${deleteAttribute.key}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
-      setCategoriesUpdate((prev) => ({
-        ...prev,
-        attributes: res.data.data,
-      }));
+      const response = await categoriesService.removeCategoriesAttribute(id, deleteAttribute.key);
+      if (response.data) {
+        setCategoriesUpdate((prev) => ({
+          ...prev,
+          attributes: response.data,
+        }));
+      }
       close();
       toast.success(`Xoá thuộc tính ${deleteAttribute?.label} thành công`);
     } catch (error) {
-      console.error("Lỗi xoá danh mục", error);
+      console.error("Lỗi xoá thuộc tính:", error);
+      toast.error("Xoá thuộc tính thất bại");
     }
   };
 
@@ -219,7 +197,7 @@ const CategoriesEdit = () => {
                   name="name"
                   id="name"
                   className="input-form"
-                  value={categoriesUpdate.name}
+                  value={categoriesUpdate.name || ""}
                   onChange={handleChange}
                 />
               </div>
@@ -233,7 +211,7 @@ const CategoriesEdit = () => {
                   name="slug_category"
                   id="slug_category"
                   className="input-form"
-                  value={categoriesUpdate.slug}
+                  value={categoriesUpdate.slug || ""}
                   readOnly
                 />
               </div>
@@ -412,7 +390,7 @@ const CategoriesEdit = () => {
                                 ></button>
                               </div>
                               <div className="modal-body">
-                                Bạn có chắc chắn muốn xóa danh mục{" "}
+                                Bạn có chắc chắn muốn xóa thuộc tính{" "}
                                 <b>{deleteAttribute?.label}</b> này không? Tất
                                 cả dữ liệu có liên quan đến nó sẽ biến mất khỏi
                                 hệ thống!

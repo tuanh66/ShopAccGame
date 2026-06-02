@@ -34,11 +34,11 @@ const Categories = () => {
   const [deleteCategories, setDeleteCategories] = useState(null);
   const handleDelete = async () => {
     try {
-      await categoriesService.deleteCategories(deleteCategories._id);
+      await categoriesService.deleteCategories(deleteCategories.categoriesId);
       setCategories((prev) =>
-        prev.filter((item) => item._id !== deleteCategories._id),
+        prev.filter((item) => item.categoriesId !== deleteCategories.categoriesId),
       );
-      close(); // đóng modal
+      closeModal(); // đóng modal
       toast.success(`Đã xoá danh mục ${deleteCategories.name} thành công`);
     } catch (error) {
       console.error("Lỗi xoá danh mục", error);
@@ -121,7 +121,7 @@ const Categories = () => {
                       <td>{formatDate(item.createdAt)}</td>
                       <td className="align-middle text-center">
                         <div className="d-flex justify-content-center align-items-center">
-                          <Link to={`edit/${item._id}`}>
+                          <Link to={`edit/${item.categoriesId}`}>
                             <img src={icon_edit} alt="edit" className="me-3" />
                           </Link>
                           <Link to="#">

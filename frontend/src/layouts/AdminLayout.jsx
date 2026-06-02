@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { HiOutlineChevronRight } from "react-icons/hi";
-import axios from "axios";
 import { categoriesService } from "../service/categoriesService";
-import { useAuthStore } from "../store/useAuthStore";
 import logo from "../assets/img/logo.png";
 import dashboard from "../assets/svg/dashboard.svg";
 import product from "../assets/svg/product.svg";

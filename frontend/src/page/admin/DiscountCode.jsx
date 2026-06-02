@@ -7,55 +7,29 @@ import icon_plus from "../../assets/svg/plus.svg";
 import icon_edit from "../../assets/svg/edit.svg";
 import icon_delete from "../../assets/svg/delete.svg";
 import NotFound from "../../components/common/NotFound";
-import { useUIStore } from "../../store/useUIStore";
+import { useModal } from "../../hooks/useModal";
+import ConfirmDeleteModal from "../../components/admin/ConfirmDeleteModal";
 
 const DiscountCode = () => {
-  const setNotFoundText = useUIStore((s) => s.setNotFoundText);
-
-  useEffect(() => {
-    setNotFoundText("Không có mã giảm giá nào");
-  }, [setNotFoundText]);
-  // Modal xác nhận xoá
-  const [showModalDelete, setShowModalDelete] = useState(false);
-  const [showEffect, setShowEffect] = useState(false);
-  const close = () => {
-    setShowEffect(false);
-    setTimeout(() => {
-      setShowModalDelete(false);
-    }, 300);
-  };
-
-  useEffect(() => {
-    if (showModalDelete) {
-      setTimeout(() => {
-        setShowEffect(true);
-      }, 10);
-    }
-  }, [showModalDelete]);
-
   // Lấy danh sách mã giảm giá
+  const { showModal, showEffect, openModal, closeModal } = useModal();
   const [discountCodes, setDiscountCodes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let isMounted = true;
     const fetchData = async () => {
       try {
         const res = await discountCodeService.readDiscountCode();
-        if (isMounted) {
-          setDiscountCodes(res.data || []);
-        }
+        setDiscountCodes(res.data);
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu", error);
+        toast.error("Không thể tải danh sách mã giảm giá");
       } finally {
-        if (isMounted) setLoading(false);
+        setLoading(false);
       }
     };
 
     fetchData();
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   // Xoá mã giảm giá
@@ -134,122 +108,76 @@ const DiscountCode = () => {
                 ) : filtered.length === 0 ? (
                   <tr>
                     <td colSpan="8" className="text-center">
-                      <NotFound />
+                      <NotFound message="Không có dữ liệu" />
                     </td>
                   </tr>
                 ) : (
                   filtered.map((item, index) => (
-                  <tr key={item._id}>
-                    <td>{filtered.length - index}</td>
-                    <td>{item.code}</td>
-                    <td>
-                      {item.type === "percent"
-                        ? "Phần trăm"
-                        : "Cố định"}
-                    </td>
-                    <td>
-                      {item.type === "percent"
-                        ? `${item.value}%`
-                        : `${new Intl.NumberFormat("vi-VN").format(item.value)}đ`}
-                    </td>
-                    <td>
-                      {item.maxUses === 0
-                        ? "Không giới hạn"
-                        : `${item.maxUses - (item.usedCount || 0)}`}
-                    </td>
-                    <td>
-                      {item.expirationDate
-                        ? new Date(item.expirationDate).toLocaleDateString(
-                            "vi-VN",
-                            {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                            },
-                          )
-                        : "Không hết hạn"}
-                    </td>
-                    <td>
-                      <span
-                        className={`badges ${item.status ? "status-success" : "status-error"}`}
-                      >
-                        {item.status ? "Hoạt động" : "Không hoạt động"}
-                      </span>
-                    </td>
-                    <td className="align-middle text-center">
-                      <div className="d-flex justify-content-center align-items-center">
-                        <Link to={`edit/${item._id}`}>
-                          <img src={icon_edit} alt="edit" className="me-3" />
-                        </Link>
-                        <Link to="#">
-                          <img
-                            src={icon_delete}
-                            alt="delete"
-                            onClick={() => {
-                              setDeleteItem(item);
-                              setShowModalDelete(true);
-                            }}
-                          />
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
+                    <tr key={item._id}>
+                      <td>{filtered.length - index}</td>
+                      <td>{item.code}</td>
+                      <td>
+                        {item.type === "percent" ? "Phần trăm" : "Cố định"}
+                      </td>
+                      <td>
+                        {item.type === "percent"
+                          ? `${item.value}%`
+                          : `${new Intl.NumberFormat("vi-VN").format(item.value)}đ`}
+                      </td>
+                      <td>
+                        {item.maxUses === 0
+                          ? "Không giới hạn"
+                          : `${item.maxUses - (item.usedCount || 0)}`}
+                      </td>
+                      <td>
+                        {item.expirationDate
+                          ? new Date(item.expirationDate).toLocaleDateString(
+                              "vi-VN",
+                              {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              },
+                            )
+                          : "Không hết hạn"}
+                      </td>
+                      <td>
+                        <span
+                          className={`badges ${item.status ? "status-success" : "status-error"}`}
+                        >
+                          {item.status ? "Hoạt động" : "Không hoạt động"}
+                        </span>
+                      </td>
+                      <td className="align-middle text-center">
+                        <div className="d-flex justify-content-center align-items-center">
+                          <Link to={`edit/${item._id}`}>
+                            <img src={icon_edit} alt="edit" className="me-3" />
+                          </Link>
+                          <Link to="#">
+                            <img
+                              src={icon_delete}
+                              alt="delete"
+                              onClick={() => {
+                                setDeleteItem(item);
+                                openModal();
+                              }}
+                            />
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
                   ))
                 )}
               </tbody>
             </table>
-            {showModalDelete && (
-              <>
-                <div
-                  className={`modal fade ${showEffect ? "show" : ""}`}
-                  style={{
-                    display: showModalDelete ? "block" : "none",
-                  }}
-                  onClick={close}
-                >
-                  <div
-                    className="modal-dialog"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="modal-content">
-                      <div className="modal-header">
-                        <h1 className="modal-title fs-5">Xác nhận xoá</h1>
-                        <button
-                          type="button"
-                          className="btn-close"
-                          data-bs-dismiss="modal"
-                          onClick={close}
-                        ></button>
-                      </div>
-                      <div className="modal-body">
-                        Bạn có chắc chắn muốn xóa mã giảm giá{" "}
-                        <b>{deleteItem?.code}</b> không? Tất cả dữ liệu có liên
-                        quan đến mã này sẽ biến mất khỏi hệ thống!
-                      </div>
-                      <div className="modal-footer">
-                        <button
-                          type="button"
-                          className="btn btn-submit red"
-                          onClick={handleDelete}
-                        >
-                          Xoá
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-cancel"
-                          onClick={close}
-                        >
-                          Huỷ
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className={`modal-backdrop fade ${showEffect ? "show" : ""}`}
-                ></div>
-              </>
-            )}
+            <ConfirmDeleteModal
+              show={showModal}
+              showEffect={showEffect}
+              onClose={closeModal}
+              onConfirm={handleDelete}
+              message="Bạn có chắc chắn muốn xoá mã giảm giá"
+              itemName={deleteItem?.code}
+            />
             <div className="table-pagination-control">
               <span className="me-1">Show per page :</span>
               <select className="custom-select">

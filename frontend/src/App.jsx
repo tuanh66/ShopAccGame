@@ -54,6 +54,8 @@ import DiscountCode from "./page/admin/DiscountCode";
 import DiscountCodeCreate from "./page/admin/DiscountCodeCreate";
 import DiscountCodeEdit from "./page/admin/DiscountCodeEdit";
 import DiscountCodeHistory from "./page/admin/DiscountCodeHistory";
+import General from "./page/admin/General";
+import Social from "./page/admin/Social";
 import LoginConfiguration from "./page/admin/LoginConfiguration";
 
 function App() {
@@ -156,6 +158,8 @@ function App() {
                 <Route path="discount-code" element={<DiscountCodeHistory />} />
               </Route>
               <Route path="settings">
+                <Route path="general" element={<General />} />
+                <Route path="social" element={<Social />} />
                 <Route path="login" element={<LoginConfiguration />} />
               </Route>
             </Route>
